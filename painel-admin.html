@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel do Administrador</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles-painel-admin.css">
+</head>
+<body>
+  <h2>🧰 Painel do Administrador</h2>
+  <p>Bem-vindo, <span id="adminNome"></span>!</p>
+
+  <div class="painel-section">
+    <h3>📦 Gerenciar Caixas</h3>
+
+    <div>
+      <label>Nome da Caixa:</label>
+      <input id="nomeCaixa" placeholder="Ex: Caixa João">
+      <label>ID do Usuário:</label>
+      <input id="usuarioId" placeholder="Ex: 2">
+      <button id="btnAdicionar">➕ Adicionar</button>
+    </div>
+
+    <hr>
+
+    <h3>🔗 Associar Caixa Existente a Usuário</h3>
+    <select id="listaCaixas"></select>
+    <input id="novoUsuarioId" placeholder="ID do usuário">
+    <button id="btnAssociar">🔄 Associar Caixa</button>
+  </div>
+
+  <hr>
+
+  <div>
+    <h3>📋 Visualizar Caixa</h3>
+    <button id="btnVer">👁️ Ver Caixa Selecionada</button>
+    <button id="btnLogout">🚪 Sair</button>
+  </div>
+
+  <p id="msg"></p>
+
+  <script src="script-admin.js"></script>
+</body>
+</html>
