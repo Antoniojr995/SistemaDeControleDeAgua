@@ -234,7 +234,7 @@ app.put('/api/caixas/:id/associar', autenticar, (req, res) => {
 // =======================
 // 🌐 Servir frontend
 // =======================
-app.use("/", express.static(path.join(__dirname, "../frontend")));
+app.use(express.static(__dirname));
 
 // =======================
 // 🚀 Inicialização
