@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Painel do Cliente</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h2>📊 Monitoramento do Nível de Água</h2>
+
+  <h3>Caixa 1</h3>
+  <div class="barra"><div id="volume1" class="volume"></div></div>
+
+  <h3>Caixa 2</h3>
+  <div class="barra"><div id="volume2" class="volume"></div></div>
+
+  <div class="controles">
+    <label><input id="btnLigarBomba" type="checkbox"> 💧 Ligar Bomba</label>
+    <button id="btnAtualizar">🔄 Atualizar Agora</button>
+  </div>
+
+  <!-- ✅ Novo botão “Voltar” -->
+  <button id="btnVoltarAdmin" style="display:none;">⬅️ Voltar ao Painel Admin</button>
+  <button id="btnLogout">🚪 Sair</button>
+
+  <h3>📅 Histórico dos últimos 30 dias</h3>
+  <table id="tabelaHistorico" border="1" style="width:100%; text-align:center;">
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Caixa 1 (%)</th>
+        <th>Caixa 2 (%)</th>
+        <th>Leituras</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <hr>
+  <h3>📊 Gerar Relatório</h3>
+  De: <input type="date" id="dataInicio">
+  Até: <input type="date" id="dataFim">
+  <button id="btnRelatorio">Gerar</button>
+
+  <div id="resultadoRelatorio"></div>
+
+  <script src="script-painel.js"></script>
+</body>
+</html>

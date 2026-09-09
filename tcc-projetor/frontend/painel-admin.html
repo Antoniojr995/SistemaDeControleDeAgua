@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel do Administrador</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles-painel-admin.css">
+</head>
+<body>
+  <h2>🧰 Painel do Administrador</h2>
+  <p>Bem-vindo, <span id="adminNome"></span>! <button id="btnLogout">🚪 Sair</button></p>
+
+  <!-- 🗂️ Menu de Navegação por Camadas/Abas -->
+  <div class="menu-abas">
+    <button onclick="mudarAba('abaCaixas')">📦 Caixas d'Água</button>
+    <button onclick="mudarAba('abaClientes')">👥 Clientes</button>
+    <button onclick="mudarAba('abaRegistros')">📝 Cadastros</button>
+    <button onclick="mudarAba('abaChamados')">🔔 Chamados</button>
+  </div>
+
+  <hr>
+
+  <!-- 📦 CAMADA 1: Caixas d'Água -->
+  <div id="abaCaixas" class="camada-conteudo">
+    <h3>📦 Caixas d'Água Cadastradas</h3>
+    <select id="listaCaixas"></select>
+    <button id="btnVer">👁️ Ver Caixa Selecionada</button>
+    <div id="dadosCaixaSelecionada"></div>
+  </div>
+
+  <!-- 👥 CAMADA 2: Clientes -->
+  <div id="abaClientes" class="camada-conteudo" style="display:none;">
+    <h3>👥 Lista de Clientes</h3>
+    <div id="listaClientes">
+      <p>Carregando clientes...</p>
+    </div>
+  </div>
+
+  <!-- 📝 CAMADA 3: Registros -->
+  <div id="abaRegistros" class="camada-conteudo" style="display:none;">
+    <h3>➕ Criar Nova Caixa</h3>
+    <div>
+      <input id="nomeCaixa" placeholder="Ex: Caixa João">
+      <input id="usuarioId" placeholder="ID do Usuário (Ex: 2)">
+      <button id="btnAdicionar">Adicionar Caixa</button>
+    </div>
+
+    <hr>
+
+    <h3>🔗 Associar Caixa Existente</h3>
+    <div>
+      <input id="novoUsuarioId" placeholder="ID do Usuário">
+      <button id="btnAssociar">Associar Caixa</button>
+    </div>
+
+    <hr>
+
+    <h3>👤 Cadastrar Novo Cliente</h3>
+    <form id="formNovoCliente">
+      <input type="text" id="novoClienteNome" placeholder="Nome do Cliente" required>
+      <input type="email" id="novoClienteEmail" placeholder="E-mail" required>
+      <input type="password" id="novoClienteSenha" placeholder="Senha" required>
+      <button type="button" id="btnCadastrarCliente">Cadastrar Cliente</button>
+    </form>
+  </div>
+
+  <!-- 🔔 CAMADA 4: Chamados -->
+  <div id="abaChamados" class="camada-conteudo" style="display:none;">
+    <h3>🔔 Chamados Abertos por Clientes</h3>
+    <div id="listaChamados">
+      <p>Nenhum chamado pendente.</p>
+    </div>
+  </div>
+
+  <p id="msg"></p>
+
+  <script src="script-admin.js"></script>
+</body>
+</html>
