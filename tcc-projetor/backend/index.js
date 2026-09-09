@@ -271,8 +271,6 @@ app.get("/api/chamados", autenticar, async (req, res) => {
   }
 });
 
-
-
 // =======================
 // 🌐 Servir frontend
 // =======================
