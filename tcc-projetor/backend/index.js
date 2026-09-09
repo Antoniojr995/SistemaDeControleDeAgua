@@ -109,11 +109,13 @@ app.post("/api/dados", (req, res) => {
 // 📊 Consultas protegidas
 // =======================
 app.get("/api/caixas", autenticar, (req, res) => {
+  // Traz o nome do cliente vinculado junto com a caixa
   const sql =
     req.user.tipo === "admin"
-      ? "SELECT * FROM caixas"
+      ? "SELECT c.id, c.nome, c.usuario_id, u.nome AS cliente_nome FROM caixas c LEFT JOIN usuarios u ON c.usuario_id = u.id"
       : "SELECT * FROM caixas WHERE usuario_id = ?";
   const params = req.user.tipo === "admin" ? [] : [req.user.id];
+
   db.all(sql, params, (err, rows) => {
     if (err) return res.status(500).json({ erro: err.message });
     res.json(rows);
@@ -230,45 +232,82 @@ app.put('/api/caixas/:id/associar', autenticar, (req, res) => {
 });
 
 // =======================
-// 📩 Rotas de Chamados
+// 📩 Rotas de Chamados (SQLite)
 // =======================
-
-// Cliente abre um chamado
-app.post("/api/chamados", autenticar, async (req, res) => {
+app.post("/api/chamados", autenticar, (req, res) => {
   const { assunto, mensagem } = req.body;
-  try {
-    await pool.query(
-      "INSERT INTO chamados (usuario_id, assunto, mensagem) VALUES ($1, $2, $3)",
-      [req.user.id, assunto, mensagem]
-    );
-    res.json({ ok: true, msg: "Chamado aberto com sucesso!" });
-  } catch (err) {
-    res.status(500).json({ erro: "Erro ao abrir chamado." });
-  }
+  db.run(
+    "INSERT INTO chamados (usuario_id, assunto, mensagem) VALUES (?, ?, ?)",
+    [req.user.id, assunto, mensagem],
+    function (err) {
+      if (err) return res.status(500).json({ erro: "Erro ao abrir chamado" });
+      res.json({ ok: true, msg: "Chamado aberto com sucesso!" });
+    }
+  );
 });
 
-// Admin visualiza TODOS os chamados (ou Cliente vê os DELE)
-app.get("/api/chamados", autenticar, async (req, res) => {
-  try {
-    let sql = `
-      SELECT c.id, c.assunto, c.mensagem, c.status, c.data, u.nome as cliente_nome 
-      FROM chamados c 
-      JOIN usuarios u ON c.usuario_id = u.id 
-    `;
-    
-    // Se for cliente, filtra apenas os chamados dele
-    if (req.user.tipo !== "admin") {
-      sql += " WHERE c.usuario_id = $1";
+app.get("/api/chamados", autenticar, (req, res) => {
+  const isClient = req.user.tipo !== "admin";
+  const sql = isClient
+    ? "SELECT c.id, c.assunto, c.mensagem, c.status, c.data, u.nome as cliente_nome FROM chamados c JOIN usuarios u ON c.usuario_id = u.id WHERE c.usuario_id = ? ORDER BY c.id DESC"
+    : "SELECT c.id, c.assunto, c.mensagem, c.status, c.data, u.nome as cliente_nome FROM chamados c JOIN usuarios u ON c.usuario_id = u.id ORDER BY c.id DESC";
+  const params = isClient ? [req.user.id] : [];
+
+  db.all(sql, params, (err, rows) => {
+    if (err) return res.status(500).json({ erro: "Erro ao buscar chamados" });
+    res.json(rows);
+  });
+});
+
+// =======================
+// ➕ Cadastrar Novo Cliente (Admin)
+// =======================
+app.post("/api/admin/clientes", autenticar, (req, res) => {
+  if (req.user.tipo !== "admin") return res.status(403).json({ erro: "Acesso negado" });
+  const { nome, email, senha } = req.body;
+  if (!nome || !email || !senha) return res.status(400).json({ erro: "Campos obrigatórios" });
+
+  bcrypt.hash(senha, 10, (err, hash) => {
+    if (err) return res.status(500).json({ erro: "Erro ao criptografar senha" });
+
+    db.run(
+      "INSERT INTO usuarios (nome, email, senha_hash, tipo) VALUES (?, ?, ?, 'cliente')",
+      [nome, email, hash],
+      function (err2) {
+        if (err2) return res.status(500).json({ erro: "Email já cadastrado ou erro no banco" });
+        res.json({ ok: true, id: this.lastID, mensagem: "Cliente cadastrado com sucesso!" });
+      }
+    );
+  });
+});
+
+// =======================
+// 📦 Criar Nova Caixa (Admin)
+// =======================
+app.post("/api/admin/caixas", autenticar, (req, res) => {
+  if (req.user.tipo !== "admin") return res.status(403).json({ erro: "Acesso negado" });
+  const { nome, usuario_id } = req.body;
+  if (!nome) return res.status(400).json({ erro: "Nome da caixa é obrigatório" });
+
+  db.run(
+    "INSERT INTO caixas (nome, usuario_id) VALUES (?, ?)",
+    [nome, usuario_id || null],
+    function (err) {
+      if (err) return res.status(500).json({ erro: err.message });
+      res.json({ ok: true, id: this.lastID, mensagem: "Caixa criada com sucesso!" });
     }
-    
-    sql += " ORDER BY c.id DESC";
-    
-    const params = req.user.tipo !== "admin" ? [req.user.id] : [];
-    const result = await pool.query(sql, params);
-    res.json(result.rows);
-  } catch (err) {
-    res.status(500).json({ erro: "Erro ao buscar chamados." });
-  }
+  );
+});
+
+// =======================
+// 📋 Listar Clientes (Para preencher os selects no frontend)
+// =======================
+app.get("/api/admin/clientes", autenticar, (req, res) => {
+  if (req.user.tipo !== "admin") return res.status(403).json({ erro: "Acesso negado" });
+  db.all("SELECT id, nome, email FROM usuarios WHERE tipo = 'cliente'", [], (err, rows) => {
+    if (err) return res.status(500).json({ erro: err.message });
+    res.json(rows);
+  });
 });
 
 // =======================

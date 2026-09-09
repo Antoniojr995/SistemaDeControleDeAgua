@@ -11,7 +11,7 @@
   <h2>🧰 Painel do Administrador</h2>
   <p>Bem-vindo, <span id="adminNome"></span>! <button id="btnLogout">🚪 Sair</button></p>
 
-  <!-- 🗂️ Menu de Navegação por Camadas/Abas -->
+  <!-- 🗂️ Menu de Navegação por Abas -->
   <div class="menu-abas">
     <button onclick="mudarAba('abaCaixas')">📦 Caixas d'Água</button>
     <button onclick="mudarAba('abaClientes')">👥 Clientes</button>
@@ -26,7 +26,7 @@
     <h3>📦 Caixas d'Água Cadastradas</h3>
     <select id="listaCaixas"></select>
     <button id="btnVer">👁️ Ver Caixa Selecionada</button>
-    <div id="dadosCaixaSelecionada"></div>
+    <div id="dadosCaixaSelecionada" style="margin-top: 15px;"></div>
   </div>
 
   <!-- 👥 CAMADA 2: Clientes -->
@@ -37,32 +37,48 @@
     </div>
   </div>
 
-  <!-- 📝 CAMADA 3: Registros -->
+  <!-- 📝 CAMADA 3: Registros divididos em 3 colunas -->
   <div id="abaRegistros" class="camada-conteudo" style="display:none;">
-    <h3>➕ Criar Nova Caixa</h3>
-    <div>
-      <input id="nomeCaixa" placeholder="Ex: Caixa João">
-      <input id="usuarioId" placeholder="ID do Usuário (Ex: 2)">
-      <button id="btnAdicionar">Adicionar Caixa</button>
+    <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 10px;">
+      
+      <!-- COLUNA 1: CLIENTES -->
+      <div style="flex: 1; min-width: 260px; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+        <h3>👤 Cadastrar Cliente</h3>
+        <form id="formNovoCliente" style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+          <input type="text" id="novoClienteNome" placeholder="Nome do Cliente" required>
+          <input type="email" id="novoClienteEmail" placeholder="E-mail" required>
+          <input type="password" id="novoClienteSenha" placeholder="Senha" required>
+          <button type="button" id="btnCadastrarCliente">Cadastrar Cliente</button>
+        </form>
+      </div>
+
+      <!-- COLUNA 2: CAIXAS -->
+      <div style="flex: 1; min-width: 260px; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+        <h3>📦 Criar Nova Caixa</h3>
+        <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+          <input id="nomeCaixa" placeholder="Ex: Caixa Bloco A">
+          <select id="selectClienteCriar">
+            <option value="">Vincular a um cliente (Opcional)...</option>
+          </select>
+          <button id="btnAdicionar">Adicionar Caixa</button>
+        </div>
+      </div>
+
+      <!-- COLUNA 3: ASSOCIAÇÃO -->
+      <div style="flex: 1; min-width: 260px; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+        <h3>🔗 Associar Caixa Existente</h3>
+        <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+          <select id="selectCaixaAssociar">
+            <option value="">Selecione a Caixa...</option>
+          </select>
+          <select id="selectClienteAssociar">
+            <option value="">Selecione o Cliente...</option>
+          </select>
+          <button id="btnAssociar">Associar Caixa</button>
+        </div>
+      </div>
+
     </div>
-
-    <hr>
-
-    <h3>🔗 Associar Caixa Existente</h3>
-    <div>
-      <input id="novoUsuarioId" placeholder="ID do Usuário">
-      <button id="btnAssociar">Associar Caixa</button>
-    </div>
-
-    <hr>
-
-    <h3>👤 Cadastrar Novo Cliente</h3>
-    <form id="formNovoCliente">
-      <input type="text" id="novoClienteNome" placeholder="Nome do Cliente" required>
-      <input type="email" id="novoClienteEmail" placeholder="E-mail" required>
-      <input type="password" id="novoClienteSenha" placeholder="Senha" required>
-      <button type="button" id="btnCadastrarCliente">Cadastrar Cliente</button>
-    </form>
   </div>
 
   <!-- 🔔 CAMADA 4: Chamados -->
@@ -73,7 +89,7 @@
     </div>
   </div>
 
-  <p id="msg"></p>
+  <p id="msg" style="margin-top: 15px; font-weight: bold;"></p>
 
   <script src="script-admin.js"></script>
 </body>
