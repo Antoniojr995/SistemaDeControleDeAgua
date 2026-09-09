@@ -276,12 +276,18 @@ app.get("/api/chamados", autenticar, async (req, res) => {
 // =======================
 // 🌐 Servir frontend
 // =======================
-app.use(express.static(__dirname));
+// Aponta para a pasta frontend (subindo um nível a partir de backend)
+app.use(express.static(path.join(__dirname, "../frontend")));
+
+// Rota principal para entregar o index.html na raiz /
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/index.html"));
+});
 
 // =======================
 // 🚀 Inicialização
 // =======================
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>
-  console.log(`✅ Servidor rodando em http://192.168.31.24:${PORT}`)
+  console.log(`✅ Servidor rodando na porta ${PORT}`)
 );
