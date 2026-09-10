@@ -14,17 +14,34 @@ const pool = new Pool({
   }
 });
 
-/// Middlewares
+// Middlewares para leitura de dados de requisição
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
 
+// Configuração de Sessão para o Admin
 app.use(session({
   secret: 'segredo-chaves-dashboard',
   resave: false,
   saveUninitialized: false,
   cookie: { maxAge: 24 * 60 * 60 * 1000 }
 }));
+
+// Servir arquivos de estilo, scripts e páginas da raiz do projeto
+app.use(express.static(__dirname));
+
+// Rota para garantir o carregamento do index.html no link principal
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Rotas de páginas estáticas
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('/index.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // Servir a página principal explicitamente na raiz e em /index.html
 app.get('/', (req, res) => {
