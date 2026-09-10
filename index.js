@@ -1,330 +1,152 @@
-// =======================
-// 📦 Importações
-// =======================
-const express = require("express");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const sqlite3 = require("sqlite3").verbose();
-const bodyParser = require("body-parser");
-const cors = require("cors");
-const path = require("path");
-const fs = require("fs");
+const express = require('express');
+const { Pool } = require('pg');
+const path = require('path');
+const session = require('express-session');
 
-// =======================
-// ⚙️ Configurações
-// =======================
-const SECRET_KEY = "meusegredoseguro123";
-const dbPath = path.join(__dirname, "database.sqlite");
-const db = new sqlite3.Database(dbPath);
 const app = express();
-app.use(cors());
-app.use(bodyParser.json());
+const PORT = process.env.PORT || 3000;
 
-// =======================
-// 🧩 Banco de dados
-// =======================
-const initSqlPath = path.join(__dirname, "init-db.sql");
+// Configuração da conexão com o PostgreSQL (Neon/Render)
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
+});
 
-// Verifica se o arquivo SQL existe na raiz antes de rodar
-if (fs.existsSync(initSqlPath)) {
-  const initSql = fs.readFileSync(initSqlPath, "utf8");
-  db.exec(initSql, (err) => {
-    if (err) console.error("Erro ao inicializar o banco:", err);
-    else console.log("✅ Banco pronto ou já existente.");
-  });
-} else {
-  console.log("ℹ️ init-db.sql não encontrado na raiz, mantendo o banco atual.");
-}
+// Middlewares
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
 
-// =======================
-// 🔑 Funções auxiliares
-// =======================
-function gerarToken(usuario) {
-  return jwt.sign(
-    { id: usuario.id, tipo: usuario.tipo },
-    SECRET_KEY,
-    { expiresIn: "8h" }
-  );
-}
+app.use(session({
+  secret: 'segredo-chaves-dashboard',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { maxAge: 24 * 60 * 60 * 1000 } // 24 horas
+}));
 
-function autenticar(req, res, next) {
-  const auth = req.headers.authorization;
-  if (!auth) return res.status(401).json({ erro: "Token ausente" });
+// Inicialização e Criação das Tabelas
+async function initDb() {
   try {
-    req.user = jwt.verify(auth.split(" ")[1], SECRET_KEY);
-    next();
-  } catch {
-    res.status(401).json({ erro: "Token inválido" });
+    // Tabela de usuários/admin
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS usuarios (
+        id SERIAL PRIMARY KEY,
+        usuario VARCHAR(50) UNIQUE NOT NULL,
+        senha VARCHAR(100) NOT NULL
+      )
+    `);
+
+    // Tabela de leituras de água
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS leituras (
+        id SERIAL PRIMARY KEY,
+        nivel INTEGER NOT NULL,
+        data_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Inserir usuário admin padrão caso não exista nenhum
+    const userCheck = await pool.query('SELECT * FROM usuarios WHERE usuario = $1', ['admin']);
+    if (userCheck.rows.length === 0) {
+      await pool.query('INSERT INTO usuarios (usuario, senha) VALUES ($1, $2)', ['admin', '123456']);
+      console.log('Usuário admin padrão criado (admin / 123456)');
+    }
+
+    console.log('Banco de dados PostgreSQL verificado e pronto!');
+  } catch (err) {
+    console.error('Erro ao inicializar tabelas:', err);
   }
 }
 
-// =======================
-// 👤 Registro de usuários
-// =======================
-app.post("/api/register", async (req, res) => {
-  const { nome, email, senha } = req.body;
-  if (!nome || !email || !senha)
-    return res.status(400).json({ erro: "Campos obrigatórios" });
+initDb();
 
-  db.get("SELECT COUNT(*) AS total FROM usuarios", async (err, row) => {
-    if (err) return res.status(500).json({ erro: "Erro no banco" });
-    const tipo = row.total === 0 ? "admin" : "cliente";
+// Middleware de Autenticação
+function requererAutenticacao(req, res, next) {
+  if (req.session && req.session.logado) {
+    return next();
+  }
+  res.status(401).json({ error: 'Acesso negado. Faça login primeiro.' });
+}
 
-    const hash = await bcrypt.hash(senha, 10);
-    db.run(
-      "INSERT INTO usuarios (nome, email, senha_hash, tipo) VALUES (?, ?, ?, ?)",
-      [nome, email, hash, tipo],
-      function (err2) {
-        if (err2)
-          return res.status(500).json({ erro: "Email já cadastrado" });
-        res.json({ ok: true, tipo, id: this.lastID });
-      }
+// Rotas de Autenticação
+
+app.post('/api/login', async (req, res) => {
+  const { usuario, senha } = req.body;
+
+  try {
+    const result = await pool.query(
+      'SELECT * FROM usuarios WHERE usuario = $1 AND senha = $2',
+      [usuario, senha]
     );
-  });
-});
 
-// =======================
-// 🔐 Login
-// =======================
-app.post("/api/login", (req, res) => {
-  const { email, senha } = req.body;
-  db.get("SELECT * FROM usuarios WHERE email = ?", [email], async (err, user) => {
-    if (!user) return res.status(404).json({ erro: "Usuário não encontrado" });
-    const match = await bcrypt.compare(senha, user.senha_hash);
-    if (!match) return res.status(403).json({ erro: "Senha incorreta" });
-    const token = gerarToken(user);
-    res.json({ token, tipo: user.tipo, nome: user.nome, id: user.id });
-  });
-});
-
-// =======================
-// 💧 Receber dados do ESP32 (sem autenticação)
-// =======================
-app.post("/api/dados", (req, res) => {
-  const { caixa_id, caixa1, caixa2, bomba } = req.body;
-  db.run(
-    "INSERT INTO niveis (caixa_id, caixa1, caixa2, bomba) VALUES (?, ?, ?, ?)",
-    [caixa_id || 1, caixa1 || 0, caixa2 || 0, bomba ? 1 : 0],
-    function (err) {
-      if (err) return res.status(500).json({ erro: err.message });
-      res.json({ ok: true });
+    if (result.rows.length > 0) {
+      req.session.logado = true;
+      req.session.usuario = usuario;
+      return res.json({ success: true, message: 'Login efetuado com sucesso!' });
+    } else {
+      return res.status(401).json({ error: 'Usuário ou senha incorretos.' });
     }
-  );
-});
-
-// =======================
-// 📊 Consultas protegidas
-// =======================
-app.get("/api/caixas", autenticar, (req, res) => {
-  const sql =
-    req.user.tipo === "admin"
-      ? "SELECT c.id, c.nome, c.usuario_id, u.nome AS cliente_nome FROM caixas c LEFT JOIN usuarios u ON c.usuario_id = u.id"
-      : "SELECT * FROM caixas WHERE usuario_id = ?";
-  const params = req.user.tipo === "admin" ? [] : [req.user.id];
-
-  db.all(sql, params, (err, rows) => {
-    if (err) return res.status(500).json({ erro: err.message });
-    res.json(rows);
-  });
-});
-
-app.get('/api/dados/:caixa_id', autenticar, (req, res) => {
-  const { caixa_id } = req.params;
-
-  if (req.user.tipo === 'admin') {
-    db.all('SELECT * FROM niveis WHERE caixa_id = ? ORDER BY id DESC LIMIT 20', [caixa_id], (err, rows) => {
-      if (err) return res.status(500).json({ erro: err.message });
-      res.json(rows);
-    });
-  } else {
-    db.get('SELECT usuario_id FROM caixas WHERE id = ?', [caixa_id], (err, caixa) => {
-      if (err || !caixa) return res.status(404).json({ erro: 'Caixa não encontrada' });
-      if (caixa.usuario_id !== req.user.id) {
-        return res.status(403).json({ erro: 'Acesso negado a esta caixa' });
-      }
-      db.all('SELECT * FROM niveis WHERE caixa_id = ? ORDER BY id DESC LIMIT 20', [caixa_id], (err, rows) => {
-        if (err) return res.status(500).json({ erro: err.message });
-        res.json(rows);
-      });
-    });
+  } catch (err) {
+    console.error('Erro no login:', err);
+    res.status(500).json({ error: 'Erro interno ao autenticar.' });
   }
 });
- 
-// =======================
-// 📅 Histórico diário do cliente
-// =======================
-app.get("/api/historico/:caixa_id", autenticar, (req, res) => {
-  const { caixa_id } = req.params;
-  db.all(
-    `SELECT 
-        DATE(data) AS dia,
-        ROUND(AVG(caixa1),1) AS media_caixa1,
-        ROUND(AVG(caixa2),1) AS media_caixa2,
-        COUNT(*) AS leituras
-     FROM niveis
-     WHERE caixa_id = ?
-     GROUP BY DATE(data)
-     ORDER BY dia DESC LIMIT 30`,
-    [caixa_id],
-    (err, rows) => {
-      if (err) return res.status(500).json({ erro: err.message });
-      res.json(rows);
-    }
-  );
+
+app.post('/api/logout', (req, res) => {
+  req.session.destroy();
+  res.json({ success: true, message: 'Logout efetuado.' });
 });
 
-// =======================
-// 📊 Relatório por intervalo
-// =======================
-app.post("/api/relatorio", autenticar, (req, res) => {
-  const { caixa_id, dataInicio, dataFim } = req.body;
-  if (!caixa_id || !dataInicio || !dataFim)
-    return res.status(400).json({ erro: "Campos obrigatórios ausentes" });
-
-  db.all(
-    `SELECT 
-        data,
-        caixa1,
-        caixa2,
-        bomba
-     FROM niveis
-     WHERE caixa_id = ?
-       AND DATE(data) BETWEEN ? AND ?
-     ORDER BY data DESC`,
-    [caixa_id, dataInicio, dataFim],
-    (err, rows) => {
-      if (err) return res.status(500).json({ erro: err.message });
-      res.json(rows);
-    }
-  );
+app.get('/api/usuario-atual', (req, res) => {
+  if (req.session && req.session.logado) {
+    res.json({ logado: true, usuario: req.session.usuario });
+  } else {
+    res.json({ logado: false });
+  }
 });
 
-// =======================
-// 💧 Controle e status da bomba (para ESP32)
-// =======================
-let estadoBomba = 0;
+// Rotas Protegidas do Dashboard / Dados
 
-app.get('/api/bomba/status', (req, res) => {
-  res.json({ bomba: estadoBomba });
-});
+app.post('/api/leitura', async (req, res) => {
+  const { nivel } = req.body;
+  if (nivel === undefined || nivel === null) {
+    return res.status(400).json({ error: 'Nível inválido.' });
+  }
 
-app.post('/api/bomba', express.json(), (req, res) => {
-  const { ligar } = req.body;
-  estadoBomba = ligar ? 1 : 0;
-  console.log(`💧 Bomba ${ligar ? 'ligada' : 'desligada'} pelo painel.`);
-  res.json({ ok: true, bomba: estadoBomba });
-});
-
-// =======================
-// 🔗 Associar uma caixa a um usuário
-// =======================
-app.put('/api/caixas/:id/associar', autenticar, (req, res) => {
-  if (req.user.tipo !== 'admin') return res.status(403).json({ erro: 'Acesso negado' });
-
-  const { id } = req.params;
-  const { usuario_id } = req.body;
-
-  if (!usuario_id) return res.status(400).json({ erro: 'Usuário não informado' });
-
-  db.run('UPDATE caixas SET usuario_id = ? WHERE id = ?', [usuario_id, id], function (err) {
-    if (err) return res.status(500).json({ erro: err.message });
-    if (this.changes === 0) return res.status(404).json({ erro: 'Caixa não encontrada' });
-    res.json({ ok: true, mensagem: 'Caixa associada ao usuário com sucesso' });
-  });
-});
-
-// =======================
-// 📩 Rotas de Chamados (SQLite)
-// =======================
-app.post("/api/chamados", autenticar, (req, res) => {
-  const { assunto, mensagem } = req.body;
-  db.run(
-    "INSERT INTO chamados (usuario_id, assunto, mensagem) VALUES (?, ?, ?)",
-    [req.user.id, assunto, mensagem],
-    function (err) {
-      if (err) return res.status(500).json({ erro: "Erro ao abrir chamado" });
-      res.json({ ok: true, msg: "Chamado aberto com sucesso!" });
-    }
-  );
-});
-
-app.get("/api/chamados", autenticar, (req, res) => {
-  const isClient = req.user.tipo !== "admin";
-  const sql = isClient
-    ? "SELECT c.id, c.assunto, c.mensagem, c.status, c.data, u.nome as cliente_nome FROM chamados c JOIN usuarios u ON c.usuario_id = u.id WHERE c.usuario_id = ? ORDER BY c.id DESC"
-    : "SELECT c.id, c.assunto, c.mensagem, c.status, c.data, u.nome as cliente_nome FROM chamados c JOIN usuarios u ON c.usuario_id = u.id ORDER BY c.id DESC";
-  const params = isClient ? [req.user.id] : [];
-
-  db.all(sql, params, (err, rows) => {
-    if (err) return res.status(500).json({ erro: "Erro ao buscar chamados" });
-    res.json(rows);
-  });
-});
-
-// =======================
-// ➕ Cadastrar Novo Cliente (Admin)
-// =======================
-app.post("/api/admin/clientes", autenticar, (req, res) => {
-  if (req.user.tipo !== "admin") return res.status(403).json({ erro: "Acesso negado" });
-  const { nome, email, senha } = req.body;
-  if (!nome || !email || !senha) return res.status(400).json({ erro: "Campos obrigatórios" });
-
-  bcrypt.hash(senha, 10, (err, hash) => {
-    if (err) return res.status(500).json({ erro: "Erro ao criptografar senha" });
-
-    db.run(
-      "INSERT INTO usuarios (nome, email, senha_hash, tipo) VALUES (?, ?, ?, 'cliente')",
-      [nome, email, hash],
-      function (err2) {
-        if (err2) return res.status(500).json({ erro: "Email já cadastrado ou erro no banco" });
-        res.json({ ok: true, id: this.lastID, mensagem: "Cliente cadastrado com sucesso!" });
-      }
+  try {
+    const result = await pool.query(
+      'INSERT INTO leituras (nivel) VALUES ($1) RETURNING *',
+      [nivel]
     );
-  });
+    res.status(201).json({ success: true, dados: result.rows[0] });
+  } catch (err) {
+    console.error('Erro ao salvar leitura:', err);
+    res.status(500).json({ error: 'Erro ao registrar leitura.' });
+  }
 });
 
-// =======================
-// 📦 Criar Nova Caixa (Admin)
-// =======================
-app.post("/api/admin/caixas", autenticar, (req, res) => {
-  if (req.user.tipo !== "admin") return res.status(403).json({ erro: "Acesso negado" });
-  const { nome, usuario_id } = req.body;
-  if (!nome) return res.status(400).json({ erro: "Nome da caixa é obrigatório" });
-
-  db.run(
-    "INSERT INTO caixas (nome, usuario_id) VALUES (?, ?)",
-    [nome, usuario_id || null],
-    function (err) {
-      if (err) return res.status(500).json({ erro: err.message });
-      res.json({ ok: true, id: this.lastID, mensagem: "Caixa criada com sucesso!" });
-    }
-  );
+app.get('/api/leituras', requererAutenticacao, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM leituras ORDER BY data_hora DESC LIMIT 50');
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Erro ao buscar leituras:', err);
+    res.status(500).json({ error: 'Erro ao buscar dados do banco.' });
+  }
 });
 
-// =======================
-// 📋 Listar Clientes (Para preencher os selects no frontend)
-// =======================
-app.get("/api/admin/clientes", autenticar, (req, res) => {
-  if (req.user.tipo !== "admin") return res.status(403).json({ erro: "Acesso negado" });
-  db.all("SELECT id, nome, email FROM usuarios WHERE tipo = 'cliente'", [], (err, rows) => {
-    if (err) return res.status(500).json({ erro: err.message });
-    res.json(rows);
-  });
+app.get('/api/ultima-leitura', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM leituras ORDER BY data_hora DESC LIMIT 1');
+    res.json(result.rows[0] || { nivel: 0 });
+  } catch (err) {
+    console.error('Erro ao buscar última leitura:', err);
+    res.status(500).json({ error: 'Erro no banco de dados.' });
+  }
 });
 
-// =======================
-// 🌐 Servir frontend (Direto da Raiz)
-// =======================
-app.use(express.static(__dirname));
-
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
 });
-
-// =======================
-// 🚀 Inicialização
-// =======================
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () =>
-  console.log(`✅ Servidor rodando na porta ${PORT}`)
-);
