@@ -14,7 +14,7 @@ const pool = new Pool({
   }
 });
 
-// Middlewares
+/// Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -23,8 +23,17 @@ app.use(session({
   secret: 'segredo-chaves-dashboard',
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 24 * 60 * 60 * 1000 } // 24 horas
+  cookie: { maxAge: 24 * 60 * 60 * 1000 }
 }));
+
+// Servir a página principal explicitamente na raiz e em /index.html
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/index.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 // Inicialização e Criação das Tabelas
 async function initDb() {
