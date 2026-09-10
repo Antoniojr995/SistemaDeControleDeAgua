@@ -72,12 +72,12 @@ async function initDb() {
         data_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-
-    // Inserir usuário admin padrão caso não exista nenhum
-    const userCheck = await pool.query('SELECT * FROM usuarios WHERE usuario = $1', ['admin']);
+    
+    // Inserir usuário admin padrão com e-mail
+    const userCheck = await pool.query('SELECT * FROM usuarios WHERE usuario = $1', ['admin@teste.com']);
     if (userCheck.rows.length === 0) {
-      await pool.query('INSERT INTO usuarios (usuario, senha) VALUES ($1, $2)', ['admin', '123456']);
-      console.log('Usuário admin padrão criado (admin / 123456)');
+      await pool.query('INSERT INTO usuarios (usuario, senha) VALUES ($1, $2)', ['admin@teste.com', '123456']);
+      console.log('Usuário admin criado (admin@teste.com / 123456)');
     }
 
     console.log('Banco de dados PostgreSQL verificado e pronto!');
