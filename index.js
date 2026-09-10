@@ -23,11 +23,18 @@ app.use(bodyParser.json());
 // =======================
 // 🧩 Banco de dados
 // =======================
-const initSql = fs.readFileSync(path.join(__dirname, "init-db.sql"), "utf8");
-db.exec(initSql, (err) => {
-  if (err) console.error("Erro ao inicializar o banco:", err);
-  else console.log("✅ Banco pronto ou já existente.");
-});
+const initSqlPath = path.join(__dirname, "init-db.sql");
+
+// Verifica se o arquivo SQL existe na raiz antes de rodar
+if (fs.existsSync(initSqlPath)) {
+  const initSql = fs.readFileSync(initSqlPath, "utf8");
+  db.exec(initSql, (err) => {
+    if (err) console.error("Erro ao inicializar o banco:", err);
+    else console.log("✅ Banco pronto ou já existente.");
+  });
+} else {
+  console.log("ℹ️ init-db.sql não encontrado na raiz, mantendo o banco atual.");
+}
 
 // =======================
 // 🔑 Funções auxiliares
@@ -109,7 +116,6 @@ app.post("/api/dados", (req, res) => {
 // 📊 Consultas protegidas
 // =======================
 app.get("/api/caixas", autenticar, (req, res) => {
-  // Traz o nome do cliente vinculado junto com a caixa
   const sql =
     req.user.tipo === "admin"
       ? "SELECT c.id, c.nome, c.usuario_id, u.nome AS cliente_nome FROM caixas c LEFT JOIN usuarios u ON c.usuario_id = u.id"
@@ -125,14 +131,12 @@ app.get("/api/caixas", autenticar, (req, res) => {
 app.get('/api/dados/:caixa_id', autenticar, (req, res) => {
   const { caixa_id } = req.params;
 
-  // Admin pode ver qualquer caixa
   if (req.user.tipo === 'admin') {
     db.all('SELECT * FROM niveis WHERE caixa_id = ? ORDER BY id DESC LIMIT 20', [caixa_id], (err, rows) => {
       if (err) return res.status(500).json({ erro: err.message });
       res.json(rows);
     });
   } else {
-    // Cliente só pode ver suas próprias caixas
     db.get('SELECT usuario_id FROM caixas WHERE id = ?', [caixa_id], (err, caixa) => {
       if (err || !caixa) return res.status(404).json({ erro: 'Caixa não encontrada' });
       if (caixa.usuario_id !== req.user.id) {
@@ -194,25 +198,23 @@ app.post("/api/relatorio", autenticar, (req, res) => {
     }
   );
 });
+
 // =======================
 // 💧 Controle e status da bomba (para ESP32)
 // =======================
+let estadoBomba = 0;
 
-// Estado atual da bomba (variável em memória)
-let estadoBomba = 0; // 0 = desligada, 1 = ligada
-
-// 🔄 Retorna o status atual da bomba
 app.get('/api/bomba/status', (req, res) => {
   res.json({ bomba: estadoBomba });
 });
 
-// 💡 Atualiza o estado da bomba (quando cliente/admin clica no botão)
 app.post('/api/bomba', express.json(), (req, res) => {
   const { ligar } = req.body;
   estadoBomba = ligar ? 1 : 0;
   console.log(`💧 Bomba ${ligar ? 'ligada' : 'desligada'} pelo painel.`);
   res.json({ ok: true, bomba: estadoBomba });
 });
+
 // =======================
 // 🔗 Associar uma caixa a um usuário
 // =======================
@@ -311,20 +313,18 @@ app.get("/api/admin/clientes", autenticar, (req, res) => {
 });
 
 // =======================
-// 🌐 Servir frontend
+// 🌐 Servir frontend (Direto da Raiz)
 // =======================
-// Aponta para a pasta frontend (subindo um nível a partir de backend)
-app.use(express.static(path.join(__dirname, "../frontend")));
+app.use(express.static(__dirname));
 
-// Rota principal para entregar o index.html na raiz /
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/index.html"));
+  res.sendFile(path.join(__dirname, "index.html"));
 });
 
 // =======================
 // 🚀 Inicialização
 // =======================
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () =>
   console.log(`✅ Servidor rodando na porta ${PORT}`)
 );
