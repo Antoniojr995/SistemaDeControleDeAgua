@@ -6,7 +6,7 @@ const session = require('express-session');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Configuração da conexão com o PostgreSQL (Neon/Render)
+// Conexão PostgreSQL (Neon)
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
@@ -14,11 +14,11 @@ const pool = new Pool({
   }
 });
 
-// Middlewares para leitura de dados de requisição
+// Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Configuração de Sessão para o Admin
+// Sessão
 app.use(session({
   secret: 'segredo-chaves-dashboard',
   resave: false,
@@ -26,36 +26,13 @@ app.use(session({
   cookie: { maxAge: 24 * 60 * 60 * 1000 }
 }));
 
-// Servir arquivos de estilo, scripts e páginas da raiz do projeto
+// Servir arquivos estáticos (procura na raiz e na pasta public se existir)
 app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Rota para garantir o carregamento do index.html no link principal
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// Rotas de páginas estáticas
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-app.get('/index.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// Servir a página principal explicitamente na raiz e em /index.html
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-app.get('/index.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// Inicialização e Criação das Tabelas
+// Inicialização das Tabelas no Neon
 async function initDb() {
   try {
-    // Tabela de usuários/admin
     await pool.query(`
       CREATE TABLE IF NOT EXISTS usuarios (
         id SERIAL PRIMARY KEY,
@@ -64,7 +41,6 @@ async function initDb() {
       )
     `);
 
-    // Tabela de leituras de água
     await pool.query(`
       CREATE TABLE IF NOT EXISTS leituras (
         id SERIAL PRIMARY KEY,
@@ -73,12 +49,14 @@ async function initDb() {
       )
     `);
     
-    // Inserir usuário admin padrão com e-mail
-    const userCheck = await pool.query('SELECT * FROM usuarios WHERE usuario = $1', ['admin@teste.com']);
-    if (userCheck.rows.length === 0) {
-      await pool.query('INSERT INTO usuarios (usuario, senha) VALUES ($1, $2)', ['admin@teste.com', '123456']);
-      console.log('Usuário admin criado (admin@teste.com / 123456)');
-    }
+    // Inserção garantida dos dois usuários de teste
+    await pool.query(`
+      INSERT INTO usuarios (usuario, senha) VALUES ($1, $2) ON CONFLICT (usuario) DO NOTHING
+    `, ['admin@teste.com', '123456']);
+
+    await pool.query(`
+      INSERT INTO usuarios (usuario, senha) VALUES ($1, $2) ON CONFLICT (usuario) DO NOTHING
+    `, ['admin', '123456']);
 
     console.log('Banco de dados PostgreSQL verificado e pronto!');
   } catch (err) {
@@ -96,10 +74,14 @@ function requererAutenticacao(req, res, next) {
   res.status(401).json({ error: 'Acesso negado. Faça login primeiro.' });
 }
 
-// Rotas de Autenticação
+// Handler de Login (Unificado para Form HTML e Fetch/JSON)
+async function tratarLogin(req, res) {
+  const usuario = req.body.usuario || req.body.email || req.body.login;
+  const senha = req.body.senha || req.body.password;
 
-app.post('/api/login', async (req, res) => {
-  const { usuario, senha } = req.body;
+  if (!usuario || !senha) {
+    return res.status(400).json({ error: 'Usuário e senha são obrigatórios.' });
+  }
 
   try {
     const result = await pool.query(
@@ -109,16 +91,26 @@ app.post('/api/login', async (req, res) => {
 
     if (result.rows.length > 0) {
       req.session.logado = true;
-      req.session.usuario = usuario;
+      req.session.usuario = result.rows[0].usuario;
+
+      // Se a requisição veio de um Form HTML tradicional
+      if (req.headers['content-type'] && req.headers['content-type'].includes('application/x-www-form-urlencoded')) {
+        return res.redirect('/painel.html');
+      }
+
       return res.json({ success: true, message: 'Login efetuado com sucesso!' });
     } else {
       return res.status(401).json({ error: 'Usuário ou senha incorretos.' });
     }
   } catch (err) {
     console.error('Erro no login:', err);
-    res.status(500).json({ error: 'Erro interno ao autenticar.' });
+    return res.status(500).json({ error: 'Erro interno ao autenticar.' });
   }
-});
+}
+
+// Aceita requisição tanto em /login quanto em /api/login
+app.post('/login', tratarLogin);
+app.post('/api/login', tratarLogin);
 
 app.post('/api/logout', (req, res) => {
   req.session.destroy();
@@ -133,8 +125,7 @@ app.get('/api/usuario-atual', (req, res) => {
   }
 });
 
-// Rotas Protegidas do Dashboard / Dados
-
+// Rotas do ESP32 e Dashboard
 app.post('/api/leitura', async (req, res) => {
   const { nivel } = req.body;
   if (nivel === undefined || nivel === null) {
