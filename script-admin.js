@@ -60,6 +60,78 @@ async function carregarCaixas() {
   }
 }
 
+// 🗑️ Deletar caixa d'água selecionada
+async function deletarCaixaSelecionada() {
+  const listaCaixas = document.getElementById("listaCaixas");
+  const id = listaCaixas ? listaCaixas.value : null;
+
+  if (!id) return alert("Selecione uma caixa para excluir!");
+
+  if (confirm(`Tem certeza que deseja apagar a caixa ID ${id}?`)) {
+    try {
+      const res = await fetch(`${API_BASE}/api/caixas/${id}`, { method: "DELETE" });
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        alert("✅ Caixa removida com sucesso!");
+        carregarCaixas();
+      } else {
+        alert("❌ Erro ao apagar caixa.");
+      }
+    } catch (err) {
+      alert("❌ Falha na conexão com o servidor.");
+    }
+  }
+}
+
+// ✏️ Renomear Caixa selecionada
+async function renomearCaixaSelecionada() {
+  const listaCaixas = document.getElementById("listaCaixas");
+  const id = listaCaixas ? listaCaixas.value : null;
+
+  if (!id) return alert("Selecione uma caixa para renomear!");
+
+  const novoNome = prompt("Digite o novo nome para esta caixa:");
+  if (!novoNome) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/caixas/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nome: novoNome })
+    });
+    
+    const data = await res.json();
+    if (res.ok && data.success) {
+      alert("✅ Caixa renomeada com sucesso!");
+      carregarCaixas();
+    } else {
+      alert("❌ Erro ao renomear.");
+    }
+  } catch (err) {
+    alert("❌ Erro na conexão.");
+  }
+}
+
+// 🗑️ Deletar Cliente da Lista
+async function deletarCliente(id) {
+  if (confirm(`Tem certeza que deseja apagar o cliente ID ${id}?`)) {
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/clientes/${id}`, { method: "DELETE" });
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        alert("✅ Cliente removido!");
+        carregarClientes();
+      } else {
+        alert("❌ Erro ao remover cliente.");
+      }
+    } catch (err) {
+      alert("❌ Erro na conexão.");
+    }
+  }
+}
+
 // 👥 Carrega lista de clientes (Aba Clientes)
 async function carregarClientes() {
   const div = document.getElementById("listaClientes");

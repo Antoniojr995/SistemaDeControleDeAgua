@@ -138,6 +138,89 @@ app.get('/api/caixas', requererAutenticacao, async (req, res) => {
   }
 });
 
+// --- GERENCIAMENTO DE CAIXAS (ADMIN) ---
+
+// Editar nome ou cliente de uma caixa
+app.put('/api/caixas/:id', requererAutenticacao, async (req, res) => {
+  const { id } = req.params;
+  const { nome, usuario_id } = req.body;
+
+  try {
+    await pool.query(
+      'UPDATE caixas SET nome = $1, usuario_id = $2 WHERE id = $3',
+      [nome, usuario_id || null, id]
+    );
+    res.json({ success: true, message: 'Caixa atualizada com sucesso!' });
+  } catch (err) {
+    console.error('Erro ao atualizar caixa:', err);
+    res.status(500).json({ error: 'Erro ao atualizar caixa.' });
+  }
+});
+
+// Deletar caixa d'água
+app.delete('/api/caixas/:id', requererAutenticacao, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await pool.query('DELETE FROM caixas WHERE id = $1', [id]);
+    res.json({ success: true, message: 'Caixa removida com sucesso!' });
+  } catch (err) {
+    console.error('Erro ao deletar caixa:', err);
+    res.status(500).json({ error: 'Erro ao deletar caixa.' });
+  }
+});
+
+// --- GERENCIAMENTO DE USUÁRIOS/CLIENTES ---
+
+// Admin edita dados completos do cliente (Nome, Email/Usuário, Senha)
+app.put('/api/admin/clientes/:id', requererAutenticacao, async (req, res) => {
+  const { id } = req.params;
+  const { usuario, senha } = req.body;
+
+  try {
+    if (senha && senha.trim() !== '') {
+      await pool.query('UPDATE usuarios SET usuario = $1, senha = $2 WHERE id = $3', [usuario, senha, id]);
+    } else {
+      await pool.query('UPDATE usuarios SET usuario = $1 WHERE id = $2', [usuario, id]);
+    }
+    res.json({ success: true, message: 'Cliente atualizado!' });
+  } catch (err) {
+    console.error('Erro ao editar cliente:', err);
+    res.status(500).json({ error: 'Erro ao editar cliente.' });
+  }
+});
+
+// Admin deleta um cliente
+app.delete('/api/admin/clientes/:id', requererAutenticacao, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await pool.query('DELETE FROM usuarios WHERE id = $1', [id]);
+    res.json({ success: true, message: 'Cliente removido!' });
+  } catch (err) {
+    console.error('Erro ao deletar cliente:', err);
+    res.status(500).json({ error: 'Erro ao deletar cliente.' });
+  }
+});
+
+// Cliente comum altera o próprio perfil
+app.put('/api/perfil', requererAutenticacao, async (req, res) => {
+  const usuarioId = req.session.usuarioId;
+  const { usuario, senha } = req.body;
+
+  try {
+    if (senha && senha.trim() !== '') {
+      await pool.query('UPDATE usuarios SET usuario = $1, senha = $2 WHERE id = $3', [usuario, senha, usuarioId]);
+    } else {
+      await pool.query('UPDATE usuarios SET usuario = $1 WHERE id = $2', [usuario, usuarioId]);
+    }
+    res.json({ success: true, message: 'Perfil atualizado!' });
+  } catch (err) {
+    console.error('Erro ao atualizar perfil:', err);
+    res.status(500).json({ error: 'Erro ao atualizar perfil.' });
+  }
+});
+
 // Rota para buscar apenas usuários/clientes cadastrados
 app.get('/api/clientes', requererAutenticacao, async (req, res) => {
   try {
