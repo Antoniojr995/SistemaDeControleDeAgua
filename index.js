@@ -115,6 +115,29 @@ app.post('/api/caixas', requererAutenticacao, async (req, res) => {
   }
 });
 
+// Rota para listar caixas d'água no backend
+app.get('/api/caixas', requererAutenticacao, async (req, res) => {
+  try {
+    const queryText = `
+      SELECT 
+        c.id, 
+        c.nome, 
+        u.usuario AS cliente_nome 
+      FROM caixas c 
+      LEFT JOIN usuarios u ON c.usuario_id = u.id 
+      ORDER BY c.id DESC
+    `;
+    const result = await pool.query(queryText);
+    
+    // Retorna sempre o array com as caixas (ou lista vazia [])
+    res.json(result.rows || []);
+  } catch (err) {
+    console.error('Erro na consulta de caixas:', err);
+    // Retorna array vazio em caso de falha no banco para não quebrar o frontend
+    res.json([]);
+  }
+});
+
 // Rota para buscar apenas usuários/clientes cadastrados
 app.get('/api/clientes', requererAutenticacao, async (req, res) => {
   try {
