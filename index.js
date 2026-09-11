@@ -33,6 +33,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Inicialização das Tabelas no Neon
 async function initDb() {
   try {
+    // 1. Tabela de usuários
     await pool.query(`
       CREATE TABLE IF NOT EXISTS usuarios (
         id SERIAL PRIMARY KEY,
@@ -42,11 +43,21 @@ async function initDb() {
       )
     `);
 
-    // Garante que a coluna 'tipo' existe caso a tabela tenha sido criada antes sem ela
+    // Garante coluna 'tipo' se a tabela for antiga
     await pool.query(`
       ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS tipo VARCHAR(20) DEFAULT 'usuario'
     `);
 
+    // 2. Tabela de caixas d'água (relacionada com usuários)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS caixas (
+        id SERIAL PRIMARY KEY,
+        nome VARCHAR(100) NOT NULL,
+        usuario_id INTEGER REFERENCES usuarios(id) ON DELETE SET NULL
+      )
+    `);
+
+    // 3. Tabela de leituras de nível de água
     await pool.query(`
       CREATE TABLE IF NOT EXISTS leituras (
         id SERIAL PRIMARY KEY,
@@ -54,8 +65,19 @@ async function initDb() {
         data_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // 4. Tabela de chamados abertos pelos clientes
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS chamados (
+        id SERIAL PRIMARY KEY,
+        cliente_nome VARCHAR(100),
+        assunto VARCHAR(100),
+        mensagem TEXT,
+        data_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
     
-    // Inserção garantida definindo admin
+    // Inserção/Garantia dos administradores
     await pool.query(`
       INSERT INTO usuarios (usuario, senha, tipo) 
       VALUES ($1, $2, $3) 
@@ -75,6 +97,37 @@ async function initDb() {
 }
 
 initDb();
+
+// Rota para criar caixa
+app.post('/api/caixas', requererAutenticacao, async (req, res) => {
+  const { nome, usuario_id } = req.body;
+  if (!nome) return res.status(400).json({ error: 'Nome da caixa é obrigatório.' });
+
+  try {
+    await pool.query(
+      'INSERT INTO caixas (nome, usuario_id) VALUES ($1, $2)',
+      [nome, usuario_id || null]
+    );
+    res.status(201).json({ success: true, message: 'Caixa criada com sucesso!' });
+  } catch (err) {
+    console.error('Erro ao criar caixa:', err);
+    res.status(500).json({ error: 'Erro ao criar caixa.' });
+  }
+});
+
+// Rota para associar caixa a cliente
+app.put('/api/caixas/:id/associar', requererAutenticacao, async (req, res) => {
+  const { id } = req.params;
+  const { usuario_id } = req.body;
+
+  try {
+    await pool.query('UPDATE caixas SET usuario_id = $1 WHERE id = $2', [usuario_id, id]);
+    res.json({ success: true, message: 'Caixa associada com sucesso!' });
+  } catch (err) {
+    console.error('Erro ao associar caixa:', err);
+    res.status(500).json({ error: 'Erro ao associar caixa.' });
+  }
+});
 
 // Middleware de Autenticação
 function requererAutenticacao(req, res, next) {
