@@ -1,6 +1,6 @@
 const API_BASE = window.location.origin;
 
-// 1. Verifica autenticação via sessão no servidor ao carregar a página
+// 🔒 1. VERIFICAÇÃO DE SESSÃO
 async function verificarSessao() {
   try {
     const res = await fetch(API_BASE + "/api/usuario-atual");
@@ -19,21 +19,22 @@ async function verificarSessao() {
   }
 }
 
-// 🗂️ Navegação por Abas
+// 🗂️ 2. NAVEGAÇÃO POR ABAS
 function mudarAba(idAba) {
-  document.querySelectorAll('.camada-conteudo').forEach(div => {
-    div.style.display = 'none';
+  document.querySelectorAll(".camada-conteudo").forEach(div => {
+    div.style.display = "none";
   });
+  
   const aba = document.getElementById(idAba);
-  if (aba) aba.style.display = 'block';
+  if (aba) aba.style.display = "block";
 
-  if (idAba === 'abaCaixas') carregarCaixas();
-  if (idAba === 'abaClientes') carregarClientes();
-  if (idAba === 'abaRegistros') carregarSelectsFormularios();
-  if (idAba === 'abaChamados') carregarChamados();
+  if (idAba === "abaCaixas") carregarCaixas();
+  if (idAba === "abaClientes") carregarClientes();
+  if (idAba === "abaRegistros") carregarSelectsFormularios();
+  if (idAba === "abaChamados") carregarChamados();
 }
 
-// 🔄 Carrega as caixas (Aba Caixas)
+// 📦 3. ABA CAIXAS D'ÁGUA
 async function carregarCaixas() {
   const listaCaixas = document.getElementById("listaCaixas");
   if (!listaCaixas) return;
@@ -60,12 +61,39 @@ async function carregarCaixas() {
   }
 }
 
-// 🗑️ Deletar caixa d'água selecionada
-async function deletarCaixaSelecionada() {
-  const listaCaixas = document.getElementById("listaCaixas");
-  const id = listaCaixas ? listaCaixas.value : null;
+async function renomearCaixaSelecionada() {
+  const select = document.getElementById("listaCaixas");
+  const id = select ? select.value : null;
 
-  if (!id) return alert("Selecione uma caixa para excluir!");
+  if (!id) return alert("⚠️ Selecione uma caixa para renomear!");
+
+  const novoNome = prompt("Digite o novo nome para esta caixa:");
+  if (!novoNome) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/caixas/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nome: novoNome })
+    });
+
+    const data = await res.json();
+    if (res.ok && data.success) {
+      alert("✅ Caixa renomeada com sucesso!");
+      carregarCaixas();
+    } else {
+      alert("❌ Erro ao renomear.");
+    }
+  } catch (err) {
+    alert("❌ Erro na conexão.");
+  }
+}
+
+async function deletarCaixaSelecionada() {
+  const select = document.getElementById("listaCaixas");
+  const id = select ? select.value : null;
+
+  if (!id) return alert("⚠️ Selecione uma caixa para excluir!");
 
   if (confirm(`Tem certeza que deseja apagar a caixa ID ${id}?`)) {
     try {
@@ -84,55 +112,7 @@ async function deletarCaixaSelecionada() {
   }
 }
 
-// ✏️ Renomear Caixa selecionada
-async function renomearCaixaSelecionada() {
-  const listaCaixas = document.getElementById("listaCaixas");
-  const id = listaCaixas ? listaCaixas.value : null;
-
-  if (!id) return alert("Selecione uma caixa para renomear!");
-
-  const novoNome = prompt("Digite o novo nome para esta caixa:");
-  if (!novoNome) return;
-
-  try {
-    const res = await fetch(`${API_BASE}/api/caixas/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nome: novoNome })
-    });
-    
-    const data = await res.json();
-    if (res.ok && data.success) {
-      alert("✅ Caixa renomeada com sucesso!");
-      carregarCaixas();
-    } else {
-      alert("❌ Erro ao renomear.");
-    }
-  } catch (err) {
-    alert("❌ Erro na conexão.");
-  }
-}
-
-// 🗑️ Deletar Cliente da Lista
-async function deletarCliente(id) {
-  if (confirm(`Tem certeza que deseja apagar o cliente ID ${id}?`)) {
-    try {
-      const res = await fetch(`${API_BASE}/api/admin/clientes/${id}`, { method: "DELETE" });
-      const data = await res.json();
-
-      if (res.ok && data.success) {
-        alert("✅ Cliente removido!");
-        carregarClientes();
-      } else {
-        alert("❌ Erro ao remover cliente.");
-      }
-    } catch (err) {
-      alert("❌ Erro na conexão.");
-    }
-  }
-}
-
-// 👥 Carrega lista de clientes com botões de Ação
+// 👥 4. ABA CLIENTES (LISTA E ACOES)
 async function carregarClientes() {
   const div = document.getElementById("listaClientes");
   if (!div) return;
@@ -147,20 +127,20 @@ async function carregarClientes() {
     }
 
     div.innerHTML = clientes.map(c => `
-      <div style="display: flex; justify-content: space-between; align-items: center; background: #f4f4f4; padding: 10px; border-radius: 5px; margin-bottom: 8px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 12px; border-radius: 6px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
         <span>🆔 <b>${c.id}</b> | 👤 <b>${c.usuario}</b></span>
         <div>
-          <button onclick="editarCliente(${c.id}, '${c.usuario}')" style="background: #337ab7; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">✏️ Editar</button>
-          <button onclick="deletarCliente(${c.id})" style="background: #d9534f; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">🗑️ Excluir</button>
+          <button onclick="editarCliente(${c.id}, '${c.usuario}')" style="background: #0275d8; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin-right: 5px;">✏️ Editar</button>
+          <button onclick="deletarCliente(${c.id})" style="background: #d9534f; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">🗑️ Excluir</button>
         </div>
       </div>
     `).join("");
   } catch (err) {
+    console.error("Erro ao carregar clientes:", err);
     div.innerHTML = "<p>Erro ao carregar clientes.</p>";
   }
 }
 
-// ✏️ Função para Editar Cliente
 async function editarCliente(id, usuarioAtual) {
   const novoNome = prompt("Digite o novo nome/e-mail do cliente:", usuarioAtual);
   if (!novoNome) return;
@@ -186,162 +166,65 @@ async function editarCliente(id, usuarioAtual) {
   }
 }
 
-// 👥 Carrega lista de clientes (Aba Clientes)
-async function carregarClientes() {
-  const div = document.getElementById("listaClientes");
-  if (!div) return;
+async function deletarCliente(id) {
+  if (confirm(`Tem certeza que deseja apagar o cliente ID ${id}?`)) {
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/clientes/${id}`, { method: "DELETE" });
+      const data = await res.json();
 
-  try {
-    const res = await fetch(API_BASE + "/api/clientes");
-    const clientes = await res.json();
-
-    if (!Array.isArray(clientes) || clientes.length === 0) {
-      div.innerHTML = "<p>Nenhum cliente cadastrado.</p>";
-      return;
+      if (res.ok && data.success) {
+        alert("✅ Cliente removido!");
+        carregarClientes();
+      } else {
+        alert("❌ Erro ao remover cliente.");
+      }
+    } catch (err) {
+      alert("❌ Erro na conexão.");
     }
-
-    div.innerHTML = clientes.map(c => `<p>🆔 ${c.id} | 👤 <b>${c.usuario}</b></p>`).join("");
-  } catch (err) {
-    div.innerHTML = "<p>Erro ao carregar clientes.</p>";
   }
 }
 
-// 📋 Preenche os Selects do Form de Registros (Aba Registros)
+// 📝 5. PREENCHER SELECTS DOS FORMULÁRIOS (ABA REGISTROS)
 async function carregarSelectsFormularios() {
   try {
-    // Buscar Clientes
-    const resCli = await fetch(API_BASE + "/api/clientes");
+    const [resCli, resCai] = await Promise.all([
+      fetch(API_BASE + "/api/clientes"),
+      fetch(API_BASE + "/api/caixas")
+    ]);
+
     const clientes = await resCli.json();
+    const caixas = await resCai.json();
 
     const selCliCriar = document.getElementById("selectClienteCriar");
     const selCliAssociar = document.getElementById("selectClienteAssociar");
-
-    if (selCliCriar) selCliCriar.innerHTML = '<option value="">Vincular a um cliente (Opcional)...</option>';
-    if (selCliAssociar) selCliAssociar.innerHTML = '<option value="">Selecione o Cliente...</option>';
-
-    if (Array.isArray(clientes)) {
-      clientes.forEach(c => {
-        if (selCliCriar) selCliCriar.innerHTML += `<option value="${c.id}">${c.usuario} (ID: ${c.id})</option>`;
-        if (selCliAssociar) selCliAssociar.innerHTML += `<option value="${c.id}">${c.usuario} (ID: ${c.id})</option>`;
-      });
-    }
-
-    // Buscar Caixas
-    const resCai = await fetch(API_BASE + "/api/caixas");
-    const caixas = await resCai.json();
     const selCaixasAssoc = document.getElementById("selectCaixaAssociar");
 
-    if (selCaixasAssoc) selCaixasAssoc.innerHTML = '<option value="">Selecione a Caixa...</option>';
+    if (selCliCriar) {
+      selCliCriar.innerHTML = '<option value="">Vincular a um cliente (Opcional)...</option>';
+      if (Array.isArray(clientes)) {
+        clientes.forEach(c => selCliCriar.innerHTML += `<option value="${c.id}">${c.usuario} (ID: ${c.id})</option>`);
+      }
+    }
 
-    if (Array.isArray(caixas)) {
-      caixas.forEach(c => {
-        if (selCaixasAssoc) selCaixasAssoc.innerHTML += `<option value="${c.id}">${c.nome} (ID: ${c.id})</option>`;
-      });
+    if (selCliAssociar) {
+      selCliAssociar.innerHTML = '<option value="">Selecione o Cliente...</option>';
+      if (Array.isArray(clientes)) {
+        clientes.forEach(c => selCliAssociar.innerHTML += `<option value="${c.id}">${c.usuario} (ID: ${c.id})</option>`);
+      }
+    }
+
+    if (selCaixasAssoc) {
+      selCaixasAssoc.innerHTML = '<option value="">Selecione a Caixa...</option>';
+      if (Array.isArray(caixas)) {
+        caixas.forEach(c => selCaixasAssoc.innerHTML += `<option value="${c.id}">${c.nome} (ID: ${c.id})</option>`);
+      }
     }
   } catch (err) {
-    console.error("Erro ao carregar opções de seleção:", err);
+    console.error("Erro ao carregar opções dos selects:", err);
   }
 }
 
-// 👤 1. CADASTRAR NOVO CLIENTE (COLUNA 1)
-const btnCadastrarCliente = document.getElementById("btnCadastrarCliente");
-if (btnCadastrarCliente) {
-  btnCadastrarCliente.onclick = async () => {
-    const nome = document.getElementById("novoClienteNome").value.trim();
-    const email = document.getElementById("novoClienteEmail").value.trim();
-    const senha = document.getElementById("novoClienteSenha").value.trim();
-
-    if (!email || !senha) {
-      return alert("⚠️ Preencha o e-mail e a senha do cliente!");
-    }
-
-    try {
-      const res = await fetch(API_BASE + "/api/cadastrar-cliente", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome, email, senha })
-      });
-
-      const data = await res.json();
-      if (res.ok && data.success) {
-        alert("✅ Cliente cadastrado com sucesso!");
-        document.getElementById("formNovoCliente").reset();
-        carregarSelectsFormularios();
-      } else {
-        alert("❌ Erro: " + (data.error || "Não foi possível cadastrar"));
-      }
-    } catch (err) {
-      alert("❌ Falha na conexão com o servidor.");
-    }
-  };
-}
-
-// 📦 2. CRIAR NOVA CAIXA (COLUNA 2)
-const btnAdicionar = document.getElementById("btnAdicionar");
-if (btnAdicionar) {
-  btnAdicionar.onclick = async () => {
-    const nomeCaixa = document.getElementById("nomeCaixa").value.trim();
-    const usuarioId = document.getElementById("selectClienteCriar").value;
-
-    if (!nomeCaixa) {
-      return alert("⚠️ Digite o nome da caixa!");
-    }
-
-    try {
-      const res = await fetch(API_BASE + "/api/caixas", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome: nomeCaixa, usuario_id: usuarioId || null })
-      });
-
-      const data = await res.json();
-      if (res.ok && (data.success || data.ok)) {
-        alert("✅ Caixa criada com sucesso!");
-        document.getElementById("nomeCaixa").value = "";
-        
-        // AQUI: Recarrega as opções de caixas e clientes nos selects na hora!
-        carregarSelectsFormularios(); 
-      } else {
-        alert("❌ Erro: " + (data.error || data.erro || "Falha ao criar caixa"));
-      }
-    } catch (err) {
-      alert("❌ Falha de conexão com o servidor.");
-    }
-  };
-}
-
-// 🔗 3. ASSOCIAR CAIXA A CLIENTE (COLUNA 3)
-const btnAssociar = document.getElementById("btnAssociar");
-if (btnAssociar) {
-  btnAssociar.onclick = async () => {
-    const idCaixa = document.getElementById("selectCaixaAssociar").value;
-    const idUsuario = document.getElementById("selectClienteAssociar").value;
-
-    if (!idCaixa || !idUsuario) {
-      return alert("⚠️ Selecione a caixa e o cliente!");
-    }
-
-    try {
-      const res = await fetch(`${API_BASE}/api/caixas/${idCaixa}/associar`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ usuario_id: idUsuario })
-      });
-
-      const data = await res.json();
-      if (res.ok && data.success) {
-        alert("✅ Caixa vinculada com sucesso!");
-        carregarSelectsFormularios();
-      } else {
-        alert("❌ Erro: " + (data.error || "Falha ao associar"));
-      }
-    } catch (err) {
-      alert("❌ Erro ao conectar ao servidor.");
-    }
-  };
-}
-
-// 🔔 Chamados
+// 🔔 6. ABA CHAMADOS
 async function carregarChamados() {
   const div = document.getElementById("listaChamados");
   if (!div) return;
@@ -356,7 +239,7 @@ async function carregarChamados() {
     }
 
     div.innerHTML = chamados.map(ch => `
-      <div style="border:1px solid #ccc; padding:10px; margin-bottom:10px; border-radius:5px;">
+      <div style="border:1px solid #ccc; background:#fff; padding:10px; margin-bottom:10px; border-radius:5px;">
         <p><b>Cliente:</b> ${ch.cliente_nome}</p>
         <p><b>Assunto:</b> ${ch.assunto}</p>
         <p><b>Mensagem:</b> ${ch.mensagem}</p>
@@ -367,64 +250,117 @@ async function carregarChamados() {
   }
 }
 
-// 👁️ Ver caixa selecionada
-const btnVer = document.getElementById("btnVer");
-if (btnVer) {
-  btnVer.onclick = () => {
-    const listaCaixas = document.getElementById("listaCaixas");
-    const id = listaCaixas ? listaCaixas.value : null;
-    if (!id) return alert("Selecione uma caixa!");
-    
-    sessionStorage.setItem("caixaSelecionada", id);
-    window.location.href = "painel.html";
-  };
-}
+// 🚀 7. EVENTOS E INICIALIZAÇÃO
+document.addEventListener("DOMContentLoaded", () => {
+  verificarSessao();
+  carregarCaixas();
 
-async function carregarSelects() {
-  try {
-    // 1. Busca caixas para o select
-    const resCaixas = await fetch('/api/caixas');
-    const caixas = await resCaixas.json();
+  // Botão Ver Caixa Selecionada
+  const btnVer = document.getElementById("btnVer");
+  if (btnVer) {
+    btnVer.onclick = () => {
+      const select = document.getElementById("listaCaixas");
+      const id = select ? select.value : null;
+      if (!id) return alert("Selecione uma caixa!");
 
-    // 2. Busca clientes para os selects
-    const resClientes = await fetch('/api/clientes');
-    const clientes = await resClientes.json();
-
-    // Preenche Select de Caixas (Associar Caixa)
-    const selectCaixas = document.getElementById('select-caixas') || document.querySelector('#form-associar select:nth-child(1)');
-    if (selectCaixas) {
-      selectCaixas.innerHTML = '<option value="">Selecione a Caixa...</option>';
-      caixas.forEach(caixa => {
-        selectCaixas.innerHTML += `<option value="${caixa.id}">${caixa.nome}</option>`;
-      });
-    }
-
-    // Preenche Selects de Clientes (Criar Caixa Opcional + Associar Caixa)
-    const selectsClientes = document.querySelectorAll('.select-clientes');
-    selectsClientes.forEach(select => {
-      select.innerHTML = '<option value="">Selecione o Cliente...</option>';
-      clientes.forEach(cliente => {
-        select.innerHTML += `<option value="${cliente.id}">${cliente.usuario}</option>`;
-      });
-    });
-
-  } catch (err) {
-    console.error('Erro ao preencher opções dos selects:', err);
+      sessionStorage.setItem("caixaSelecionada", id);
+      window.location.href = "painel.html";
+    };
   }
-}
 
-// Chame a função sempre que abrir a aba de Cadastros ou ao carregar a página
-document.addEventListener('DOMContentLoaded', carregarSelects);
+  // Botão Cadastrar Cliente
+  const btnCadastrarCliente = document.getElementById("btnCadastrarCliente");
+  if (btnCadastrarCliente) {
+    btnCadastrarCliente.onclick = async () => {
+      const email = document.getElementById("novoClienteEmail").value.trim();
+      const senha = document.getElementById("novoClienteSenha").value.trim();
 
-// 🚪 Logout
-const btnLogout = document.getElementById("btnLogout");
-if (btnLogout) {
-  btnLogout.onclick = async () => {
-    await fetch(API_BASE + "/api/logout", { method: "POST" });
-    window.location.href = "index.html";
-  };
-}
+      if (!email || !senha) return alert("⚠️ Preencha o e-mail e a senha!");
 
-// Inicializa verificação de sessão e carrega a aba principal
-verificarSessao();
-carregarCaixas();
+      try {
+        const res = await fetch(API_BASE + "/api/usuarios", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ usuario: email, senha, tipo: "usuario" })
+        });
+
+        if (res.ok) {
+          alert("✅ Cliente cadastrado com sucesso!");
+          document.getElementById("formNovoCliente").reset();
+          carregarSelectsFormularios();
+        } else {
+          alert("❌ Erro ao cadastrar cliente.");
+        }
+      } catch (err) {
+        alert("❌ Falha de conexão.");
+      }
+    };
+  }
+
+  // Botão Criar Caixa
+  const btnAdicionar = document.getElementById("btnAdicionar");
+  if (btnAdicionar) {
+    btnAdicionar.onclick = async () => {
+      const nomeCaixa = document.getElementById("nomeCaixa").value.trim();
+      const usuarioId = document.getElementById("selectClienteCriar").value;
+
+      if (!nomeCaixa) return alert("⚠️ Digite o nome da caixa!");
+
+      try {
+        const res = await fetch(API_BASE + "/api/caixas", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nome: nomeCaixa, usuario_id: usuarioId || null })
+        });
+
+        if (res.ok) {
+          alert("✅ Caixa criada com sucesso!");
+          document.getElementById("nomeCaixa").value = "";
+          carregarSelectsFormularios();
+        } else {
+          alert("❌ Erro ao criar caixa.");
+        }
+      } catch (err) {
+        alert("❌ Falha de conexão.");
+      }
+    };
+  }
+
+  // Botão Associar Caixa
+  const btnAssociar = document.getElementById("btnAssociar");
+  if (btnAssociar) {
+    btnAssociar.onclick = async () => {
+      const idCaixa = document.getElementById("selectCaixaAssociar").value;
+      const idUsuario = document.getElementById("selectClienteAssociar").value;
+
+      if (!idCaixa || !idUsuario) return alert("⚠️ Selecione a caixa e o cliente!");
+
+      try {
+        const res = await fetch(`${API_BASE}/api/caixas/${idCaixa}/associar`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ usuario_id: idUsuario })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          alert("✅ Caixa vinculada com sucesso!");
+          carregarSelectsFormularios();
+        } else {
+          alert("❌ Erro ao associar caixa.");
+        }
+      } catch (err) {
+        alert("❌ Erro de conexão.");
+      }
+    };
+  }
+
+  // Botão Logout
+  const btnLogout = document.getElementById("btnLogout");
+  if (btnLogout) {
+    btnLogout.onclick = async () => {
+      await fetch(API_BASE + "/api/logout", { method: "POST" });
+      window.location.href = "index.html";
+    };
+  }
+});
