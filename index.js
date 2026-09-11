@@ -125,6 +125,38 @@ async function tratarLogin(req, res) {
   }
 }
 
+// Buscar lista de clientes
+app.get('/api/clientes', requererAutenticacao, async (req, res) => {
+  try {
+    const result = await pool.query("SELECT id, usuario, tipo FROM usuarios WHERE tipo = 'usuario'");
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Erro ao buscar clientes:', err);
+    res.status(500).json({ error: 'Erro ao buscar clientes.' });
+  }
+});
+
+// Cadastrar novo cliente pelo painel
+app.post('/api/cadastrar-cliente', requererAutenticacao, async (req, res) => {
+  const { nome, email, senha } = req.body;
+  const usuario = email || nome;
+
+  if (!usuario || !senha) {
+    return res.status(400).json({ error: 'Campos obrigatórios ausentes.' });
+  }
+
+  try {
+    await pool.query(
+      "INSERT INTO usuarios (usuario, senha, tipo) VALUES ($1, $2, 'usuario')",
+      [usuario, senha]
+    );
+    res.status(201).json({ success: true, message: 'Cliente cadastrado com sucesso!' });
+  } catch (err) {
+    console.error('Erro ao cadastrar cliente:', err);
+    res.status(500).json({ error: 'Erro ao cadastrar cliente no banco.' });
+  }
+});
+
 // Aceita requisição tanto em /login quanto em /api/login
 app.post('/login', tratarLogin);
 app.post('/api/login', tratarLogin);
