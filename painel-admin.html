@@ -24,15 +24,19 @@
   <!-- 📦 CAMADA 1: Caixas d'Água -->
   <div id="abaCaixas" class="camada-conteudo">
     <h3>📦 Caixas d'Água Cadastradas</h3>
-    <select id="listaCaixas"></select>
-    <button id="btnVer">👁️ Ver Caixa Selecionada</button>
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 15px;">
+      <select id="listaCaixas" style="padding: 8px; min-width: 250px;"></select>
+      <button id="btnVer">👁️ Ver Caixa Selecionada</button>
+      <button onclick="renomearCaixaSelecionada()" style="background-color: #f0ad4e; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">✏️ Renomear Caixa</button>
+      <button onclick="deletarCaixaSelecionada()" style="background-color: #d9534f; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">🗑️ Apagar Caixa</button>
+    </div>
     <div id="dadosCaixaSelecionada" style="margin-top: 15px;"></div>
   </div>
 
   <!-- 👥 CAMADA 2: Clientes -->
   <div id="abaClientes" class="camada-conteudo" style="display:none;">
-    <h3>👥 Lista de Clientes</h3>
-    <div id="listaClientes">
+    <h3>👥 Gerenciamento de Clientes</h3>
+    <div id="listaClientes" style="margin-top: 15px;">
       <p>Carregando clientes...</p>
     </div>
   </div>

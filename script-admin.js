@@ -132,6 +132,60 @@ async function deletarCliente(id) {
   }
 }
 
+// 👥 Carrega lista de clientes com botões de Ação
+async function carregarClientes() {
+  const div = document.getElementById("listaClientes");
+  if (!div) return;
+
+  try {
+    const res = await fetch(API_BASE + "/api/clientes");
+    const clientes = await res.json();
+
+    if (!Array.isArray(clientes) || clientes.length === 0) {
+      div.innerHTML = "<p>Nenhum cliente cadastrado.</p>";
+      return;
+    }
+
+    div.innerHTML = clientes.map(c => `
+      <div style="display: flex; justify-content: space-between; align-items: center; background: #f4f4f4; padding: 10px; border-radius: 5px; margin-bottom: 8px;">
+        <span>🆔 <b>${c.id}</b> | 👤 <b>${c.usuario}</b></span>
+        <div>
+          <button onclick="editarCliente(${c.id}, '${c.usuario}')" style="background: #337ab7; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">✏️ Editar</button>
+          <button onclick="deletarCliente(${c.id})" style="background: #d9534f; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">🗑️ Excluir</button>
+        </div>
+      </div>
+    `).join("");
+  } catch (err) {
+    div.innerHTML = "<p>Erro ao carregar clientes.</p>";
+  }
+}
+
+// ✏️ Função para Editar Cliente
+async function editarCliente(id, usuarioAtual) {
+  const novoNome = prompt("Digite o novo nome/e-mail do cliente:", usuarioAtual);
+  if (!novoNome) return;
+
+  const novaSenha = prompt("Digite a nova senha (ou deixe em branco para não alterar):");
+
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/clientes/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ usuario: novoNome, senha: novaSenha })
+    });
+
+    const data = await res.json();
+    if (res.ok && data.success) {
+      alert("✅ Cliente atualizado com sucesso!");
+      carregarClientes();
+    } else {
+      alert("❌ Erro ao atualizar cliente.");
+    }
+  } catch (err) {
+    alert("❌ Erro na conexão.");
+  }
+}
+
 // 👥 Carrega lista de clientes (Aba Clientes)
 async function carregarClientes() {
   const div = document.getElementById("listaClientes");
