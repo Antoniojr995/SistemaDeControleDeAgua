@@ -115,6 +115,17 @@ app.post('/api/caixas', requererAutenticacao, async (req, res) => {
   }
 });
 
+// Rota para buscar apenas usuários/clientes cadastrados
+app.get('/api/clientes', requererAutenticacao, async (req, res) => {
+  try {
+    const result = await pool.query("SELECT id, usuario FROM usuarios WHERE tipo = 'usuario' ORDER BY usuario ASC");
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Erro ao buscar clientes:', err);
+    res.status(500).json({ error: 'Erro ao buscar clientes.' });
+  }
+});
+
 // Rota para associar caixa a cliente
 app.put('/api/caixas/:id/associar', requererAutenticacao, async (req, res) => {
   const { id } = req.params;

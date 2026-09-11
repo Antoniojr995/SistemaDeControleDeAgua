@@ -169,12 +169,14 @@ if (btnAdicionar) {
       });
 
       const data = await res.json();
-      if (res.ok && data.success) {
+      if (res.ok && (data.success || data.ok)) {
         alert("✅ Caixa criada com sucesso!");
         document.getElementById("nomeCaixa").value = "";
-        carregarSelectsFormularios();
+        
+        // AQUI: Recarrega as opções de caixas e clientes nos selects na hora!
+        carregarSelectsFormularios(); 
       } else {
-        alert("❌ Erro: " + (data.error || "Falha ao criar caixa"));
+        alert("❌ Erro: " + (data.error || data.erro || "Falha ao criar caixa"));
       }
     } catch (err) {
       alert("❌ Falha de conexão com o servidor.");
@@ -251,6 +253,42 @@ if (btnVer) {
     window.location.href = "painel.html";
   };
 }
+
+async function carregarSelects() {
+  try {
+    // 1. Busca caixas para o select
+    const resCaixas = await fetch('/api/caixas');
+    const caixas = await resCaixas.json();
+
+    // 2. Busca clientes para os selects
+    const resClientes = await fetch('/api/clientes');
+    const clientes = await resClientes.json();
+
+    // Preenche Select de Caixas (Associar Caixa)
+    const selectCaixas = document.getElementById('select-caixas') || document.querySelector('#form-associar select:nth-child(1)');
+    if (selectCaixas) {
+      selectCaixas.innerHTML = '<option value="">Selecione a Caixa...</option>';
+      caixas.forEach(caixa => {
+        selectCaixas.innerHTML += `<option value="${caixa.id}">${caixa.nome}</option>`;
+      });
+    }
+
+    // Preenche Selects de Clientes (Criar Caixa Opcional + Associar Caixa)
+    const selectsClientes = document.querySelectorAll('.select-clientes');
+    selectsClientes.forEach(select => {
+      select.innerHTML = '<option value="">Selecione o Cliente...</option>';
+      clientes.forEach(cliente => {
+        select.innerHTML += `<option value="${cliente.id}">${cliente.usuario}</option>`;
+      });
+    });
+
+  } catch (err) {
+    console.error('Erro ao preencher opções dos selects:', err);
+  }
+}
+
+// Chame a função sempre que abrir a aba de Cadastros ou ao carregar a página
+document.addEventListener('DOMContentLoaded', carregarSelects);
 
 // 🚪 Logout
 const btnLogout = document.getElementById("btnLogout");
