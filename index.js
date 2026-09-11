@@ -37,8 +37,14 @@ async function initDb() {
       CREATE TABLE IF NOT EXISTS usuarios (
         id SERIAL PRIMARY KEY,
         usuario VARCHAR(50) UNIQUE NOT NULL,
-        senha VARCHAR(100) NOT NULL
+        senha VARCHAR(100) NOT NULL,
+        tipo VARCHAR(20) DEFAULT 'usuario'
       )
+    `);
+
+    // Garante que a coluna 'tipo' existe caso a tabela tenha sido criada antes sem ela
+    await pool.query(`
+      ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS tipo VARCHAR(20) DEFAULT 'usuario'
     `);
 
     await pool.query(`
@@ -49,14 +55,18 @@ async function initDb() {
       )
     `);
     
-    // Inserção garantida dos dois usuários de teste
+    // Inserção garantida definindo admin
     await pool.query(`
-      INSERT INTO usuarios (usuario, senha) VALUES ($1, $2) ON CONFLICT (usuario) DO NOTHING
-    `, ['admin@teste.com', '123456']);
+      INSERT INTO usuarios (usuario, senha, tipo) 
+      VALUES ($1, $2, $3) 
+      ON CONFLICT (usuario) DO UPDATE SET tipo = 'admin'
+    `, ['admin@teste.com', '123456', 'admin']);
 
     await pool.query(`
-      INSERT INTO usuarios (usuario, senha) VALUES ($1, $2) ON CONFLICT (usuario) DO NOTHING
-    `, ['admin', '123456']);
+      INSERT INTO usuarios (usuario, senha, tipo) 
+      VALUES ($1, $2, $3) 
+      ON CONFLICT (usuario) DO UPDATE SET tipo = 'admin'
+    `, ['admin', '123456', 'admin']);
 
     console.log('Banco de dados PostgreSQL verificado e pronto!');
   } catch (err) {
@@ -74,7 +84,7 @@ function requererAutenticacao(req, res, next) {
   res.status(401).json({ error: 'Acesso negado. Faça login primeiro.' });
 }
 
-// Handler de Login (Unificado para Form HTML e Fetch/JSON)
+// Handler de Login (Salva o tipo do usuário na sessão)
 async function tratarLogin(req, res) {
   const usuario = req.body.usuario || req.body.email || req.body.login;
   const senha = req.body.senha || req.body.password;
@@ -90,15 +100,22 @@ async function tratarLogin(req, res) {
     );
 
     if (result.rows.length > 0) {
+      const userDados = result.rows[0];
       req.session.logado = true;
-      req.session.usuario = result.rows[0].usuario;
+      req.session.usuario = userDados.usuario;
+      req.session.tipo = userDados.tipo || 'usuario'; // Salva 'admin' ou 'usuario' na sessão
 
       // Se a requisição veio de um Form HTML tradicional
       if (req.headers['content-type'] && req.headers['content-type'].includes('application/x-www-form-urlencoded')) {
         return res.redirect('/painel.html');
       }
 
-      return res.json({ success: true, message: 'Login efetuado com sucesso!' });
+      return res.json({ 
+        success: true, 
+        message: 'Login efetuado com sucesso!',
+        usuario: userDados.usuario,
+        tipo: userDados.tipo || 'usuario'
+      });
     } else {
       return res.status(401).json({ error: 'Usuário ou senha incorretos.' });
     }
@@ -119,7 +136,11 @@ app.post('/api/logout', (req, res) => {
 
 app.get('/api/usuario-atual', (req, res) => {
   if (req.session && req.session.logado) {
-    res.json({ logado: true, usuario: req.session.usuario });
+    res.json({ 
+      logado: true, 
+      usuario: req.session.usuario,
+      tipo: req.session.tipo 
+    });
   } else {
     res.json({ logado: false });
   }
