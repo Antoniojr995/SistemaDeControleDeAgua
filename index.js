@@ -26,9 +26,17 @@ app.use(session({
   cookie: { maxAge: 24 * 60 * 60 * 1000 }
 }));
 
-// Servir arquivos estáticos (procura na raiz e na pasta public se existir)
+// Servir arquivos estáticos
 app.use(express.static(__dirname));
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Middleware de Autenticação (Definido no topo para uso geral)
+function requererAutenticacao(req, res, next) {
+  if (req.session && req.session.logado) {
+    return next();
+  }
+  res.status(401).json({ error: 'Acesso negado. Faça login primeiro.' });
+}
 
 // Inicialização das Tabelas no Neon
 async function initDb() {
@@ -43,12 +51,11 @@ async function initDb() {
       )
     `);
 
-    // Garante coluna 'tipo' se a tabela for antiga
     await pool.query(`
       ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS tipo VARCHAR(20) DEFAULT 'usuario'
     `);
 
-    // 2. Tabela de caixas d'água (relacionada com usuários)
+    // 2. Tabela de caixas d'água
     await pool.query(`
       CREATE TABLE IF NOT EXISTS caixas (
         id SERIAL PRIMARY KEY,
@@ -57,7 +64,7 @@ async function initDb() {
       )
     `);
 
-    // 3. Tabela de leituras de nível de água
+    // 3. Tabela de leituras
     await pool.query(`
       CREATE TABLE IF NOT EXISTS leituras (
         id SERIAL PRIMARY KEY,
@@ -66,7 +73,7 @@ async function initDb() {
       )
     `);
 
-    // 4. Tabela de chamados abertos pelos clientes
+    // 4. Tabela de chamados
     await pool.query(`
       CREATE TABLE IF NOT EXISTS chamados (
         id SERIAL PRIMARY KEY,
@@ -77,7 +84,7 @@ async function initDb() {
       )
     `);
     
-    // Inserção/Garantia dos administradores
+    // Admins padrão
     await pool.query(`
       INSERT INTO usuarios (usuario, senha, tipo) 
       VALUES ($1, $2, $3) 
@@ -98,7 +105,8 @@ async function initDb() {
 
 initDb();
 
-// Rota para criar caixa
+// --- GERENCIAMENTO DE CAIXAS ---
+
 app.post('/api/caixas', requererAutenticacao, async (req, res) => {
   const { nome, usuario_id } = req.body;
   if (!nome) return res.status(400).json({ error: 'Nome da caixa é obrigatório.' });
@@ -115,7 +123,6 @@ app.post('/api/caixas', requererAutenticacao, async (req, res) => {
   }
 });
 
-// Rota para listar caixas d'água no backend
 app.get('/api/caixas', requererAutenticacao, async (req, res) => {
   try {
     const queryText = `
@@ -128,19 +135,13 @@ app.get('/api/caixas', requererAutenticacao, async (req, res) => {
       ORDER BY c.id DESC
     `;
     const result = await pool.query(queryText);
-    
-    // Retorna sempre o array com as caixas (ou lista vazia [])
     res.json(result.rows || []);
   } catch (err) {
     console.error('Erro na consulta de caixas:', err);
-    // Retorna array vazio em caso de falha no banco para não quebrar o frontend
     res.json([]);
   }
 });
 
-// --- GERENCIAMENTO DE CAIXAS (ADMIN) ---
-
-// Editar nome ou cliente de uma caixa
 app.put('/api/caixas/:id', requererAutenticacao, async (req, res) => {
   const { id } = req.params;
   const { nome, usuario_id } = req.body;
@@ -157,7 +158,6 @@ app.put('/api/caixas/:id', requererAutenticacao, async (req, res) => {
   }
 });
 
-// Deletar caixa d'água
 app.delete('/api/caixas/:id', requererAutenticacao, async (req, res) => {
   const { id } = req.params;
 
@@ -170,155 +170,6 @@ app.delete('/api/caixas/:id', requererAutenticacao, async (req, res) => {
   }
 });
 
-// --- GERENCIAMENTO DE USUÁRIOS/CLIENTES ---
-
-// Admin edita dados completos do cliente (Nome, Email/Usuário, Senha)
-app.put('/api/admin/clientes/:id', requererAutenticacao, async (req, res) => {
-  const { id } = req.params;
-  const { usuario, senha } = req.body;
-
-  try {
-    if (senha && senha.trim() !== '') {
-      await pool.query('UPDATE usuarios SET usuario = $1, senha = $2 WHERE id = $3', [usuario, senha, id]);
-    } else {
-      await pool.query('UPDATE usuarios SET usuario = $1 WHERE id = $2', [usuario, id]);
-    }
-    res.json({ success: true, message: 'Cliente atualizado!' });
-  } catch (err) {
-    console.error('Erro ao editar cliente:', err);
-    res.status(500).json({ error: 'Erro ao editar cliente.' });
-  }
-});
-
-// Admin deleta um cliente
-app.delete('/api/admin/clientes/:id', requererAutenticacao, async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    await pool.query('DELETE FROM usuarios WHERE id = $1', [id]);
-    res.json({ success: true, message: 'Cliente removido!' });
-  } catch (err) {
-    console.error('Erro ao deletar cliente:', err);
-    res.status(500).json({ error: 'Erro ao deletar cliente.' });
-  }
-});
-
-// GET: Buscar detalhes do cliente e as caixas vinculadas a ele
-// GET: Buscar detalhes do cliente e as caixas vinculadas a ele
-app.get("/api/admin/clientes/:id", requererAutenticacao, async (req, res) => {
-  const { id } = req.params;
-  try {
-    const clienteQuery = await pool.query("SELECT id, usuario FROM usuarios WHERE id = $1", [id]);
-    if (clienteQuery.rows.length === 0) {
-      return res.status(404).json({ error: "Cliente não encontrado" });
-    }
-
-    // Busca todas as caixas vinculadas a este cliente
-    const caixasQuery = await pool.query("SELECT id, nome FROM caixas WHERE usuario_id = $1", [id]);
-
-    res.json({
-      cliente: clienteQuery.rows[0],
-      caixas: caixasQuery.rows
-    });
-  } catch (err) {
-    console.error("Erro na rota GET /api/admin/clientes/:id:", err);
-    res.status(500).json({ error: "Erro ao buscar dados do cliente" });
-  }
-});
-
-// PUT: Atualizar dados completos do cliente e desvincular/vincular caixas
-app.put("/api/admin/clientes/:id/completo", requererAutenticacao, async (req, res) => {
-  const { id } = req.params;
-  const { usuario, senha, caixa_id_remover, caixa_id_adicionar } = req.body;
-
-  try {
-    // 1. Atualiza dados de acesso se informados
-    if (usuario) {
-      if (senha && senha.trim() !== "") {
-        await pool.query("UPDATE usuarios SET usuario = $1, senha = $2 WHERE id = $3", [usuario, senha, id]);
-      } else {
-        await pool.query("UPDATE usuarios SET usuario = $1 WHERE id = $2", [usuario, id]);
-      }
-    }
-
-    // 2. Se solicitou remover vínculo de uma caixa
-    if (caixa_id_remover) {
-      await pool.query("UPDATE caixas SET usuario_id = NULL WHERE id = $1 AND usuario_id = $2", [caixa_id_remover, id]);
-    }
-
-    // 3. Se solicitou associar uma nova caixa
-    if (caixa_id_adicionar) {
-      await pool.query("UPDATE caixas SET usuario_id = $1 WHERE id = $2", [id, caixa_id_adicionar]);
-    }
-
-    res.json({ success: true, message: "Ficha do cliente atualizada com sucesso!" });
-  } catch (err) {
-    console.error("Erro na rota PUT /api/admin/clientes/:id/completo:", err);
-    res.status(500).json({ error: "Erro ao atualizar ficha do cliente" });
-  }
-});
-
-// PUT: Atualizar dados completos do cliente e desvincular caixas se necessário
-app.put("/api/admin/clientes/:id/completo", async (req, res) => {
-  const { id } = req.params;
-  const { usuario, senha, caixa_id_remover, caixa_id_adicionar } = req.body;
-
-  try {
-    // 1. Atualiza dados de acesso se informados
-    if (usuario) {
-      if (senha && senha.trim() !== "") {
-        await db.query("UPDATE usuarios SET usuario = $1, senha = $2 WHERE id = $3", [usuario, senha, id]);
-      } else {
-        await db.query("UPDATE usuarios SET usuario = $1 WHERE id = $3", [usuario, id]);
-      }
-    }
-
-    // 2. Se solicitou remover vínculo de uma caixa
-    if (caixa_id_remover) {
-      await db.query("UPDATE caixas SET usuario_id = NULL WHERE id = $1 AND usuario_id = $2", [caixa_id_remover, id]);
-    }
-
-    // 3. Se solicitou associar uma nova caixa
-    if (caixa_id_adicionar) {
-      await db.query("UPDATE caixas SET usuario_id = $1 WHERE id = $2", [id, caixa_id_adicionar]);
-    }
-
-    res.json({ success: true, message: "Ficha do cliente atualizada com sucesso!" });
-  } catch (err) {
-    res.status(500).json({ error: "Erro ao atualizar ficha do cliente" });
-  }
-});
-
-// Cliente comum altera o próprio perfil
-app.put('/api/perfil', requererAutenticacao, async (req, res) => {
-  const usuarioId = req.session.usuarioId;
-  const { usuario, senha } = req.body;
-
-  try {
-    if (senha && senha.trim() !== '') {
-      await pool.query('UPDATE usuarios SET usuario = $1, senha = $2 WHERE id = $3', [usuario, senha, usuarioId]);
-    } else {
-      await pool.query('UPDATE usuarios SET usuario = $1 WHERE id = $2', [usuario, usuarioId]);
-    }
-    res.json({ success: true, message: 'Perfil atualizado!' });
-  } catch (err) {
-    console.error('Erro ao atualizar perfil:', err);
-    res.status(500).json({ error: 'Erro ao atualizar perfil.' });
-  }
-});
-
-// Rota para buscar apenas usuários/clientes cadastrados
-app.get('/api/clientes', requererAutenticacao, async (req, res) => {
-  try {
-    const result = await pool.query("SELECT id, usuario FROM usuarios WHERE tipo = 'usuario' ORDER BY usuario ASC");
-    res.json(result.rows);
-  } catch (err) {
-    console.error('Erro ao buscar clientes:', err);
-    res.status(500).json({ error: 'Erro ao buscar clientes.' });
-  }
-});
-
-// Rota para associar caixa a cliente
 app.put('/api/caixas/:id/associar', requererAutenticacao, async (req, res) => {
   const { id } = req.params;
   const { usuario_id } = req.body;
@@ -332,59 +183,11 @@ app.put('/api/caixas/:id/associar', requererAutenticacao, async (req, res) => {
   }
 });
 
-// Middleware de Autenticação
-function requererAutenticacao(req, res, next) {
-  if (req.session && req.session.logado) {
-    return next();
-  }
-  res.status(401).json({ error: 'Acesso negado. Faça login primeiro.' });
-}
+// --- GERENCIAMENTO DE CLIENTES ---
 
-// Handler de Login (Salva o tipo do usuário na sessão)
-async function tratarLogin(req, res) {
-  const usuario = req.body.usuario || req.body.email || req.body.login;
-  const senha = req.body.senha || req.body.password;
-
-  if (!usuario || !senha) {
-    return res.status(400).json({ error: 'Usuário e senha são obrigatórios.' });
-  }
-
-  try {
-    const result = await pool.query(
-      'SELECT * FROM usuarios WHERE usuario = $1 AND senha = $2',
-      [usuario, senha]
-    );
-
-    if (result.rows.length > 0) {
-      const userDados = result.rows[0];
-      req.session.logado = true;
-      req.session.usuario = userDados.usuario;
-      req.session.tipo = userDados.tipo || 'usuario'; // Salva 'admin' ou 'usuario' na sessão
-
-      // Se a requisição veio de um Form HTML tradicional
-      if (req.headers['content-type'] && req.headers['content-type'].includes('application/x-www-form-urlencoded')) {
-        return res.redirect('/painel.html');
-      }
-
-      return res.json({ 
-        success: true, 
-        message: 'Login efetuado com sucesso!',
-        usuario: userDados.usuario,
-        tipo: userDados.tipo || 'usuario'
-      });
-    } else {
-      return res.status(401).json({ error: 'Usuário ou senha incorretos.' });
-    }
-  } catch (err) {
-    console.error('Erro no login:', err);
-    return res.status(500).json({ error: 'Erro interno ao autenticar.' });
-  }
-}
-
-// Buscar lista de clientes
 app.get('/api/clientes', requererAutenticacao, async (req, res) => {
   try {
-    const result = await pool.query("SELECT id, usuario, tipo FROM usuarios WHERE tipo = 'usuario'");
+    const result = await pool.query("SELECT id, usuario, tipo FROM usuarios WHERE tipo = 'usuario' ORDER BY usuario ASC");
     res.json(result.rows);
   } catch (err) {
     console.error('Erro ao buscar clientes:', err);
@@ -392,7 +195,6 @@ app.get('/api/clientes', requererAutenticacao, async (req, res) => {
   }
 });
 
-// Cadastrar novo cliente pelo painel
 app.post('/api/cadastrar-cliente', requererAutenticacao, async (req, res) => {
   const { nome, email, senha } = req.body;
   const usuario = email || nome;
@@ -413,7 +215,188 @@ app.post('/api/cadastrar-cliente', requererAutenticacao, async (req, res) => {
   }
 });
 
-// Aceita requisição tanto em /login quanto em /api/login
+app.put('/api/admin/clientes/:id', requererAutenticacao, async (req, res) => {
+  const { id } = req.params;
+  const { usuario, senha } = req.body;
+
+  try {
+    if (senha && senha.trim() !== '') {
+      await pool.query('UPDATE usuarios SET usuario = $1, senha = $2 WHERE id = $3', [usuario, senha, id]);
+    } else {
+      await pool.query('UPDATE usuarios SET usuario = $1 WHERE id = $2', [usuario, id]);
+    }
+    res.json({ success: true, message: 'Cliente atualizado!' });
+  } catch (err) {
+    console.error('Erro ao editar cliente:', err);
+    res.status(500).json({ error: 'Erro ao editar cliente.' });
+  }
+});
+
+app.delete('/api/admin/clientes/:id', requererAutenticacao, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await pool.query('DELETE FROM usuarios WHERE id = $1', [id]);
+    res.json({ success: true, message: 'Cliente removido!' });
+  } catch (err) {
+    console.error('Erro ao deletar cliente:', err);
+    res.status(500).json({ error: 'Erro ao deletar cliente.' });
+  }
+});
+
+app.get("/api/admin/clientes/:id", requererAutenticacao, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const clienteQuery = await pool.query("SELECT id, usuario FROM usuarios WHERE id = $1", [id]);
+    if (clienteQuery.rows.length === 0) {
+      return res.status(404).json({ error: "Cliente não encontrado" });
+    }
+
+    const caixasQuery = await pool.query("SELECT id, nome FROM caixas WHERE usuario_id = $1", [id]);
+
+    res.json({
+      cliente: clienteQuery.rows[0],
+      caixas: caixasQuery.rows
+    });
+  } catch (err) {
+    console.error("Erro na rota GET /api/admin/clientes/:id:", err);
+    res.status(500).json({ error: "Erro ao buscar dados do cliente" });
+  }
+});
+
+app.put("/api/admin/clientes/:id/completo", requererAutenticacao, async (req, res) => {
+  const { id } = req.params;
+  const { usuario, senha, caixa_id_remover, caixa_id_adicionar } = req.body;
+
+  try {
+    if (usuario) {
+      if (senha && senha.trim() !== "") {
+        await pool.query("UPDATE usuarios SET usuario = $1, senha = $2 WHERE id = $3", [usuario, senha, id]);
+      } else {
+        await pool.query("UPDATE usuarios SET usuario = $1 WHERE id = $2", [usuario, id]);
+      }
+    }
+
+    if (caixa_id_remover) {
+      await pool.query("UPDATE caixas SET usuario_id = NULL WHERE id = $1 AND usuario_id = $2", [caixa_id_remover, id]);
+    }
+
+    if (caixa_id_adicionar) {
+      await pool.query("UPDATE caixas SET usuario_id = $1 WHERE id = $2", [id, caixa_id_adicionar]);
+    }
+
+    res.json({ success: true, message: "Ficha do cliente atualizada com sucesso!" });
+  } catch (err) {
+    console.error("Erro na rota PUT /api/admin/clientes/:id/completo:", err);
+    res.status(500).json({ error: "Erro ao atualizar ficha do cliente" });
+  }
+});
+
+app.put('/api/perfil', requererAutenticacao, async (req, res) => {
+  const usuarioId = req.session.usuarioId;
+  const { usuario, senha } = req.body;
+
+  try {
+    if (senha && senha.trim() !== '') {
+      await pool.query('UPDATE usuarios SET usuario = $1, senha = $2 WHERE id = $3', [usuario, senha, usuarioId]);
+    } else {
+      await pool.query('UPDATE usuarios SET usuario = $1 WHERE id = $2', [usuario, usuarioId]);
+    }
+    res.json({ success: true, message: 'Perfil atualizado!' });
+  } catch (err) {
+    console.error('Erro ao atualizar perfil:', err);
+    res.status(500).json({ error: 'Erro ao atualizar perfil.' });
+  }
+});
+
+// --- GERENCIAMENTO DE CHAMADOS ---
+
+app.get('/api/chamados', requererAutenticacao, async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT id, cliente_nome, assunto, mensagem, TO_CHAR(data_hora, 'DD/MM/YYYY HH24:MI') as data_hora FROM chamados ORDER BY id DESC"
+    );
+    res.json(result.rows || []);
+  } catch (err) {
+    console.error('Erro ao buscar chamados:', err);
+    res.status(500).json({ error: 'Erro ao buscar chamados no banco.' });
+  }
+});
+
+app.post('/api/chamados', requererAutenticacao, async (req, res) => {
+  const { cliente_nome, assunto, mensagem } = req.body;
+  const usuarioLogado = req.session.usuario || cliente_nome || 'Cliente';
+
+  if (!mensagem) {
+    return res.status(400).json({ error: 'A mensagem do chamado é obrigatória.' });
+  }
+
+  try {
+    await pool.query(
+      'INSERT INTO chamados (cliente_nome, assunto, mensagem) VALUES ($1, $2, $3)',
+      [usuarioLogado, assunto || 'Suporte', mensagem]
+    );
+    res.status(201).json({ success: true, message: 'Chamado aberto com sucesso!' });
+  } catch (err) {
+    console.error('Erro ao abrir chamado:', err);
+    res.status(500).json({ error: 'Erro ao registrar chamado.' });
+  }
+});
+
+app.delete('/api/chamados/:id', requererAutenticacao, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await pool.query('DELETE FROM chamados WHERE id = $1', [id]);
+    res.json({ success: true, message: 'Chamado finalizado com sucesso!' });
+  } catch (err) {
+    console.error('Erro ao excluir chamado:', err);
+    res.status(500).json({ error: 'Erro ao excluir chamado.' });
+  }
+});
+
+// --- AUTENTICAÇÃO E SESSÃO ---
+
+async function tratarLogin(req, res) {
+  const usuario = req.body.usuario || req.body.email || req.body.login;
+  const senha = req.body.senha || req.body.password;
+
+  if (!usuario || !senha) {
+    return res.status(400).json({ error: 'Usuário e senha são obrigatórios.' });
+  }
+
+  try {
+    const result = await pool.query(
+      'SELECT * FROM usuarios WHERE usuario = $1 AND senha = $2',
+      [usuario, senha]
+    );
+
+    if (result.rows.length > 0) {
+      const userDados = result.rows[0];
+      req.session.logado = true;
+      req.session.usuarioId = userDados.id;
+      req.session.usuario = userDados.usuario;
+      req.session.tipo = userDados.tipo || 'usuario';
+
+      if (req.headers['content-type'] && req.headers['content-type'].includes('application/x-www-form-urlencoded')) {
+        return res.redirect('/painel.html');
+      }
+
+      return res.json({ 
+        success: true, 
+        message: 'Login efetuado com sucesso!',
+        usuario: userDados.usuario,
+        tipo: userDados.tipo || 'usuario'
+      });
+    } else {
+      return res.status(401).json({ error: 'Usuário ou senha incorretos.' });
+    }
+  } catch (err) {
+    console.error('Erro no login:', err);
+    return res.status(500).json({ error: 'Erro interno ao autenticar.' });
+  }
+}
+
 app.post('/login', tratarLogin);
 app.post('/api/login', tratarLogin);
 
@@ -434,7 +417,8 @@ app.get('/api/usuario-atual', (req, res) => {
   }
 });
 
-// Rotas do ESP32 e Dashboard
+// --- ROTAS DO ESP32 E LEITURAS ---
+
 app.post('/api/leitura', async (req, res) => {
   const { nivel } = req.body;
   if (nivel === undefined || nivel === null) {
@@ -473,6 +457,7 @@ app.get('/api/ultima-leitura', async (req, res) => {
   }
 });
 
+// Inicializa o servidor
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
