@@ -49,7 +49,7 @@
       <div style="flex: 1; min-width: 260px; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
         <h3>👤 Cadastrar Cliente</h3>
         <form id="formNovoCliente" style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
-          <input type="text" id="novoClienteNome" placeholder="Nome do Cliente" required>
+          <input type="text" id="novoClienteNome" placeholder="Nome do Cliente">
           <input type="email" id="novoClienteEmail" placeholder="E-mail" required>
           <input type="password" id="novoClienteSenha" placeholder="Senha" required>
           <button type="button" id="btnCadastrarCliente">Cadastrar Cliente</button>
@@ -94,6 +94,52 @@
   </div>
 
   <p id="msg" style="margin-top: 15px; font-weight: bold;"></p>
+
+  <!-- 🪟 MODAL: Ficha do Cliente -->
+  <div id="modalFichaCliente" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); align-items:center; justify-content:center; z-index:1000;">
+    <div style="background:#fff; padding:25px; border-radius:10px; width:90%; max-width:550px; box-shadow:0 4px 15px rgba(0,0,0,0.3); position:relative;">
+      <button onclick="fecharFichaCliente()" style="position:absolute; top:10px; right:15px; background:none; border:none; font-size:20px; cursor:pointer;">❌</button>
+      
+      <h2 style="margin-top:0;">📄 Ficha do Cliente #<span id="fichaId"></span></h2>
+      <hr style="margin-bottom:15px; opacity:0.3;">
+
+      <!-- Dados Cadastrais -->
+      <div style="margin-bottom:15px;">
+        <label><b>E-mail / Usuário:</b></label>
+        <input type="text" id="fichaUsuario" style="width:100%; padding:8px; margin-top:5px; border:1px solid #ccc; border-radius:4px;">
+      </div>
+
+      <div style="margin-bottom:15px;">
+        <label><b>Nova Senha:</b> <small style="color:#666;">(deixe em branco se não quiser alterar)</small></label>
+        <input type="password" id="fichaSenha" placeholder="••••••••" style="width:100%; padding:8px; margin-top:5px; border:1px solid #ccc; border-radius:4px;">
+      </div>
+
+      <!-- Caixas d'Água do Cliente -->
+      <div style="margin-bottom:15px;">
+        <label><b>Caixas d'Água Vinculadas:</b></label>
+        <div id="fichaListaCaixas" style="margin-top:8px; background:#f8f9fa; padding:10px; border-radius:5px; max-height:130px; overflow-y:auto; border:1px solid #eee;">
+          <!-- Carregado via JS -->
+        </div>
+      </div>
+
+      <!-- Vincular Caixa Livre -->
+      <div style="margin-bottom:20px;">
+        <label><b>Vincular Nova Caixa (sem dono):</b></label>
+        <select id="fichaSelectCaixasLivre" style="width:100%; padding:8px; margin-top:5px; border:1px solid #ccc; border-radius:4px;">
+          <option value="">Selecione para vincular...</option>
+        </select>
+      </div>
+
+      <!-- Ações da Ficha -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
+        <button onclick="excluirClienteFicha()" style="background:#d9534f; color:#fff; border:none; padding:10px 15px; border-radius:5px; cursor:pointer;">🗑️ Excluir Cliente</button>
+        <div>
+          <button onclick="fecharFichaCliente()" style="background:#6c757d; color:#fff; border:none; padding:10px 15px; border-radius:5px; cursor:pointer; margin-right:5px;">Cancelar</button>
+          <button onclick="salvarFichaCliente()" style="background:#28a745; color:#fff; border:none; padding:10px 15px; border-radius:5px; cursor:pointer;">💾 Salvar Alterações</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script src="script-admin.js"></script>
 </body>

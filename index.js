@@ -203,6 +203,58 @@ app.delete('/api/admin/clientes/:id', requererAutenticacao, async (req, res) => 
   }
 });
 
+// GET: Buscar detalhes do cliente e as caixas vinculadas a ele
+app.get("/api/admin/clientes/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const clienteQuery = await db.query("SELECT id, usuario FROM usuarios WHERE id = $1", [id]);
+    if (clienteQuery.rows.length === 0) {
+      return res.status(404).json({ error: "Cliente não encontrado" });
+    }
+
+    // Busca todas as caixas vinculadas a este cliente
+    const caixasQuery = await db.query("SELECT id, nome, status FROM caixas WHERE usuario_id = $1", [id]);
+
+    res.json({
+      cliente: clienteQuery.rows[0],
+      caixas: caixasQuery.rows
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao buscar dados do cliente" });
+  }
+});
+
+// PUT: Atualizar dados completos do cliente e desvincular caixas se necessário
+app.put("/api/admin/clientes/:id/completo", async (req, res) => {
+  const { id } = req.params;
+  const { usuario, senha, caixa_id_remover, caixa_id_adicionar } = req.body;
+
+  try {
+    // 1. Atualiza dados de acesso se informados
+    if (usuario) {
+      if (senha && senha.trim() !== "") {
+        await db.query("UPDATE usuarios SET usuario = $1, senha = $2 WHERE id = $3", [usuario, senha, id]);
+      } else {
+        await db.query("UPDATE usuarios SET usuario = $1 WHERE id = $3", [usuario, id]);
+      }
+    }
+
+    // 2. Se solicitou remover vínculo de uma caixa
+    if (caixa_id_remover) {
+      await db.query("UPDATE caixas SET usuario_id = NULL WHERE id = $1 AND usuario_id = $2", [caixa_id_remover, id]);
+    }
+
+    // 3. Se solicitou associar uma nova caixa
+    if (caixa_id_adicionar) {
+      await db.query("UPDATE caixas SET usuario_id = $1 WHERE id = $2", [id, caixa_id_adicionar]);
+    }
+
+    res.json({ success: true, message: "Ficha do cliente atualizada com sucesso!" });
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao atualizar ficha do cliente" });
+  }
+});
+
 // Cliente comum altera o próprio perfil
 app.put('/api/perfil', requererAutenticacao, async (req, res) => {
   const usuarioId = req.session.usuarioId;

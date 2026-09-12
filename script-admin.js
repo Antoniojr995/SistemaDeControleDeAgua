@@ -113,6 +113,9 @@ async function deletarCaixaSelecionada() {
 }
 
 // 👥 4. ABA CLIENTES (LISTA E ACOES)
+let clienteAtualId = null;
+
+// 👥 1. Carrega lista de clientes alterando o botão para abrir a Ficha
 async function carregarClientes() {
   const div = document.getElementById("listaClientes");
   if (!div) return;
@@ -130,14 +133,143 @@ async function carregarClientes() {
       <div style="display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 12px; border-radius: 6px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
         <span>🆔 <b>${c.id}</b> | 👤 <b>${c.usuario}</b></span>
         <div>
-          <button onclick="editarCliente(${c.id}, '${c.usuario}')" style="background: #0275d8; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin-right: 5px;">✏️ Editar</button>
-          <button onclick="deletarCliente(${c.id})" style="background: #d9534f; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">🗑️ Excluir</button>
+          <button onclick="abrirFichaCliente(${c.id})" style="background: #0275d8; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">🔍 Ver Ficha / Editar</button>
         </div>
       </div>
     `).join("");
   } catch (err) {
-    console.error("Erro ao carregar clientes:", err);
     div.innerHTML = "<p>Erro ao carregar clientes.</p>";
+  }
+}
+
+// 📄 2. Abrir Modal da Ficha do Cliente
+async function abrirFichaCliente(id) {
+  clienteAtualId = id;
+  
+  try {
+    // Busca dados do cliente + caixas sem dono
+    const [resCliente, resCaixasLivres] = await Promise.all([
+      fetch(`${API_BASE}/api/admin/clientes/${id}`),
+      fetch(`${API_BASE}/api/caixas`)
+    ]);
+
+    const dataCliente = await resCliente.json();
+    const caixasTodas = await resCaixasLivres.json();
+
+    if (!resCliente.ok) return alert("Erro ao carregar ficha.");
+
+    // Preenche campos do modal
+    document.getElementById("fichaId").textContent = dataCliente.cliente.id;
+    document.getElementById("fichaUsuario").value = dataCliente.cliente.usuario;
+    document.getElementById("fichaSenha").value = "";
+
+    // Renderiza Caixas do Cliente com Status de Funcionamento
+    const divCaixas = document.getElementById("fichaListaCaixas");
+    if (dataCliente.caixas.length === 0) {
+      divCaixas.innerHTML = "<i>Nenhuma caixa vinculada a este cliente.</i>";
+    } else {
+      divCaixas.innerHTML = dataCliente.caixas.map(c => `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; padding:5px; background:#fff; border:1px solid #ddd; border-radius:4px;">
+          <span>📦 <b>${c.nome}</b> (ID ${c.id}) - <small style="color:${c.status === 'Online' ? 'green' : 'red'};">● ${c.status || 'Offline/Desconhecido'}</small></span>
+          <button onclick="desvincularCaixaCliente(${c.id})" style="background:#ffc107; color:#000; border:none; padding:2px 6px; border-radius:3px; cursor:pointer; font-size:12px;">Desvincular</button>
+        </div>
+      `).join("");
+    }
+
+    // Preenche select de caixas sem dono
+    const selectLivre = document.getElementById("fichaSelectCaixasLivre");
+    selectLivre.innerHTML = '<option value="">Selecione uma caixa para vincular...</option>';
+    
+    if (Array.isArray(caixasTodas)) {
+      caixasTodas
+        .filter(c => !c.cliente_nome && !c.usuario_id) // Filtra apenas caixas livres
+        .forEach(c => {
+          selectLivre.innerHTML += `<option value="${c.id}">${c.nome} (ID: ${c.id})</option>`;
+        });
+    }
+
+    // Exibe o modal
+    document.getElementById("modalFichaCliente").style.display = "flex";
+  } catch (err) {
+    console.error(err);
+    alert("❌ Erro ao abrir a ficha do cliente.");
+  }
+}
+
+// ❌ 3. Fechar Modal
+function fecharFichaCliente() {
+  document.getElementById("modalFichaCliente").style.display = "none";
+  clienteAtualId = null;
+}
+
+// 💾 4. Salvar Alterações da Ficha
+async function salvarFichaCliente() {
+  if (!clienteAtualId) return;
+
+  const usuario = document.getElementById("fichaUsuario").value.trim();
+  const senha = document.getElementById("fichaSenha").value.trim();
+  const caixaAdicionar = document.getElementById("fichaSelectCaixasLivre").value;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/clientes/${clienteAtualId}/completo`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        usuario,
+        senha,
+        caixa_id_adicionar: caixaAdicionar || null
+      })
+    });
+
+    if (res.ok) {
+      alert("✅ Ficha atualizada com sucesso!");
+      fecharFichaCliente();
+      carregarClientes();
+    } else {
+      alert("❌ Erro ao salvar ficha.");
+    }
+  } catch (err) {
+    alert("❌ Erro na conexão.");
+  }
+}
+
+// 🔗 5. Desvincular Caixa Específica
+async function desvincularCaixaCliente(caixaId) {
+  if (!confirm("Deseja remover o vínculo desta caixa d'água com este cliente?")) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/clientes/${clienteAtualId}/completo`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ caixa_id_remover: caixaId })
+    });
+
+    if (res.ok) {
+      alert("✅ Caixa desvinculada!");
+      abrirFichaCliente(clienteAtualId); // Recarrega a ficha
+    }
+  } catch (err) {
+    alert("❌ Erro ao desvincular caixa.");
+  }
+}
+
+// 🗑️ 6. Excluir Cliente pela Ficha
+async function excluirClienteFicha() {
+  if (!clienteAtualId) return;
+
+  if (confirm(`Tem certeza que deseja apagar o cliente ID ${clienteAtualId}? Todas as caixas dele ficarão sem dono.`)) {
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/clientes/${clienteAtualId}`, { method: "DELETE" });
+      if (res.ok) {
+        alert("✅ Cliente removido!");
+        fecharFichaCliente();
+        carregarClientes();
+      } else {
+        alert("❌ Erro ao remover cliente.");
+      }
+    } catch (err) {
+      alert("❌ Erro de conexão.");
+    }
   }
 }
 
