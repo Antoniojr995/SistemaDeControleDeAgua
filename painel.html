@@ -6,7 +6,16 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h2>📊 Monitoramento do Nível de Água</h2>
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <h2>📊 Monitoramento do Nível de Água</h2>
+    <div>
+      <button onclick="abrirModalPerfil()" style="padding: 8px 16px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;">
+        👤 Meu Perfil
+      </button>
+      <button id="btnVoltarAdmin" style="display:none; padding: 8px 16px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">⬅️ Voltar ao Painel Admin</button>
+      <button id="btnLogout" style="padding: 8px 16px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">🚪 Sair</button>
+    </div>
+  </div>
 
   <h3>Caixa 1</h3>
   <div class="barra"><div id="volume1" class="volume"></div></div>
@@ -14,14 +23,10 @@
   <h3>Caixa 2</h3>
   <div class="barra"><div id="volume2" class="volume"></div></div>
 
-  <div class="controles">
+  <div class="controles" style="margin-top: 15px;">
     <label><input id="btnLigarBomba" type="checkbox"> 💧 Ligar Bomba</label>
     <button id="btnAtualizar">🔄 Atualizar Agora</button>
   </div>
-
-  <!-- ✅ Novo botão “Voltar” -->
-  <button id="btnVoltarAdmin" style="display:none;">⬅️ Voltar ao Painel Admin</button>
-  <button id="btnLogout">🚪 Sair</button>
 
   <h3>📅 Histórico dos últimos 30 dias</h3>
   <table id="tabelaHistorico" border="1" style="width:100%; text-align:center;">
@@ -43,6 +48,30 @@
   <button id="btnRelatorio">Gerar</button>
 
   <div id="resultadoRelatorio"></div>
+
+  <!-- Modal de Editar Perfil -->
+  <div id="modalPerfil" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+    <div style="background-color: #fff; margin: 10% auto; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+      <h3 style="margin-top: 0;">Editar Perfil</h3>
+      
+      <form id="formPerfil" onsubmit="salvarPerfil(event)">
+        <div style="margin-bottom: 15px; text-align: left;">
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Usuário / E-mail:</label>
+          <input type="text" id="perfilUsuario" required style="width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
+        </div>
+
+        <div style="margin-bottom: 15px; text-align: left;">
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Nova Senha (opcional):</label>
+          <input type="password" id="perfilSenha" placeholder="Deixe em branco para não alterar" style="width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" onclick="fecharModalPerfil()" style="padding: 8px 16px; background-color: #ccc; border: none; border-radius: 4px; cursor: pointer;">Cancelar</button>
+          <button type="submit" style="padding: 8px 16px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <script src="script-painel.js"></script>
 </body>

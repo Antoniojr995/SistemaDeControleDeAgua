@@ -437,6 +437,60 @@ app.post('/api/leitura', async (req, res) => {
   }
 });
 
+// 1. Buscar apenas as caixas d'água pertencentes ao cliente logado
+app.get('/api/minhas-caixas', requererAutenticacao, async (req, res) => {
+  const usuarioId = req.session.usuarioId;
+  try {
+    const result = await pool.query(
+      'SELECT id, nome FROM caixas WHERE usuario_id = $1 ORDER BY id ASC',
+      [usuarioId]
+    );
+    res.json(result.rows || []);
+  } catch (err) {
+    console.error('Erro ao buscar caixas do cliente:', err);
+    res.status(500).json({ error: 'Erro ao carregar suas caixas.' });
+  }
+});
+
+// 2. Buscar apenas os chamados abertos pelo cliente logado
+app.get('/api/meus-chamados', requererAutenticacao, async (req, res) => {
+  const usuarioLogado = req.session.usuario;
+  try {
+    const result = await pool.query(
+      "SELECT id, assunto, mensagem, TO_CHAR(data_hora, 'DD/MM/YYYY HH24:MI') as data_hora FROM chamados WHERE cliente_nome = $1 ORDER BY id DESC",
+      [usuarioLogado]
+    );
+    res.json(result.rows || []);
+  } catch (err) {
+    console.error('Erro ao buscar chamados do cliente:', err);
+    res.status(500).json({ error: 'Erro ao carregar chamados.' });
+  }
+});
+
+// 3. Atualizar perfil do cliente (Usuário/E-mail e Senha)
+app.put('/api/perfil', requererAutenticacao, async (req, res) => {
+  const usuarioId = req.session.usuarioId;
+  const { usuario, senha } = req.body;
+
+  if (!usuario) {
+    return res.status(400).json({ error: 'O nome de usuário/e-mail é obrigatório.' });
+  }
+
+  try {
+    if (senha && senha.trim() !== '') {
+      await pool.query('UPDATE usuarios SET usuario = $1, senha = $2 WHERE id = $3', [usuario, senha, usuarioId]);
+      req.session.usuario = usuario; // Atualiza a sessão ativa
+    } else {
+      await pool.query('UPDATE usuarios SET usuario = $1 WHERE id = $2', [usuario, usuarioId]);
+      req.session.usuario = usuario;
+    }
+    res.json({ success: true, message: 'Perfil atualizado com sucesso!' });
+  } catch (err) {
+    console.error('Erro ao atualizar perfil:', err);
+    res.status(500).json({ error: 'Erro ao atualizar perfil.' });
+  }
+});
+
 app.get('/api/leituras', requererAutenticacao, async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM leituras ORDER BY data_hora DESC LIMIT 50');

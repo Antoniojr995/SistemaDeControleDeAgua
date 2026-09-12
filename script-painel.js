@@ -131,6 +131,107 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  document.addEventListener("DOMContentLoaded", () => {
+    verificarUsuario();
+    carregarUltimaLeitura();
+  
+    document.getElementById("btnAtualizar")?.addEventListener("click", carregarUltimaLeitura);
+  
+    document.getElementById("btnLogout")?.addEventListener("click", async () => {
+      await fetch("/api/logout", { method: "POST" });
+      window.location.href = "/login.html";
+    });
+  });
+  
+  // Verifica se o usuário é admin para mostrar botão de voltar
+  async function verificarUsuario() {
+    try {
+      const res = await fetch("/api/usuario-atual");
+      const dados = await res.json();
+  
+      if (dados.logado && dados.tipo === "admin") {
+        const btnVoltar = document.getElementById("btnVoltarAdmin");
+        if (btnVoltar) {
+          btnVoltar.style.display = "inline-block";
+          btnVoltar.addEventListener("click", () => {
+            window.location.href = "/painel-admin.html";
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Erro ao verificar dados da sessão:", err);
+    }
+  }
+  
+  // Carrega leitura mais recente
+  async function carregarUltimaLeitura() {
+    try {
+      const res = await fetch("/api/ultima-leitura");
+      const leitura = await res.json();
+  
+      const nivel = leitura.nivel || 0;
+      const vol1 = document.getElementById("volume1");
+      if (vol1) {
+        vol1.style.width = `${nivel}%`;
+        vol1.innerText = `${nivel}%`;
+      }
+    } catch (err) {
+      console.error("Erro ao carregar leitura:", err);
+    }
+  }
+  
+  // --- FUNÇÕES DO MODAL DE PERFIL ---
+  
+  async function abrirModalPerfil() {
+    try {
+      const res = await fetch("/api/usuario-atual");
+      const dados = await res.json();
+  
+      if (dados.logado) {
+        document.getElementById("perfilUsuario").value = dados.usuario || "";
+        document.getElementById("perfilSenha").value = "";
+        document.getElementById("modalPerfil").style.display = "block";
+      } else {
+        alert("Sessão expirada. Faça login novamente.");
+        window.location.href = "/login.html";
+      }
+    } catch (err) {
+      console.error("Erro ao buscar dados do perfil:", err);
+      alert("Erro ao carregar dados do perfil.");
+    }
+  }
+  
+  function fecharModalPerfil() {
+    document.getElementById("modalPerfil").style.display = "none";
+  }
+  
+  async function salvarPerfil(event) {
+    event.preventDefault();
+  
+    const usuario = document.getElementById("perfilUsuario").value;
+    const senha = document.getElementById("perfilSenha").value;
+  
+    try {
+      const response = await fetch("/api/perfil", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ usuario, senha })
+      });
+  
+      const result = await response.json();
+  
+      if (response.ok && result.success) {
+        alert("Perfil atualizado com sucesso!");
+        fecharModalPerfil();
+      } else {
+        alert(result.error || "Erro ao atualizar perfil.");
+      }
+    } catch (err) {
+      console.error("Erro ao salvar perfil:", err);
+      alert("Erro de conexão com o servidor.");
+    }
+  }
+
   // Atualização automática
   setInterval(fetchLatest, 3000);
   fetchLatest();
