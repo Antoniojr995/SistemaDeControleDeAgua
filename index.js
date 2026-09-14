@@ -515,6 +515,28 @@ app.get('/api/ultima-leitura', async (req, res) => {
   }
 });
 
+// Rota para atender o /api/dados/latest do frontend
+app.get('/api/dados/latest', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM leituras ORDER BY data_hora DESC LIMIT 1');
+    res.json(result.rows[0] || { nivel: 0 });
+  } catch (err) {
+    console.error('Erro ao buscar última leitura:', err);
+    res.status(500).json({ error: 'Erro no banco de dados' });
+  }
+});
+
+// Rota para atender o /api/historico/:id do frontend
+app.get('/api/historico/:id', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM leituras ORDER BY data_hora DESC LIMIT 30');
+    res.json(result.rows || []);
+  } catch (err) {
+    console.error('Erro ao buscar histórico:', err);
+    res.status(500).json({ error: 'Erro no banco de dados' });
+  }
+});
+
 // Inicializa o servidor
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
