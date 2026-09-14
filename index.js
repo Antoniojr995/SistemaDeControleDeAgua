@@ -544,6 +544,20 @@ app.get('/api/historico/:id', async (req, res) => {
   }
 });
 
+// Rota para atualizar o status do chamado
+app.put('/api/chamados/:id', async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  try {
+    await pool.query('UPDATE oi SET status = $1 WHERE id = $2', [status || 'Concluído', id]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Erro ao atualizar status:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Inicializa o servidor
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);

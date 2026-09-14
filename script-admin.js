@@ -374,21 +374,50 @@ async function carregarChamados() {
       return;
     }
 
-    tbody.innerHTML = chamados.map(c => `
-      <tr style="border-bottom: 1px solid #eee; text-align: center;">
-        <td style="padding: 8px;">#${c.id}</td>
-        <td style="padding: 8px;">${c.cliente_nome || 'Cliente'}</td>
-        <td style="padding: 8px;">${c.assunto || 'Outro'}</td>
-        <td style="padding: 8px;">${c.mensagem || '-'}</td>
-        <td style="padding: 8px;">
-          <span style="background: #fff3cd; color: #856404; padding: 3px 8px; border-radius: 4px; font-weight: bold;">
-            Pendente
-          </span>
-        </td>
-      </tr>
-    `).join('');
+    tbody.innerHTML = chamados.map(c => {
+      const statusAtual = c.status || 'Pendente';
+      const isConcluido = statusAtual === 'Concluído';
+
+      return `
+        <tr style="border-bottom: 1px solid #eee; text-align: center;">
+          <td style="padding: 8px;">#${c.id}</td>
+          <td style="padding: 8px;">${c.cliente_nome || 'Cliente'}</td>
+          <td style="padding: 8px;">${c.assunto || 'Outro'}</td>
+          <td style="padding: 8px;">${c.mensagem || '-'}</td>
+          <td style="padding: 8px;">
+            ${isConcluido 
+              ? `<span style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 4px; font-weight: bold;">✅ Concluído</span>`
+              : `<button onclick="atualizarStatus(${c.id}, 'Concluído')" style="background: #ffc107; color: #212529; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                   ⏳ Pendente (Marcar Concluído)
+                 </button>`
+            }
+          </td>
+        </tr>
+      `;
+    }).join('');
   } catch (err) {
     console.error('Erro ao renderizar chamados:', err);
+  }
+}
+
+// Função para enviar a atualização para o servidor
+async function atualizarStatus(id, novoStatus) {
+  try {
+    const res = await fetch(`/api/chamados/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: novoStatus })
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      carregarChamados(); // Recarrega a tabela na tela
+    } else {
+      alert('Erro ao atualizar: ' + data.error);
+    }
+  } catch (err) {
+    console.error('Erro na requisição:', err);
+    alert('Erro de conexão ao atualizar status.');
   }
 }
 
