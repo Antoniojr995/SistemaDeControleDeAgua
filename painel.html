@@ -6,21 +6,28 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+
+  <!-- 🚨 Barra de Alerta Exclusiva para o Admin (Modo de Visualização) -->
+  <div id="alertaAdmin" style="display: none; background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; padding: 12px 20px; text-align: center; font-weight: bold; font-size: 14px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+    ⚠️ Você está visualizando o painel no modo Administrador.
+    <button id="btnVoltarAdmin" style="margin-left: 15px; padding: 5px 12px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">
+      ⬅️ Voltar ao Painel Admin
+    </button>
+  </div>
+
+  <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0; flex-wrap: wrap; gap: 10px;">
     <h2>📊 Monitoramento do Nível de Água</h2>
 
-    <div>
-      <!-- ✅ Botão ajustado para chamar a função abrirModalPerfil() -->
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <!-- ✅ Botão para QUALQUER usuário abrir chamado técnico -->
+      <button id="btnAbrirAlerta" onclick="abrirModalAlerta()" style="padding: 8px 16px; background-color: #ffc107; color: #212529; font-weight: bold; border: none; border-radius: 4px; cursor: pointer;">
+        ⚠️ Abrir Chamado / Suporte
+      </button>
+
       <button id="btnMeuPerfil" onclick="abrirModalPerfil()" style="padding: 8px 16px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;">
         👤 Meu Perfil
       </button>
 
-      <!-- ✅ Botão Voltar Admin -->
-      <button id="btnVoltarAdmin" style="display:none; padding: 8px 16px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
-        ⬅️ Voltar ao Painel Admin
-      </button>
-
-      <!-- ✅ Botão Sair -->
       <button id="btnLogout" style="padding: 8px 16px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
         🚪 Sair
       </button>
@@ -59,7 +66,7 @@
 
   <div id="resultadoRelatorio"></div>
 
-  <!-- ✅ Modal de Editar Perfil (Necessário no HTML) -->
+  <!-- Modal do Perfil -->
   <div id="modalPerfil" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
     <div style="background-color: #fff; margin: 10% auto; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
       <h3 style="margin-top: 0; color: #333;">Editar Perfil</h3>
@@ -78,6 +85,37 @@
         <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
           <button type="button" onclick="fecharModalPerfil()" style="padding: 8px 16px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancelar</button>
           <button type="submit" style="padding: 8px 16px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal de Abertura de Alerta/Suporte -->
+  <div id="modalAlertaTecnico" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+    <div style="background-color: #fff; margin: 10% auto; padding: 20px; border-radius: 8px; width: 90%; max-width: 450px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+      <h3 style="margin-top: 0; color: #333;">⚠️ Abrir Alerta / Chamado Técnico</h3>
+      <p style="font-size: 14px; color: #666;">Descreva abaixo o problema (ex: Bomba não liga, sem leitura na Caixa 2, falta de energia):</p>
+      
+      <form id="formAlerta" onsubmit="enviarAlertaTecnico(event)">
+        <div style="margin-bottom: 15px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Tipo de Problema:</label>
+          <select id="alertaTipo" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+            <option value="Bomba não responde">Bomba não está ligando/desligando</option>
+            <option value="Falha de Leitura - Caixa 1">Sem leitura na Caixa 1</option>
+            <option value="Falha de Leitura - Caixa 2">Sem leitura na Caixa 2</option>
+            <option value="Falta de Energia">Falta de Energia no local</option>
+            <option value="Outro">Outro problema</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Descrição Detalhada:</label>
+          <textarea id="alertaMensagem" required rows="4" placeholder="Ex: A bomba parou de ligar desde as 14h, preciso de visita técnica..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;"></textarea>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" onclick="fecharModalAlerta()" style="padding: 8px 16px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancelar</button>
+          <button type="submit" style="padding: 8px 16px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Enviar Alerta</button>
         </div>
       </form>
     </div>

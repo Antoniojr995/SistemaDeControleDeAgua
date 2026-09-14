@@ -1,9 +1,12 @@
 const API_BASE = window.location.origin;
+const token = sessionStorage.getItem("token");
 
 // 🔒 1. VERIFICAÇÃO DE SESSÃO
 async function verificarSessao() {
   try {
-    const res = await fetch(API_BASE + "/api/usuario-atual");
+    const res = await fetch(API_BASE + "/api/usuario-atual", {
+      headers: { Authorization: "Bearer " + token }
+    });
     const data = await res.json();
 
     if (!data.logado || data.tipo !== "admin") {
@@ -31,7 +34,10 @@ function mudarAba(idAba) {
   if (idAba === "abaCaixas") carregarCaixas();
   if (idAba === "abaClientes") carregarClientes();
   if (idAba === "abaRegistros") carregarSelectsFormularios();
-  if (idAba === "abaChamados") carregarChamados();
+  if (idAba === "abaChamados") {
+    carregarChamados();
+    carregarAlertasAdmin();
+  }
 }
 
 // 📦 3. ABA CAIXAS D'ÁGUA
@@ -40,7 +46,9 @@ async function carregarCaixas() {
   if (!listaCaixas) return;
 
   try {
-    const res = await fetch(API_BASE + "/api/caixas");
+    const res = await fetch(API_BASE + "/api/caixas", {
+      headers: { Authorization: "Bearer " + token }
+    });
     const caixas = await res.json();
     listaCaixas.innerHTML = "";
 
@@ -73,7 +81,10 @@ async function renomearCaixaSelecionada() {
   try {
     const res = await fetch(`${API_BASE}/api/caixas/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token 
+      },
       body: JSON.stringify({ nome: novoNome })
     });
 
@@ -97,7 +108,10 @@ async function deletarCaixaSelecionada() {
 
   if (confirm(`Tem certeza que deseja apagar a caixa ID ${id}?`)) {
     try {
-      const res = await fetch(`${API_BASE}/api/caixas/${id}`, { method: "DELETE" });
+      const res = await fetch(`${API_BASE}/api/caixas/${id}`, { 
+        method: "DELETE",
+        headers: { Authorization: "Bearer " + token }
+      });
       const data = await res.json();
 
       if (res.ok && data.success) {
@@ -112,16 +126,17 @@ async function deletarCaixaSelecionada() {
   }
 }
 
-// 👥 4. ABA CLIENTES (LISTA E ACOES)
+// 👥 4. ABA CLIENTES (LISTA E AÇÕES)
 let clienteAtualId = null;
 
-// 👥 1. Carrega lista de clientes alterando o botão para abrir a Ficha
 async function carregarClientes() {
   const div = document.getElementById("listaClientes");
   if (!div) return;
 
   try {
-    const res = await fetch(API_BASE + "/api/clientes");
+    const res = await fetch(API_BASE + "/api/clientes", {
+      headers: { Authorization: "Bearer " + token }
+    });
     const clientes = await res.json();
 
     if (!Array.isArray(clientes) || clientes.length === 0) {
@@ -142,15 +157,14 @@ async function carregarClientes() {
   }
 }
 
-// 📄 2. Abrir Modal da Ficha do Cliente
 async function abrirFichaCliente(id) {
   clienteAtualId = id;
   
   try {
-    // Busca dados do cliente + caixas sem dono
+    const headers = { Authorization: "Bearer " + token };
     const [resCliente, resCaixasLivres] = await Promise.all([
-      fetch(`${API_BASE}/api/admin/clientes/${id}`),
-      fetch(`${API_BASE}/api/caixas`)
+      fetch(`${API_BASE}/api/admin/clientes/${id}`, { headers }),
+      fetch(`${API_BASE}/api/caixas`, { headers })
     ]);
 
     const dataCliente = await resCliente.json();
@@ -158,12 +172,10 @@ async function abrirFichaCliente(id) {
 
     if (!resCliente.ok) return alert("Erro ao carregar ficha.");
 
-    // Preenche campos do modal
     document.getElementById("fichaId").textContent = dataCliente.cliente.id;
     document.getElementById("fichaUsuario").value = dataCliente.cliente.usuario;
     document.getElementById("fichaSenha").value = "";
 
-    // Renderiza Caixas do Cliente com Status de Funcionamento
     const divCaixas = document.getElementById("fichaListaCaixas");
     if (dataCliente.caixas.length === 0) {
       divCaixas.innerHTML = "<i>Nenhuma caixa vinculada a este cliente.</i>";
@@ -176,19 +188,17 @@ async function abrirFichaCliente(id) {
       `).join("");
     }
 
-    // Preenche select de caixas sem dono
     const selectLivre = document.getElementById("fichaSelectCaixasLivre");
     selectLivre.innerHTML = '<option value="">Selecione uma caixa para vincular...</option>';
     
     if (Array.isArray(caixasTodas)) {
       caixasTodas
-        .filter(c => !c.cliente_nome && !c.usuario_id) // Filtra apenas caixas livres
+        .filter(c => !c.cliente_nome && !c.usuario_id)
         .forEach(c => {
           selectLivre.innerHTML += `<option value="${c.id}">${c.nome} (ID: ${c.id})</option>`;
         });
     }
 
-    // Exibe o modal
     document.getElementById("modalFichaCliente").style.display = "flex";
   } catch (err) {
     console.error(err);
@@ -196,13 +206,11 @@ async function abrirFichaCliente(id) {
   }
 }
 
-// ❌ 3. Fechar Modal
 function fecharFichaCliente() {
   document.getElementById("modalFichaCliente").style.display = "none";
   clienteAtualId = null;
 }
 
-// 💾 4. Salvar Alterações da Ficha
 async function salvarFichaCliente() {
   if (!clienteAtualId) return;
 
@@ -213,7 +221,10 @@ async function salvarFichaCliente() {
   try {
     const res = await fetch(`${API_BASE}/api/admin/clientes/${clienteAtualId}/completo`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token 
+      },
       body: JSON.stringify({
         usuario,
         senha,
@@ -233,33 +244,37 @@ async function salvarFichaCliente() {
   }
 }
 
-// 🔗 5. Desvincular Caixa Específica
 async function desvincularCaixaCliente(caixaId) {
   if (!confirm("Deseja remover o vínculo desta caixa d'água com este cliente?")) return;
 
   try {
     const res = await fetch(`${API_BASE}/api/admin/clientes/${clienteAtualId}/completo`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token 
+      },
       body: JSON.stringify({ caixa_id_remover: caixaId })
     });
 
     if (res.ok) {
       alert("✅ Caixa desvinculada!");
-      abrirFichaCliente(clienteAtualId); // Recarrega a ficha
+      abrirFichaCliente(clienteAtualId);
     }
   } catch (err) {
     alert("❌ Erro ao desvincular caixa.");
   }
 }
 
-// 🗑️ 6. Excluir Cliente pela Ficha
 async function excluirClienteFicha() {
   if (!clienteAtualId) return;
 
   if (confirm(`Tem certeza que deseja apagar o cliente ID ${clienteAtualId}? Todas as caixas dele ficarão sem dono.`)) {
     try {
-      const res = await fetch(`${API_BASE}/api/admin/clientes/${clienteAtualId}`, { method: "DELETE" });
+      const res = await fetch(`${API_BASE}/api/admin/clientes/${clienteAtualId}`, { 
+        method: "DELETE",
+        headers: { Authorization: "Bearer " + token }
+      });
       if (res.ok) {
         alert("✅ Cliente removido!");
         fecharFichaCliente();
@@ -273,55 +288,13 @@ async function excluirClienteFicha() {
   }
 }
 
-async function editarCliente(id, usuarioAtual) {
-  const novoNome = prompt("Digite o novo nome/e-mail do cliente:", usuarioAtual);
-  if (!novoNome) return;
-
-  const novaSenha = prompt("Digite a nova senha (ou deixe em branco para não alterar):");
-
-  try {
-    const res = await fetch(`${API_BASE}/api/admin/clientes/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ usuario: novoNome, senha: novaSenha })
-    });
-
-    const data = await res.json();
-    if (res.ok && data.success) {
-      alert("✅ Cliente atualizado com sucesso!");
-      carregarClientes();
-    } else {
-      alert("❌ Erro ao atualizar cliente.");
-    }
-  } catch (err) {
-    alert("❌ Erro na conexão.");
-  }
-}
-
-async function deletarCliente(id) {
-  if (confirm(`Tem certeza que deseja apagar o cliente ID ${id}?`)) {
-    try {
-      const res = await fetch(`${API_BASE}/api/admin/clientes/${id}`, { method: "DELETE" });
-      const data = await res.json();
-
-      if (res.ok && data.success) {
-        alert("✅ Cliente removido!");
-        carregarClientes();
-      } else {
-        alert("❌ Erro ao remover cliente.");
-      }
-    } catch (err) {
-      alert("❌ Erro na conexão.");
-    }
-  }
-}
-
 // 📝 5. PREENCHER SELECTS DOS FORMULÁRIOS (ABA REGISTROS)
 async function carregarSelectsFormularios() {
   try {
+    const headers = { Authorization: "Bearer " + token };
     const [resCli, resCai] = await Promise.all([
-      fetch(API_BASE + "/api/clientes"),
-      fetch(API_BASE + "/api/caixas")
+      fetch(API_BASE + "/api/clientes", { headers }),
+      fetch(API_BASE + "/api/caixas", { headers })
     ]);
 
     const clientes = await resCli.json();
@@ -356,13 +329,46 @@ async function carregarSelectsFormularios() {
   }
 }
 
-// 🔔 6. ABA CHAMADOS
+// 🔔 6. ABA CHAMADOS E ALERTAS
+async function carregarAlertasAdmin() {
+  try {
+    const res = await fetch(API_BASE + "/api/alertas", {
+      headers: { Authorization: "Bearer " + token }
+    });
+    const alertas = await res.json();
+    const tbody = document.querySelector("#tabelaAlertasAdmin tbody");
+    if (!tbody) return;
+
+    tbody.innerHTML = "";
+    if (!Array.isArray(alertas) || alertas.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5">Nenhum chamado ou alerta pendente.</td></tr>';
+      return;
+    }
+
+    alertas.forEach(a => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td style="padding:8px;">${new Date(a.criado_em).toLocaleString("pt-BR")}</td>
+        <td style="padding:8px;"><strong>${a.usuario}</strong></td>
+        <td style="padding:8px;">${a.tipo}</td>
+        <td style="padding:8px; text-align: left;">${a.mensagem}</td>
+        <td style="padding:8px;"><span style="color: red; font-weight: bold;">Pendente</span></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error("Erro ao carregar alertas:", err);
+  }
+}
+
 async function carregarChamados() {
   const div = document.getElementById("listaChamados");
   if (!div) return;
 
   try {
-    const res = await fetch(API_BASE + "/api/chamados");
+    const res = await fetch(API_BASE + "/api/chamados", {
+      headers: { Authorization: "Bearer " + token }
+    });
     const chamados = await res.json();
 
     if (!Array.isArray(chamados) || chamados.length === 0) {
@@ -412,7 +418,10 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         const res = await fetch(API_BASE + "/api/usuarios", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token 
+          },
           body: JSON.stringify({ usuario: email, senha, tipo: "usuario" })
         });
 
@@ -441,7 +450,10 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         const res = await fetch(API_BASE + "/api/caixas", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token 
+          },
           body: JSON.stringify({ nome: nomeCaixa, usuario_id: usuarioId || null })
         });
 
@@ -470,7 +482,10 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         const res = await fetch(`${API_BASE}/api/caixas/${idCaixa}/associar`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token 
+          },
           body: JSON.stringify({ usuario_id: idUsuario })
         });
 
@@ -491,7 +506,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnLogout = document.getElementById("btnLogout");
   if (btnLogout) {
     btnLogout.onclick = async () => {
-      await fetch(API_BASE + "/api/logout", { method: "POST" });
+      await fetch(API_BASE + "/api/logout", { 
+        method: "POST",
+        headers: { Authorization: "Bearer " + token }
+      });
+      sessionStorage.clear();
       window.location.href = "index.html";
     };
   }

@@ -3,15 +3,21 @@ const token = sessionStorage.getItem("token");
 const tipo = sessionStorage.getItem("tipo");
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Verificação de Autenticação
+  // 1. Verificação de Autenticação
   if (!token) {
     window.location.href = "index.html";
     return;
   }
 
-  // Exibir botão "Voltar" para admins
+  // 2. Exibir barra de alerta e botão para Administradores
   if (tipo === "admin") {
+    const alertaAdmin = document.getElementById("alertaAdmin");
     const btnVoltar = document.getElementById("btnVoltarAdmin");
+
+    if (alertaAdmin) {
+      alertaAdmin.style.display = "block";
+    }
+
     if (btnVoltar) {
       btnVoltar.style.display = "inline-block";
       btnVoltar.addEventListener("click", () => {
@@ -20,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Configuração dos Eventos
+  // 3. Configuração dos Eventos Básicos
   document.getElementById("btnAtualizar")?.addEventListener("click", fetchLatest);
   
   document.getElementById("btnLigarBomba")?.addEventListener("change", (ev) => {
@@ -34,7 +40,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Inicialização das Chamadas
+  // Evento do botão de Relatório
+  document.getElementById("btnRelatorio")?.addEventListener("click", gerarRelatorio);
+
+  // 4. Inicialização das Chamadas
   fetchLatest();
   carregarHistorico();
   setInterval(fetchLatest, 3000);
@@ -75,7 +84,51 @@ async function enviarComandoBomba(ligar) {
       body: JSON.stringify({ ligar })
     });
   } catch (err) {
-    console.error("Erro ao enviar comando:", err);
+    console.error("Erro ao enviar comando da bomba:", err);
+  }
+}
+
+// =======================
+// ⚠️ Chamados e Alertas de Suporte Técnico
+// =======================
+function abrirModalAlerta() {
+  const modal = document.getElementById("modalAlertaTecnico");
+  if (modal) modal.style.display = "block";
+}
+
+function fecharModalAlerta() {
+  const modal = document.getElementById("modalAlertaTecnico");
+  if (modal) modal.style.display = "none";
+}
+
+async function enviarAlertaTecnico(event) {
+  event.preventDefault();
+
+  const tipoAlerta = document.getElementById("alertaTipo").value;
+  const mensagem = document.getElementById("alertaMensagem").value;
+
+  try {
+    const res = await fetch(API_BASE + "/api/alertas", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token
+      },
+      body: JSON.stringify({ tipo: tipoAlerta, mensagem })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert("Alerta enviado com sucesso! A equipe técnica foi notificada.");
+      document.getElementById("alertaMensagem").value = "";
+      fecharModalAlerta();
+    } else {
+      alert(data.error || "Erro ao enviar o alerta.");
+    }
+  } catch (err) {
+    console.error("Erro ao enviar alerta:", err);
+    alert("Erro de conexão ao enviar o chamado.");
   }
 }
 
@@ -108,7 +161,7 @@ async function carregarHistorico() {
   }
 }
 
-document.getElementById("btnRelatorio")?.addEventListener("click", async () => {
+async function gerarRelatorio() {
   const caixaId = sessionStorage.getItem("caixaSelecionada") || 1;
   const dataInicio = document.getElementById("dataInicio").value;
   const dataFim = document.getElementById("dataFim").value;
@@ -151,16 +204,14 @@ document.getElementById("btnRelatorio")?.addEventListener("click", async () => {
   } catch (err) {
     console.error("Erro ao gerar relatório:", err);
   }
-});
+}
 
 // =======================
 // 👤 Funções do Modal de Perfil (Globais)
 // =======================
 async function abrirModalPerfil() {
   const modal = document.getElementById("modalPerfil");
-  if (modal) {
-    modal.style.display = "block";
-  }
+  if (modal) modal.style.display = "block";
 
   try {
     const res = await fetch(API_BASE + "/api/usuario-atual", {
@@ -179,9 +230,7 @@ async function abrirModalPerfil() {
 
 function fecharModalPerfil() {
   const modal = document.getElementById("modalPerfil");
-  if (modal) {
-    modal.style.display = "none";
-  }
+  if (modal) modal.style.display = "none";
 }
 
 async function salvarPerfil(event) {

@@ -85,12 +85,23 @@
     </div>
   </div>
 
-  <!-- 🔔 CAMADA 4: Chamados -->
+  <!-- 🔔 CAMADA 4: Chamados e Alertas -->
   <div id="abaChamados" class="camada-conteudo" style="display:none;">
-    <h3>🔔 Chamados Abertos por Clientes</h3>
-    <div id="listaChamados">
-      <p>Nenhum chamado pendente.</p>
-    </div>
+    <h3>🚨 Chamados e Alertas Recebidos dos Clientes</h3>
+    <table id="tabelaAlertasAdmin" border="1" style="width: 100%; text-align: center; margin-top: 15px; border-collapse: collapse;">
+      <thead>
+        <tr style="background-color: #f8d7da; color: #721c24;">
+          <th style="padding: 10px;">Data/Hora</th>
+          <th style="padding: 10px;">Cliente / Usuário</th>
+          <th style="padding: 10px;">Tipo de Problema</th>
+          <th style="padding: 10px;">Descrição</th>
+          <th style="padding: 10px;">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Preenchido dinamicamente via script-admin.js -->
+      </tbody>
+    </table>
   </div>
 
   <p id="msg" style="margin-top: 15px; font-weight: bold;"></p>
