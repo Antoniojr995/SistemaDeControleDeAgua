@@ -292,24 +292,7 @@ app.put("/api/admin/clientes/:id/completo", requererAutenticacao, async (req, re
   }
 });
 
-app.put('/api/perfil', requererAutenticacao, async (req, res) => {
-  const usuarioId = req.session.usuarioId;
-  const { usuario, senha } = req.body;
-
-  try {
-    if (senha && senha.trim() !== '') {
-      await pool.query('UPDATE usuarios SET usuario = $1, senha = $2 WHERE id = $3', [usuario, senha, usuarioId]);
-    } else {
-      await pool.query('UPDATE usuarios SET usuario = $1 WHERE id = $2', [usuario, usuarioId]);
-    }
-    res.json({ success: true, message: 'Perfil atualizado!' });
-  } catch (err) {
-    console.error('Erro ao atualizar perfil:', err);
-    res.status(500).json({ error: 'Erro ao atualizar perfil.' });
-  }
-});
-
-// --- GERENCIAMENTO DE CHAMADOS ---
+// --- GERENCIAMENTO DE CHAMADOS E ALERTAS ---
 
 app.get('/api/chamados', requererAutenticacao, async (req, res) => {
   try {
@@ -340,6 +323,27 @@ app.post('/api/chamados', requererAutenticacao, async (req, res) => {
   } catch (err) {
     console.error('Erro ao abrir chamado:', err);
     res.status(500).json({ error: 'Erro ao registrar chamado.' });
+  }
+});
+
+app.post("/api/alertas", requererAutenticacao, async (req, res) => {
+  try {
+    const { tipo, mensagem } = req.body;
+    const clienteNome = req.session.usuario || "Cliente";
+
+    if (!mensagem) {
+      return res.status(400).json({ error: "A mensagem é obrigatória." });
+    }
+
+    await pool.query(
+      "INSERT INTO chamados (cliente_nome, assunto, mensagem) VALUES ($1, $2, $3)",
+      [clienteNome, tipo || "Alerta Técnico", mensagem]
+    );
+
+    res.json({ success: true, message: "Alerta registrado com sucesso!" });
+  } catch (err) {
+    console.error("Erro no BD ao salvar alerta:", err);
+    res.status(500).json({ error: "Erro interno ao salvar alerta" });
   }
 });
 
@@ -434,23 +438,6 @@ app.post('/api/leitura', async (req, res) => {
   } catch (err) {
     console.error('Erro ao salvar leitura:', err);
     res.status(500).json({ error: 'Erro ao registrar leitura.' });
-  }
-});
-
-app.post("/api/alertas", autenticarToken, async (req, res) => {
-  try {
-    const { tipo, mensagem } = req.body;
-    const usuarioId = req.usuario.id;
-
-    await db.query(
-      "INSERT INTO alertas (usuario_id, tipo, mensagem, criado_em) VALUES ($1, $2, $3, NOW())",
-      [usuarioId, tipo, mensagem]
-    );
-
-    res.json({ success: true, message: "Alerta registrado com sucesso!" });
-  } catch (err) {
-    console.error("Erro no BD ao salvar alerta:", err);
-    res.status(500).json({ error: "Erro interno ao salvar alerta" });
   }
 });
 
