@@ -178,37 +178,32 @@ async function carregarHistorico() {
 // 🚨 ENVIAR ALERTA / CHAMADO TRATADO
 async function enviarAlertaTecnico() {
   const tipo = document.getElementById("alertaTipo")?.value || "Geral";
-  const mensagem = document.getElementById("alertaDescricao")?.value.trim();
+  // Ajustado para bater com o id="alertaMensagem" do HTML:
+  const mensagemInput = document.getElementById("alertaMensagem");
+  const mensagem = mensagemInput ? mensagemInput.value.trim() : "";
 
   if (!mensagem) {
     return alert("⚠️ Por favor, preencha a descrição do problema.");
   }
 
   try {
-    const res = await fetch(`${API_BASE}/api/alertas`, {
+    const res = await fetch("/api/alertas", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ tipo, mensagem })
     });
 
-    if (!res.ok) {
-      const textoErro = await res.text();
-      console.error("Resposta do servidor:", textoErro);
-      throw new Error(`Erro na API (${res.status})`);
-    }
-
     const data = await res.json();
-    if (data.success || res.ok) {
+    if (data.success) {
       alert("✅ Alerta/Chamado enviado com sucesso!");
-      document.getElementById("alertaDescricao").value = "";
-      fecharModalAlerta(); // Função que fecha o modal na tela
+      mensagemInput.value = "";
+      if (typeof fecharModalAlerta === "function") fecharModalAlerta();
+    } else {
+      alert("❌ " + (data.error || "Erro ao registrar alerta."));
     }
   } catch (err) {
     console.error("Erro ao enviar chamado:", err);
-    alert("❌ Erro de conexão ou rota inexistente no servidor ao enviar o chamado.");
+    alert("❌ Erro de conexão ao enviar o chamado.");
   }
 }
 
