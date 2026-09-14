@@ -330,34 +330,79 @@ async function carregarSelectsFormularios() {
 }
 
 // 🔔 6. ABA CHAMADOS E ALERTAS
+// 🔔 6. ABA CHAMADOS E ALERTAS
 async function carregarAlertasAdmin() {
+  // Redireciona para carregarChamados para evitar duplicidade de chamadas
+  await carregarChamados();
+}
+
+async function carregarChamados() {
   try {
-    const res = await fetch(API_BASE + "/api/alertas", {
+    const res = await fetch(API_BASE + '/api/chamados', {
       headers: { Authorization: "Bearer " + token }
     });
-    const alertas = await res.json();
-    const tbody = document.querySelector("#tabelaAlertasAdmin tbody");
-    if (!tbody) return;
-
-    tbody.innerHTML = "";
-    if (!Array.isArray(alertas) || alertas.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5">Nenhum chamado ou alerta pendente.</td></tr>';
+    
+    if (!res.ok) {
+      console.error('Erro na resposta do servidor:', res.status);
       return;
     }
 
-    alertas.forEach(a => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td style="padding:8px;">${new Date(a.criado_em).toLocaleString("pt-BR")}</td>
-        <td style="padding:8px;"><strong>${a.usuario}</strong></td>
-        <td style="padding:8px;">${a.tipo}</td>
-        <td style="padding:8px; text-align: left;">${a.mensagem}</td>
-        <td style="padding:8px;"><span style="color: red; font-weight: bold;">Pendente</span></td>
+    const chamados = await res.json();
+    const tbody = document.querySelector('table tbody');
+    if (!tbody) return;
+
+    if (!Array.isArray(chamados) || chamados.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 15px;">Nenhum chamado registrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = chamados.map(c => {
+      const statusAtual = c.status || 'Pendente';
+      const isConcluido = statusAtual === 'Concluído';
+
+      return `
+        <tr style="border-bottom: 1px solid #eee; text-align: center;">
+          <td style="padding: 8px;">#${c.id}</td>
+          <td style="padding: 8px;">${c.cliente_nome || c.usuario || 'Cliente'}</td>
+          <td style="padding: 8px;">${c.assunto || c.tipo || 'Outro'}</td>
+          <td style="padding: 8px;">${c.mensagem || '-'}</td>
+          <td style="padding: 8px;">
+            ${isConcluido 
+              ? `<span style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 4px; font-weight: bold;">✅ Concluído</span>`
+              : `<button onclick="atualizarStatus(${c.id}, 'Concluído')" style="background: #ffc107; color: #212529; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                   ⏳ Pendente (Marcar Concluído)
+                 </button>`
+            }
+          </td>
+        </tr>
       `;
-      tbody.appendChild(tr);
-    });
+    }).join('');
   } catch (err) {
-    console.error("Erro ao carregar alertas:", err);
+    console.error('Erro ao renderizar chamados:', err);
+  }
+}
+
+// Função para enviar a atualização para o servidor
+async function atualizarStatus(id, novoStatus) {
+  try {
+    const res = await fetch(`${API_BASE}/api/chamados/${id}`, {
+      method: 'PUT',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({ status: novoStatus })
+    });
+
+    const data = await res.json();
+    if (res.ok && data.success) {
+      carregarChamados(); // Recarrega a tabela na tela
+    } else {
+      alert('Erro ao atualizar: ' + (data.error || 'Falha na resposta do servidor'));
+    }
+  } catch (err) {
+    console.error('Erro na requisição:', err);
+    alert('Erro de conexão ao atualizar status.');
   }
 }
 
