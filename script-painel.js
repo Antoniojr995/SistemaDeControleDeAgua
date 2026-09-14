@@ -177,13 +177,17 @@ async function carregarHistorico() {
 
 // 🚨 ENVIAR ALERTA / CHAMADO TRATADO
 async function enviarAlertaTecnico() {
-  const tipo = document.getElementById("alertaTipo")?.value || "Geral";
-  // Ajustado para bater com o id="alertaMensagem" do HTML:
-  const mensagemInput = document.getElementById("alertaMensagem");
-  const mensagem = mensagemInput ? mensagemInput.value.trim() : "";
+  // Pega os elementos do modal pelo ID
+  const tipoElemento = document.getElementById("alertaTipo") || document.getElementById("tipoAlerta");
+  const mensagemElemento = document.getElementById("alertaMensagem") || document.getElementById("descricaoAlerta") || document.getElementById("mensagem");
 
+  const tipo = tipoElemento ? tipoElemento.value : "Outro problema";
+  const mensagem = mensagemElemento ? mensagemElemento.value.trim() : "";
+
+  // Validação
   if (!mensagem) {
-    return alert("⚠️ Por favor, preencha a descrição do problema.");
+    alert("⚠️ Por favor, preencha a descrição do problema.");
+    return;
   }
 
   try {
@@ -194,16 +198,22 @@ async function enviarAlertaTecnico() {
     });
 
     const data = await res.json();
+
     if (data.success) {
-      alert("✅ Alerta/Chamado enviado com sucesso!");
-      mensagemInput.value = "";
+      alert("✅ Alerta enviado com sucesso!");
+      
+      // Limpa o campo
+      if (mensagemElemento) mensagemElemento.value = "";
+      
+      // Tenta fechar o modal (se a função existir)
       if (typeof fecharModalAlerta === "function") fecharModalAlerta();
+      if (typeof fecharModal === "function") fecharModal();
     } else {
-      alert("❌ " + (data.error || "Erro ao registrar alerta."));
+      alert("❌ Erro ao enviar: " + (data.error || "Erro desconhecido"));
     }
   } catch (err) {
-    console.error("Erro ao enviar chamado:", err);
-    alert("❌ Erro de conexão ao enviar o chamado.");
+    console.error("Erro na requisição de alerta:", err);
+    alert("❌ Erro de conexão com o servidor.");
   }
 }
 
