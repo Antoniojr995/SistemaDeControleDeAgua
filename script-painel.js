@@ -135,29 +135,80 @@ async function enviarAlertaTecnico(event) {
 // =======================
 // 📅 Histórico e Relatórios
 // =======================
+// 📈 CARREGAR HISTÓRICO TRATADO
 async function carregarHistorico() {
   try {
     const caixaId = sessionStorage.getItem("caixaSelecionada") || 1;
-    const res = await fetch(API_BASE + "/api/historico/" + caixaId, {
+    const res = await fetch(`${API_BASE}/api/historico/${caixaId}`, {
       headers: { Authorization: "Bearer " + token },
     });
+
+    // Se o servidor retornar 404, 500 ou HTML, interrompe antes de tentar parsear JSON
+    if (!res.ok) {
+      console.warn(`Erro no histórico: Status ${res.status}`);
+      return;
+    }
+
     const data = await res.json();
     const tbody = document.querySelector("#tabelaHistorico tbody");
     if (!tbody) return;
 
     tbody.innerHTML = "";
+
+    if (!Array.isArray(data) || data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4">Nenhum registro encontrado.</td></tr>';
+      return;
+    }
+
     data.forEach((d) => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${d.dia}</td>
-        <td>${d.media_caixa1}</td>
-        <td>${d.media_caixa2}</td>
+        <td>${d.media_caixa1}%</td>
+        <td>${d.media_caixa2}%</td>
         <td>${d.leituras}</td>
       `;
       tbody.appendChild(tr);
     });
   } catch (err) {
     console.error("Erro ao carregar histórico:", err);
+  }
+}
+
+// 🚨 ENVIAR ALERTA / CHAMADO TRATADO
+async function enviarAlertaTecnico() {
+  const tipo = document.getElementById("alertaTipo")?.value || "Geral";
+  const mensagem = document.getElementById("alertaDescricao")?.value.trim();
+
+  if (!mensagem) {
+    return alert("⚠️ Por favor, preencha a descrição do problema.");
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/api/alertas`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token
+      },
+      body: JSON.stringify({ tipo, mensagem })
+    });
+
+    if (!res.ok) {
+      const textoErro = await res.text();
+      console.error("Resposta do servidor:", textoErro);
+      throw new Error(`Erro na API (${res.status})`);
+    }
+
+    const data = await res.json();
+    if (data.success || res.ok) {
+      alert("✅ Alerta/Chamado enviado com sucesso!");
+      document.getElementById("alertaDescricao").value = "";
+      fecharModalAlerta(); // Função que fecha o modal na tela
+    }
+  } catch (err) {
+    console.error("Erro ao enviar chamado:", err);
+    alert("❌ Erro de conexão ou rota inexistente no servidor ao enviar o chamado.");
   }
 }
 

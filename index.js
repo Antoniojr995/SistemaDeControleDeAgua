@@ -437,6 +437,23 @@ app.post('/api/leitura', async (req, res) => {
   }
 });
 
+app.post("/api/alertas", autenticarToken, async (req, res) => {
+  try {
+    const { tipo, mensagem } = req.body;
+    const usuarioId = req.usuario.id;
+
+    await db.query(
+      "INSERT INTO alertas (usuario_id, tipo, mensagem, criado_em) VALUES ($1, $2, $3, NOW())",
+      [usuarioId, tipo, mensagem]
+    );
+
+    res.json({ success: true, message: "Alerta registrado com sucesso!" });
+  } catch (err) {
+    console.error("Erro no BD ao salvar alerta:", err);
+    res.status(500).json({ error: "Erro interno ao salvar alerta" });
+  }
+});
+
 // 1. Buscar apenas as caixas d'água pertencentes ao cliente logado
 app.get('/api/minhas-caixas', requererAutenticacao, async (req, res) => {
   const usuarioId = req.session.usuarioId;
