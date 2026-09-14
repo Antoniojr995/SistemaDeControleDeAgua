@@ -328,17 +328,18 @@ app.post('/api/chamados', requererAutenticacao, async (req, res) => {
 
 // Rota para SALVAR novos alertas do cliente na tabela 'oi'
 app.post('/api/alertas', async (req, res) => {
-  const { tipo, mensagem } = req.body;
-  const clienteEmail = req.session?.user?.email || 'cliente@teste.com'; // Ou o e-mail logado
-
   try {
+    const { cliente_nome, assunto, mensagem } = req.body;
+    
+    // Insere na tabela correta: chamados
     await pool.query(
-      'INSERT INTO oi (cliente_nome, assunto, mensagem) VALUES ($1, $2, $3)',
-      [clienteEmail, tipo || 'Outro', mensagem]
+      'INSERT INTO chamados (cliente_nome, assunto, mensagem, status) VALUES ($1, $2, $3, $4)',
+      [cliente_nome, assunto, mensagem, 'Pendente']
     );
+
     res.json({ success: true });
   } catch (err) {
-    console.error('Erro ao salvar no banco:', err);
+    console.error('Erro ao criar chamado:', err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -550,14 +551,13 @@ app.put('/api/chamados/:id', async (req, res) => {
   const { status } = req.body;
 
   try {
-    // 1. Garante que a coluna status existe na tabela chamados
-    await pool.query('ALTER TABLE chamados ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT \'Pendente\'');
-
-    // 2. Executa o UPDATE na tabela chamados
-    await pool.query('UPDATE chamados SET status = $1 WHERE id = $2', [status || 'Concluído', id]);
+    // Atualiza o status na tabela chamados
+    await pool.query(
+      'UPDATE chamados SET status = $1 WHERE id = $2',
+      [status || 'Concluído', id]
+    );
 
     res.json({ success: true });
-    
   } catch (err) {
     console.error('Erro ao atualizar status:', err);
     res.status(500).json({ success: false, error: err.message });
