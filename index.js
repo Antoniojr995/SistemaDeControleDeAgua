@@ -326,24 +326,31 @@ app.post('/api/chamados', requererAutenticacao, async (req, res) => {
   }
 });
 
-app.post("/api/alertas", requererAutenticacao, async (req, res) => {
+// Rota para SALVAR novos alertas do cliente na tabela 'oi'
+app.post('/api/alertas', async (req, res) => {
+  const { tipo, mensagem } = req.body;
+  const clienteEmail = req.session?.user?.email || 'cliente@teste.com'; // Ou o e-mail logado
+
   try {
-    const { tipo, mensagem } = req.body;
-    const clienteNome = req.session.usuario || "Cliente";
-
-    if (!mensagem) {
-      return res.status(400).json({ error: "A mensagem é obrigatória." });
-    }
-
     await pool.query(
-      "INSERT INTO chamados (cliente_nome, assunto, mensagem) VALUES ($1, $2, $3)",
-      [clienteNome, tipo || "Alerta Técnico", mensagem]
+      'INSERT INTO oi (cliente_nome, assunto, mensagem) VALUES ($1, $2, $3)',
+      [clienteEmail, tipo || 'Outro', mensagem]
     );
-
-    res.json({ success: true, message: "Alerta registrado com sucesso!" });
+    res.json({ success: true });
   } catch (err) {
-    console.error("Erro no BD ao salvar alerta:", err);
-    res.status(500).json({ error: "Erro interno ao salvar alerta" });
+    console.error('Erro ao salvar no banco:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Rota para BUSCAR os alertas para o painel do Admin da tabela 'oi'
+app.get('/api/chamados', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM oi ORDER BY id DESC');
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Erro ao buscar chamados:', err);
+    res.status(500).json({ error: err.message });
   }
 });
 

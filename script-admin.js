@@ -362,31 +362,37 @@ async function carregarAlertasAdmin() {
 }
 
 async function carregarChamados() {
-  const div = document.getElementById("listaChamados");
-  if (!div) return;
-
   try {
-    const res = await fetch(API_BASE + "/api/chamados", {
-      headers: { Authorization: "Bearer " + token }
-    });
+    const res = await fetch('/api/chamados');
     const chamados = await res.json();
+    
+    const tbody = document.querySelector('table tbody');
+    if (!tbody) return;
 
     if (!Array.isArray(chamados) || chamados.length === 0) {
-      div.innerHTML = "<p>Nenhum chamado pendente.</p>";
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 15px;">Nenhum chamado registrado.</td></tr>`;
       return;
     }
 
-    div.innerHTML = chamados.map(ch => `
-      <div style="border:1px solid #ccc; background:#fff; padding:10px; margin-bottom:10px; border-radius:5px;">
-        <p><b>Cliente:</b> ${ch.cliente_nome}</p>
-        <p><b>Assunto:</b> ${ch.assunto}</p>
-        <p><b>Mensagem:</b> ${ch.mensagem}</p>
-      </div>
-    `).join("");
+    tbody.innerHTML = chamados.map(c => `
+      <tr style="border-bottom: 1px solid #eee; text-align: center;">
+        <td style="padding: 8px;">#${c.id}</td>
+        <td style="padding: 8px;">${c.cliente_nome || 'Cliente'}</td>
+        <td style="padding: 8px;">${c.assunto || 'Outro'}</td>
+        <td style="padding: 8px;">${c.mensagem || '-'}</td>
+        <td style="padding: 8px;">
+          <span style="background: #fff3cd; color: #856404; padding: 3px 8px; border-radius: 4px; font-weight: bold;">
+            Pendente
+          </span>
+        </td>
+      </tr>
+    `).join('');
   } catch (err) {
-    div.innerHTML = "<p>Erro ao carregar chamados.</p>";
+    console.error('Erro ao renderizar chamados:', err);
   }
 }
+
+document.addEventListener('DOMContentLoaded', carregarChamados);
 
 // 🚀 7. EVENTOS E INICIALIZAÇÃO
 document.addEventListener("DOMContentLoaded", () => {
