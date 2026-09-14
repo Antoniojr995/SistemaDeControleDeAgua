@@ -34,10 +34,7 @@ function mudarAba(idAba) {
   if (idAba === "abaCaixas") carregarCaixas();
   if (idAba === "abaClientes") carregarClientes();
   if (idAba === "abaRegistros") carregarSelectsFormularios();
-  if (idAba === "abaChamados") {
-    carregarChamados();
-    carregarAlertasAdmin();
-  }
+  if (idAba === "abaChamados") carregarChamados();
 }
 
 // 📦 3. ABA CAIXAS D'ÁGUA
@@ -126,7 +123,7 @@ async function deletarCaixaSelecionada() {
   }
 }
 
-// 👥 4. ABA CLIENTES (LISTA E AÇÕES)
+// 👥 4. ABA CLIENTES
 let clienteAtualId = null;
 
 async function carregarClientes() {
@@ -157,7 +154,8 @@ async function carregarClientes() {
   }
 }
 
-async function abrirFichaCliente(id) {
+// Torna global para botões HTML
+window.abrirFichaCliente = async function(id) {
   clienteAtualId = id;
   
   try {
@@ -204,91 +202,14 @@ async function abrirFichaCliente(id) {
     console.error(err);
     alert("❌ Erro ao abrir a ficha do cliente.");
   }
-}
+};
 
 function fecharFichaCliente() {
   document.getElementById("modalFichaCliente").style.display = "none";
   clienteAtualId = null;
 }
 
-async function salvarFichaCliente() {
-  if (!clienteAtualId) return;
-
-  const usuario = document.getElementById("fichaUsuario").value.trim();
-  const senha = document.getElementById("fichaSenha").value.trim();
-  const caixaAdicionar = document.getElementById("fichaSelectCaixasLivre").value;
-
-  try {
-    const res = await fetch(`${API_BASE}/api/admin/clientes/${clienteAtualId}/completo`, {
-      method: "PUT",
-      headers: { 
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token 
-      },
-      body: JSON.stringify({
-        usuario,
-        senha,
-        caixa_id_adicionar: caixaAdicionar || null
-      })
-    });
-
-    if (res.ok) {
-      alert("✅ Ficha atualizada com sucesso!");
-      fecharFichaCliente();
-      carregarClientes();
-    } else {
-      alert("❌ Erro ao salvar ficha.");
-    }
-  } catch (err) {
-    alert("❌ Erro na conexão.");
-  }
-}
-
-async function desvincularCaixaCliente(caixaId) {
-  if (!confirm("Deseja remover o vínculo desta caixa d'água com este cliente?")) return;
-
-  try {
-    const res = await fetch(`${API_BASE}/api/admin/clientes/${clienteAtualId}/completo`, {
-      method: "PUT",
-      headers: { 
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token 
-      },
-      body: JSON.stringify({ caixa_id_remover: caixaId })
-    });
-
-    if (res.ok) {
-      alert("✅ Caixa desvinculada!");
-      abrirFichaCliente(clienteAtualId);
-    }
-  } catch (err) {
-    alert("❌ Erro ao desvincular caixa.");
-  }
-}
-
-async function excluirClienteFicha() {
-  if (!clienteAtualId) return;
-
-  if (confirm(`Tem certeza que deseja apagar o cliente ID ${clienteAtualId}? Todas as caixas dele ficarão sem dono.`)) {
-    try {
-      const res = await fetch(`${API_BASE}/api/admin/clientes/${clienteAtualId}`, { 
-        method: "DELETE",
-        headers: { Authorization: "Bearer " + token }
-      });
-      if (res.ok) {
-        alert("✅ Cliente removido!");
-        fecharFichaCliente();
-        carregarClientes();
-      } else {
-        alert("❌ Erro ao remover cliente.");
-      }
-    } catch (err) {
-      alert("❌ Erro de conexão.");
-    }
-  }
-}
-
-// 📝 5. PREENCHER SELECTS DOS FORMULÁRIOS (ABA REGISTROS)
+// 📝 5. SELECTS DE FORMULÁRIOS
 async function carregarSelectsFormularios() {
   try {
     const headers = { Authorization: "Bearer " + token };
@@ -330,12 +251,6 @@ async function carregarSelectsFormularios() {
 }
 
 // 🔔 6. ABA CHAMADOS E ALERTAS
-// 🔔 6. ABA CHAMADOS E ALERTAS
-async function carregarAlertasAdmin() {
-  // Redireciona para carregarChamados para evitar duplicidade de chamadas
-  await carregarChamados();
-}
-
 async function carregarChamados() {
   try {
     const res = await fetch(API_BASE + '/api/chamados', {
@@ -382,8 +297,8 @@ async function carregarChamados() {
   }
 }
 
-// Função para enviar a atualização para o servidor
-async function atualizarStatus(id, novoStatus) {
+// Função exposta no objeto window para funcionar com onclick=""
+window.atualizarStatus = async function(id, novoStatus) {
   try {
     const res = await fetch(`${API_BASE}/api/chamados/${id}`, {
       method: 'PUT',
@@ -396,82 +311,21 @@ async function atualizarStatus(id, novoStatus) {
 
     const data = await res.json();
     if (res.ok && data.success) {
-      carregarChamados(); // Recarrega a tabela na tela
+      carregarChamados();
     } else {
-      alert('Erro ao atualizar: ' + (data.error || 'Falha na resposta do servidor'));
+      alert('Erro ao atualizar: ' + (data.error || 'Falha no servidor'));
     }
   } catch (err) {
     console.error('Erro na requisição:', err);
     alert('Erro de conexão ao atualizar status.');
   }
-}
-
-async function carregarChamados() {
-  try {
-    const res = await fetch('/api/chamados');
-    const chamados = await res.json();
-    
-    const tbody = document.querySelector('table tbody');
-    if (!tbody) return;
-
-    if (!Array.isArray(chamados) || chamados.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 15px;">Nenhum chamado registrado.</td></tr>`;
-      return;
-    }
-
-    tbody.innerHTML = chamados.map(c => {
-      const statusAtual = c.status || 'Pendente';
-      const isConcluido = statusAtual === 'Concluído';
-
-      return `
-        <tr style="border-bottom: 1px solid #eee; text-align: center;">
-          <td style="padding: 8px;">#${c.id}</td>
-          <td style="padding: 8px;">${c.cliente_nome || 'Cliente'}</td>
-          <td style="padding: 8px;">${c.assunto || 'Outro'}</td>
-          <td style="padding: 8px;">${c.mensagem || '-'}</td>
-          <td style="padding: 8px;">
-            ${isConcluido 
-              ? `<span style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 4px; font-weight: bold;">✅ Concluído</span>`
-              : `<button onclick="atualizarStatus(${c.id}, 'Concluído')" style="background: #ffc107; color: #212529; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">
-                   ⏳ Pendente (Marcar Concluído)
-                 </button>`
-            }
-          </td>
-        </tr>
-      `;
-    }).join('');
-  } catch (err) {
-    console.error('Erro ao renderizar chamados:', err);
-  }
-}
-
-// Função para enviar a atualização para o servidor
-async function atualizarStatus(id, novoStatus) {
-  try {
-    const res = await fetch(`/api/chamados/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: novoStatus })
-    });
-
-    const data = await res.json();
-    if (data.success) {
-      carregarChamados(); // Recarrega a tabela na tela
-    } else {
-      alert('Erro ao atualizar: ' + data.error);
-    }
-  } catch (err) {
-    console.error('Erro na requisição:', err);
-    alert('Erro de conexão ao atualizar status.');
-  }
-}
-
-document.addEventListener('DOMContentLoaded', carregarChamados);
+};
 
 // 🚀 7. EVENTOS E INICIALIZAÇÃO
 document.addEventListener("DOMContentLoaded", () => {
   verificarSessao();
   carregarCaixas();
+  carregarChamados();
 
   // Botão Ver Caixa Selecionada
   const btnVer = document.getElementById("btnVer");
