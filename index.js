@@ -550,13 +550,14 @@ app.put('/api/chamados/:id', async (req, res) => {
   const { status } = req.body;
 
   try {
-    // 1. Garante que a coluna status existe na tabela "oi"
-    await pool.query('ALTER TABLE "oi" ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT \'Pendente\'');
+    // 1. Garante que a coluna status existe na tabela chamados
+    await pool.query('ALTER TABLE chamados ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT \'Pendente\'');
 
-    // 2. Executa o UPDATE usando aspas na tabela "oi"
-    await pool.query('UPDATE "oi" SET status = $1 WHERE id = $2', [status || 'Concluído', id]);
+    // 2. Executa o UPDATE na tabela chamados
+    await pool.query('UPDATE chamados SET status = $1 WHERE id = $2', [status || 'Concluído', id]);
 
     res.json({ success: true });
+    
   } catch (err) {
     console.error('Erro ao atualizar status:', err);
     res.status(500).json({ success: false, error: err.message });
