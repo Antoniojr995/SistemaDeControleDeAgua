@@ -391,6 +391,45 @@ app.get('/api/usuario-atual', (req, res) => {
   }
 });
 
+// 1. ROTA DE HISTÓRICO (Corrige o erro GET /api/historico/1)
+app.get('/api/historico/:caixaId', requererAutenticacao, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        TO_CHAR(data_hora, 'DD/MM/YYYY') as dia,
+        ROUND(AVG(nivel)) as media_caixa1,
+        0 as media_caixa2,
+        COUNT(*) as leituras
+      FROM leituras 
+      GROUP BY TO_CHAR(data_hora, 'DD/MM/YYYY') 
+      ORDER BY dia DESC LIMIT 30
+    `);
+    res.json(result.rows || []);
+  } catch (err) {
+    res.json([]);
+  }
+});
+
+// 2. ROTA DE RELATÓRIO (Atende a geração de relatórios por período)
+app.post('/api/relatorio', requererAutenticacao, async (req, res) => {
+  const { dataInicio, dataFim } = req.body;
+  try {
+    const result = await pool.query(`
+      SELECT 
+        TO_CHAR(data_hora, 'DD/MM/YYYY HH24:MI') as data,
+        nivel as caixa1,
+        0 as caixa2,
+        false as bomba
+      FROM leituras 
+      WHERE data_hora::date BETWEEN $1 AND $2
+      ORDER BY id DESC
+    `, [dataInicio, dataFim]);
+    res.json(result.rows || []);
+  } catch (err) {
+    res.json([]);
+  }
+});
+
 // ROTA QUE ESTAVA FALTANDO PARA O PAINEL DO CLIENTE
 app.get('/api/dados/latest', async (req, res) => {
   try {
