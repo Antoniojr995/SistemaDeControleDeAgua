@@ -16,22 +16,20 @@ document.getElementById("btnLogin").addEventListener("click", async () => {
     const res = await fetch(API_BASE + "/api/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, senha })
+      body: JSON.stringify({ email, senha }),
+      credentials: "same-origin"
     });
 
     const data = await res.json();
 
     if (!res.ok) {
-      msg.textContent = data.erro || "Erro ao fazer login.";
+      msg.textContent = data.erro || data.error || "Erro ao fazer login.";
       return;
     }
 
-    // ✅ Salva as informações de sessão (dura até fechar o navegador)
-    sessionStorage.setItem("token", data.token);
     sessionStorage.setItem("tipo", data.tipo);
-    sessionStorage.setItem("usuario", data.nome);
+    sessionStorage.setItem("usuario", data.usuario);
 
-    // ✅ Redireciona conforme o tipo de usuário
     if (data.tipo === "admin") {
       window.location.href = "painel-admin.html";
     } else {
