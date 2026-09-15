@@ -14,9 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const alertaAdmin = document.getElementById("alertaAdmin");
     const btnVoltar = document.getElementById("btnVoltarAdmin");
 
-    if (alertaAdmin) {
-      alertaAdmin.style.display = "block";
-    }
+    if (alertaAdmin) alertaAdmin.style.display = "block";
 
     if (btnVoltar) {
       btnVoltar.style.display = "inline-block";
@@ -45,9 +43,43 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 4. Inicialização das Chamadas
   fetchLatest();
+  carregarMinhasCaixas(); // Puxa apenas as caixas do cliente logado
   carregarHistorico();
   setInterval(fetchLatest, 3000);
 });
+
+// =======================
+// 📦 Busca Apenas Caixas do Cliente Logado
+// =======================
+async function carregarMinhasCaixas() {
+  try {
+    const res = await fetch(API_BASE + "/api/minhas-caixas", {
+      headers: { Authorization: "Bearer " + token }
+    });
+
+    if (!res.ok) return;
+
+    const caixas = await res.json();
+    const selectCaixa = document.getElementById("selectCaixa") || document.getElementById("minhasCaixas");
+    
+    if (selectCaixa) {
+      selectCaixa.innerHTML = "";
+      if (caixas.length === 0) {
+        selectCaixa.innerHTML = '<option value="">Nenhuma caixa vinculada</option>';
+        return;
+      }
+
+      caixas.forEach(caixa => {
+        const option = document.createElement("option");
+        option.value = caixa.id;
+        option.textContent = `${caixa.nome} (ID: ${caixa.id})`;
+        selectCaixa.appendChild(option);
+      });
+    }
+  } catch (err) {
+    console.error("Erro ao carregar minhas caixas:", err);
+  }
+}
 
 // =======================
 // 💧 Leitura dos Dados e Bomba
@@ -63,7 +95,7 @@ async function fetchLatest() {
     const vol1 = document.getElementById("volume1");
     const vol2 = document.getElementById("volume2");
     
-    if (vol1) vol1.style.width = (d.caixa1 || 0) + "%";
+    if (vol1) vol1.style.width = (d.caixa1 || d.nivel || 0) + "%";
     if (vol2) vol2.style.width = (d.caixa2 || 0) + "%";
     
     const btnBomba = document.getElementById("btnLigarBomba");
@@ -101,7 +133,6 @@ function fecharModalAlerta() {
   if (modal) modal.style.display = "none";
 }
 
-// 🚨 ENVIAR CHAMADO TÉCNICO
 async function enviarAlertaTecnico(event) {
   if (event) event.preventDefault();
 
@@ -117,17 +148,13 @@ async function enviarAlertaTecnico(event) {
   }
 
   try {
-    // Altera /api/alertas para /api/chamados
     const res = await fetch(API_BASE + "/api/chamados", {
       method: "POST",
       headers: { 
         "Content-Type": "application/json",
         "Authorization": "Bearer " + token
       },
-      body: JSON.stringify({ 
-        assunto: assunto, 
-        mensagem: mensagem 
-      })
+      body: JSON.stringify({ assunto, mensagem })
     });
 
     const data = await res.json();
@@ -135,7 +162,7 @@ async function enviarAlertaTecnico(event) {
     if (res.ok && data.success) {
       alert("✅ Chamado aberto com sucesso!");
       if (mensagemElemento) mensagemElemento.value = "";
-      if (typeof fecharModalAlerta === "function") fecharModalAlerta();
+      fecharModalAlerta();
     } else {
       alert("❌ Erro ao enviar: " + (data.error || "Erro desconhecido"));
     }
@@ -148,7 +175,6 @@ async function enviarAlertaTecnico(event) {
 // =======================
 // 📅 Histórico e Relatórios
 // =======================
-// 📈 CARREGAR HISTÓRICO TRATADO
 async function carregarHistorico() {
   try {
     const caixaId = sessionStorage.getItem("caixaSelecionada") || 1;
@@ -156,11 +182,7 @@ async function carregarHistorico() {
       headers: { Authorization: "Bearer " + token },
     });
 
-    // Se o servidor retornar 404, 500 ou HTML, interrompe antes de tentar parsear JSON
-    if (!res.ok) {
-      console.warn(`Erro no histórico: Status ${res.status}`);
-      return;
-    }
+    if (!res.ok) return;
 
     const data = await res.json();
     const tbody = document.querySelector("#tabelaHistorico tbody");
@@ -185,48 +207,6 @@ async function carregarHistorico() {
     });
   } catch (err) {
     console.error("Erro ao carregar histórico:", err);
-  }
-}
-
-// 🚨 ENVIAR ALERTA / CHAMADO TRATADO
-async function enviarAlertaTecnico() {
-  // Pega os elementos do modal pelo ID
-  const tipoElemento = document.getElementById("alertaTipo") || document.getElementById("tipoAlerta");
-  const mensagemElemento = document.getElementById("alertaMensagem") || document.getElementById("descricaoAlerta") || document.getElementById("mensagem");
-
-  const tipo = tipoElemento ? tipoElemento.value : "Outro problema";
-  const mensagem = mensagemElemento ? mensagemElemento.value.trim() : "";
-
-  // Validação
-  if (!mensagem) {
-    alert("⚠️ Por favor, preencha a descrição do problema.");
-    return;
-  }
-
-  try {
-    const res = await fetch("/api/alertas", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tipo, mensagem })
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      alert("✅ Alerta enviado com sucesso!");
-      
-      // Limpa o campo
-      if (mensagemElemento) mensagemElemento.value = "";
-      
-      // Tenta fechar o modal (se a função existir)
-      if (typeof fecharModalAlerta === "function") fecharModalAlerta();
-      if (typeof fecharModal === "function") fecharModal();
-    } else {
-      alert("❌ Erro ao enviar: " + (data.error || "Erro desconhecido"));
-    }
-  } catch (err) {
-    console.error("Erro na requisição de alerta:", err);
-    alert("❌ Erro de conexão com o servidor.");
   }
 }
 
@@ -276,7 +256,7 @@ async function gerarRelatorio() {
 }
 
 // =======================
-// 👤 Funções do Modal de Perfil (Globais)
+// 👤 Modal Perfil
 // =======================
 async function abrirModalPerfil() {
   const modal = document.getElementById("modalPerfil");
