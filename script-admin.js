@@ -115,7 +115,7 @@ async function deletarCaixaSelecionada() {
   }
 }
 
-// CLIENTES
+// CLIENTES & FICHA HISTÓRICO
 let clienteAtualId = null;
 
 async function carregarClientes() {
@@ -135,7 +135,7 @@ async function carregarClientes() {
       <div style="display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 12px; border-radius: 6px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
         <span>🆔 <b>${c.id}</b> | 👤 <b>${c.usuario}</b></span>
         <div>
-          <button onclick="abrirFichaCliente(${c.id})" style="background: #0275d8; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">🔍 Ver Ficha / Editar</button>
+          <button onclick="abrirFichaCliente(${c.id})" style="background: #0275d8; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">🔍 Ver Ficha / Histórico</button>
         </div>
       </div>
     `).join("");
@@ -162,6 +162,7 @@ window.abrirFichaCliente = async function(id) {
     document.getElementById("fichaUsuario").value = dataCliente.cliente.usuario;
     document.getElementById("fichaSenha").value = "";
 
+    // Renderizar Caixas do Cliente
     const divCaixas = document.getElementById("fichaListaCaixas");
     if (dataCliente.caixas.length === 0) {
       divCaixas.innerHTML = "<i>Nenhuma caixa vinculada a este cliente.</i>";
@@ -172,6 +173,34 @@ window.abrirFichaCliente = async function(id) {
           <button onclick="desvincularCaixaCliente(${c.id})" style="background:#ffc107; color:#000; border:none; padding:2px 6px; border-radius:3px; cursor:pointer; font-size:12px;">Desvincular</button>
         </div>
       `).join("");
+    }
+
+    // Renderizar Histórico de Chamados
+    let divHistorico = document.getElementById("fichaHistoricoChamados");
+    if (!divHistorico) {
+      const containerModal = document.querySelector("#modalFichaCliente > div");
+      if (containerModal) {
+        divHistorico = document.createElement("div");
+        divHistorico.id = "fichaHistoricoChamados";
+        divHistorico.style.marginTop = "15px";
+        divHistorico.style.borderTop = "1px solid #eee";
+        divHistorico.style.paddingTop = "10px";
+        containerModal.appendChild(divHistorico);
+      }
+    }
+
+    if (divHistorico) {
+      if (!dataCliente.chamados || dataCliente.chamados.length === 0) {
+        divHistorico.innerHTML = "<h4>📋 Histórico de Chamados</h4><i>Nenhum chamado registrado para este cliente.</i>";
+      } else {
+        divHistorico.innerHTML = "<h4>📋 Histórico de Chamados</h4>" + dataCliente.chamados.map(ch => `
+          <div style="background: #f8f9fa; border: 1px solid #e9ecef; border-left: 4px solid ${ch.status === 'Concluído' ? '#28a745' : '#ffc107'}; padding: 8px; margin-bottom: 8px; border-radius: 4px; text-align: left; font-size: 13px;">
+            <div><b>[${ch.data_hora}] ${ch.assunto}</b> - <span style="font-weight:bold; color: ${ch.status === 'Concluído' ? 'green' : 'orange'};">${ch.status}</span></div>
+            <div><b>Problema:</b> ${ch.mensagem}</div>
+            ${ch.solucao ? `<div style="color: #155724; background: #d4edda; padding: 4px; border-radius: 3px; margin-top: 4px;"><b>🛠 Solução/Feito:</b> ${ch.solucao}</div>` : ''}
+          </div>
+        `).join("");
+      }
     }
 
     const selectLivre = document.getElementById("fichaSelectCaixasLivre");
@@ -329,12 +358,15 @@ async function carregarChamados() {
           <td style="padding: 8px;">${c.data_hora || '-'}</td>
           <td style="padding: 8px;">${c.cliente_nome || 'Cliente'}</td>
           <td style="padding: 8px;">${c.assunto || 'Outro'}</td>
-          <td style="padding: 8px;">${c.mensagem || '-'}</td>
+          <td style="padding: 8px;">
+            <div>${c.mensagem || '-'}</div>
+            ${c.solucao ? `<div style="font-size:12px; color: #155724; background: #d4edda; padding: 4px; border-radius: 4px; margin-top: 4px; text-align: left;"><b>Solução:</b> ${c.solucao}</div>` : ''}
+          </td>
           <td style="padding: 8px;">
             ${isConcluido 
               ? `<span style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 4px; font-weight: bold;">✅ Concluído</span>`
-              : `<button onclick="atualizarStatus(${c.id}, 'Concluído')" style="background: #ffc107; color: #212529; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">
-                   ⏳ Pendente (Marcar Concluído)
+              : `<button onclick="atualizarStatus(${c.id})" style="background: #ffc107; color: #212529; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                   ⏳ Resolver chamado
                  </button>`
             }
           </td>
@@ -346,17 +378,28 @@ async function carregarChamados() {
   }
 }
 
-window.atualizarStatus = async function(id, novoStatus) {
+window.atualizarStatus = async function(id) {
+  const solucaoText = prompt("Descreva o que foi feito para resolver este problema:");
+  if (solucaoText === null) return; // Cancelou a operacao
+
+  if (!solucaoText.trim()) {
+    return alert("⚠️ É necessário descrever a solução para concluir o chamado!");
+  }
+
   try {
     const res = await fetch(`${API_BASE}/api/chamados/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: novoStatus }),
+      body: JSON.stringify({ 
+        status: 'Concluído',
+        solucao: solucaoText.trim()
+      }),
       credentials: "same-origin"
     });
 
     const data = await res.json();
     if (res.ok && data.success) {
+      alert("✅ Chamado resolvido e salvo no histórico!");
       carregarChamados();
     } else {
       alert('Erro ao atualizar chamado.');

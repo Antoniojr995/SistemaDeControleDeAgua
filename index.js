@@ -64,11 +64,17 @@ async function initDb() {
         cliente_nome VARCHAR(100),
         assunto VARCHAR(100),
         mensagem TEXT,
+        solucao TEXT,
         status VARCHAR(20) DEFAULT 'Pendente',
         data_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
     
+    // Adiciona a coluna solucao caso a tabela ja existisse sem ela
+    await pool.query(`
+      ALTER TABLE chamados ADD COLUMN IF NOT EXISTS solucao TEXT;
+    `);
+
     await pool.query(`
       INSERT INTO usuarios (usuario, senha, tipo) 
       VALUES ($1, $2, $3) 
@@ -227,11 +233,19 @@ app.get("/api/admin/clientes/:id", requererAutenticacao, async (req, res) => {
       return res.status(404).json({ error: "Cliente não encontrado" });
     }
 
+    const cliente = clienteQuery.rows[0];
     const caixasQuery = await pool.query("SELECT id, nome FROM caixas WHERE usuario_id = $1", [id]);
+    
+    // Busca historico de chamados do cliente pelo nome de usuario
+    const chamadosQuery = await pool.query(
+      "SELECT id, assunto, mensagem, solucao, status, TO_CHAR(data_hora, 'DD/MM/YYYY HH24:MI') as data_hora FROM chamados WHERE cliente_nome = $1 ORDER BY id DESC",
+      [cliente.usuario]
+    );
 
     res.json({
-      cliente: clienteQuery.rows[0],
-      caixas: caixasQuery.rows
+      cliente: cliente,
+      caixas: caixasQuery.rows,
+      chamados: chamadosQuery.rows
     });
   } catch (err) {
     res.status(500).json({ error: "Erro ao buscar dados do cliente" });
@@ -269,7 +283,7 @@ app.put("/api/admin/clientes/:id/completo", requererAutenticacao, async (req, re
 app.get('/api/chamados', requererAutenticacao, async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT id, cliente_nome, assunto, mensagem, status, TO_CHAR(data_hora, 'DD/MM/YYYY HH24:MI') as data_hora FROM chamados ORDER BY id DESC"
+      "SELECT id, cliente_nome, assunto, mensagem, solucao, status, TO_CHAR(data_hora, 'DD/MM/YYYY HH24:MI') as data_hora FROM chamados ORDER BY id DESC"
     );
     res.json(result.rows || []);
   } catch (err) {
@@ -288,7 +302,7 @@ app.post('/api/chamados', requererAutenticacao, async (req, res) => {
   try {
     await pool.query(
       'INSERT INTO chamados (cliente_nome, assunto, mensagem, status) VALUES ($1, $2, $3, $4)',
-      [usuarioLogado, assunto || 'Suporte', mensagem, 'Pendente']
+      [usuarioLogado, assunto || 'Outro', mensagem, 'Pendente']
     );
     res.status(201).json({ success: true, message: 'Chamado aberto com sucesso!' });
   } catch (err) {
@@ -298,10 +312,13 @@ app.post('/api/chamados', requererAutenticacao, async (req, res) => {
 
 app.put('/api/chamados/:id', requererAutenticacao, async (req, res) => {
   const { id } = req.params;
-  const { status } = req.body;
+  const { status, solucao } = req.body;
 
   try {
-    await pool.query('UPDATE chamados SET status = $1 WHERE id = $2', [status || 'Concluído', id]);
+    await pool.query(
+      'UPDATE chamados SET status = $1, solucao = $2 WHERE id = $3', 
+      [status || 'Concluído', solucao || '', id]
+    );
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -407,7 +424,7 @@ app.get('/api/minhas-caixas', requererAutenticacao, async (req, res) => {
 app.get('/api/meus-chamados', requererAutenticacao, async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT id, assunto, mensagem, TO_CHAR(data_hora, 'DD/MM/YYYY HH24:MI') as data_hora FROM chamados WHERE cliente_nome = $1 ORDER BY id DESC",
+      "SELECT id, assunto, mensagem, solucao, status, TO_CHAR(data_hora, 'DD/MM/YYYY HH24:MI') as data_hora FROM chamados WHERE cliente_nome = $1 ORDER BY id DESC",
       [req.session.usuario]
     );
     res.json(result.rows || []);
