@@ -252,6 +252,24 @@ app.get("/api/admin/clientes/:id", requererAutenticacao, async (req, res) => {
   }
 });
 
+// ROTA DE COMPATIBILIDADE / ALIAS PARA O PAINEL DO CLIENTE
+app.post('/api/alertas', requererAutenticacao, async (req, res) => {
+  const { cliente_nome, assunto, mensagem, tipo_problema, descricao } = req.body;
+  const usuarioLogado = req.session.usuario || cliente_nome || 'Cliente';
+  const msgFinal = mensagem || descricao || 'Sem descrição informada';
+  const assuntoFinal = assunto || tipo_problema || 'Outro';
+
+  try {
+    await pool.query(
+      'INSERT INTO chamados (cliente_nome, assunto, mensagem, status) VALUES ($1, $2, $3, $4)',
+      [usuarioLogado, assuntoFinal, msgFinal, 'Pendente']
+    );
+    res.status(201).json({ success: true, message: 'Alerta/Chamado aberto com sucesso!' });
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao registrar alerta.' });
+  }
+});
+
 app.put("/api/admin/clientes/:id/completo", requererAutenticacao, async (req, res) => {
   const { id } = req.params;
   const { usuario, senha, caixa_id_remover, caixa_id_adicionar } = req.body;
