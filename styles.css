@@ -38,6 +38,7 @@ input[type="checkbox"] {
   position: relative;
   width: 60px;
   height: 30px;
+  appearance: none;
   -webkit-appearance: none;
   background-color: #ccc;
   outline: none;
@@ -85,4 +86,11 @@ button:hover {
   margin-top: 20px;
   font-style: italic;
   color: #555;
+}
+
+.modal-content {
+  max-height: 85vh; /* Limita a altura a 85% da tela */
+  overflow-y: auto;  /* Habilita a barra de rolagem vertical quando necessário */
+  padding: 20px;
+  border-radius: 8px;
 }
