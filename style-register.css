@@ -64,9 +64,9 @@ a:hover {
   font-size: 14px;
 }
 
+#modalEditarCliente .modal-content,
+#modalFichaCliente .modal-content,
 .modal-content {
-  max-height: 85vh; /* Limita a altura a 85% da tela */
-  overflow-y: auto;  /* Habilita a barra de rolagem vertical quando necessário */
-  padding: 20px;
-  border-radius: 8px;
+  max-height: 80vh !important;
+  overflow-y: auto !important;
 }
