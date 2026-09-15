@@ -105,7 +105,6 @@ function fecharModalAlerta() {
 async function enviarAlertaTecnico(event) {
   if (event) event.preventDefault();
 
-  // Pega os elementos do modal
   const tipoElemento = document.getElementById("alertaTipo") || document.getElementById("tipoAlerta");
   const mensagemElemento = document.getElementById("alertaMensagem") || document.getElementById("descricaoAlerta") || document.getElementById("mensagem");
 
@@ -118,7 +117,7 @@ async function enviarAlertaTecnico(event) {
   }
 
   try {
-    // Aponta para a rota exata que existe no seu backend: /api/chamados
+    // Altera /api/alertas para /api/chamados
     const res = await fetch(API_BASE + "/api/chamados", {
       method: "POST",
       headers: { 
@@ -135,11 +134,8 @@ async function enviarAlertaTecnico(event) {
 
     if (res.ok && data.success) {
       alert("✅ Chamado aberto com sucesso!");
-      
       if (mensagemElemento) mensagemElemento.value = "";
-      
       if (typeof fecharModalAlerta === "function") fecharModalAlerta();
-      if (typeof fecharModal === "function") fecharModal();
     } else {
       alert("❌ Erro ao enviar: " + (data.error || "Erro desconhecido"));
     }
