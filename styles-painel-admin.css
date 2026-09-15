@@ -81,3 +81,27 @@ button:hover {
   overflow-y: auto !important;
   padding-right: 8px;
 }
+
+/* Força a barra de rolagem em QUALQUER estrutura de modal do painel */
+#modalEditarCliente, 
+#modalFichaCliente, 
+.modal, 
+[id*="modal"] {
+  max-height: 85vh !important;
+  overflow-y: auto !important;
+}
+
+/* Força a rolagem na div interna do modal */
+#modalEditarCliente > div, 
+#modalFichaCliente > div, 
+.modal > div, 
+.modal-content {
+  max-height: 80vh !important;
+  overflow-y: auto !important;
+}
+
+/* Garante que o bloco do histórico encolha se necessário */
+#historicoChamados {
+  max-height: 300px !important;
+  overflow-y: auto !important;
+}
