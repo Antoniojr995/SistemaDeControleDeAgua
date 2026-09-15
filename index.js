@@ -391,6 +391,22 @@ app.get('/api/usuario-atual', (req, res) => {
   }
 });
 
+// ROTA QUE ESTAVA FALTANDO PARA O PAINEL DO CLIENTE
+app.get('/api/dados/latest', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM leituras ORDER BY id DESC LIMIT 1'
+    );
+    if (result.rows.length > 0) {
+      res.json(result.rows[0]);
+    } else {
+      res.json({ nivel: 0 });
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao buscar última leitura.' });
+  }
+});
+
 // LEITURAS ESP32
 app.post('/api/leitura', async (req, res) => {
   const { nivel } = req.body;

@@ -101,34 +101,51 @@ function fecharModalAlerta() {
   if (modal) modal.style.display = "none";
 }
 
+// 🚨 ENVIAR CHAMADO TÉCNICO
 async function enviarAlertaTecnico(event) {
-  event.preventDefault();
+  if (event) event.preventDefault();
 
-  const tipoAlerta = document.getElementById("alertaTipo").value;
-  const mensagem = document.getElementById("alertaMensagem").value;
+  // Pega os elementos do modal
+  const tipoElemento = document.getElementById("alertaTipo") || document.getElementById("tipoAlerta");
+  const mensagemElemento = document.getElementById("alertaMensagem") || document.getElementById("descricaoAlerta") || document.getElementById("mensagem");
+
+  const assunto = tipoElemento ? tipoElemento.value : "Outro problema";
+  const mensagem = mensagemElemento ? mensagemElemento.value.trim() : "";
+
+  if (!mensagem) {
+    alert("⚠️ Por favor, preencha a descrição do problema.");
+    return;
+  }
 
   try {
-    const res = await fetch(API_BASE + "/api/alertas", {
+    // Aponta para a rota exata que existe no seu backend: /api/chamados
+    const res = await fetch(API_BASE + "/api/chamados", {
       method: "POST",
-      headers: {
+      headers: { 
         "Content-Type": "application/json",
-        Authorization: "Bearer " + token
+        "Authorization": "Bearer " + token
       },
-      body: JSON.stringify({ tipo: tipoAlerta, mensagem })
+      body: JSON.stringify({ 
+        assunto: assunto, 
+        mensagem: mensagem 
+      })
     });
 
     const data = await res.json();
 
-    if (res.ok) {
-      alert("Alerta enviado com sucesso! A equipe técnica foi notificada.");
-      document.getElementById("alertaMensagem").value = "";
-      fecharModalAlerta();
+    if (res.ok && data.success) {
+      alert("✅ Chamado aberto com sucesso!");
+      
+      if (mensagemElemento) mensagemElemento.value = "";
+      
+      if (typeof fecharModalAlerta === "function") fecharModalAlerta();
+      if (typeof fecharModal === "function") fecharModal();
     } else {
-      alert(data.error || "Erro ao enviar o alerta.");
+      alert("❌ Erro ao enviar: " + (data.error || "Erro desconhecido"));
     }
   } catch (err) {
-    console.error("Erro ao enviar alerta:", err);
-    alert("Erro de conexão ao enviar o chamado.");
+    console.error("Erro na requisição de alerta:", err);
+    alert("❌ Erro de conexão com o servidor.");
   }
 }
 
