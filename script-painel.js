@@ -191,7 +191,16 @@ async function carregarHistorico() {
 
     if (!Array.isArray(data) || data.length === 0) {
       if (tbody) tbody.innerHTML = '<tr><td colspan="4">Nenhum registro encontrado.</td></tr>';
+      
+      // Oculta a área do gráfico se não houver leituras para desenhar
+      const areaGrafico = document.getElementById("graficoNivelAgua")?.parentElement;
+      if (areaGrafico) areaGrafico.style.display = "none";
+      
       return;
+    } else {
+      // Exibe a área do gráfico se houver dados
+      const areaGrafico = document.getElementById("graficoNivelAgua")?.parentElement;
+      if (areaGrafico) areaGrafico.style.display = "block";
     }
 
     // 1. Atualizar Tabela
