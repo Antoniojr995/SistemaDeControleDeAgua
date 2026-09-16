@@ -279,13 +279,15 @@ function renderizarGrafico(labels, caixa1, caixa2) {
   });
 }
 
+let ultimosDadosRelatorio = []; // Variável global para guardar os dados buscados
+
 async function gerarRelatorio() {
   const caixaId = sessionStorage.getItem("caixaSelecionada") || 1;
   const dataInicio = document.getElementById("dataInicio").value;
   const dataFim = document.getElementById("dataFim").value;
 
   if (!dataInicio || !dataFim) {
-    alert("Preencha as duas datas!");
+    alert("⚠️ Preencha as duas datas!");
     return;
   }
 
@@ -300,28 +302,101 @@ async function gerarRelatorio() {
     });
 
     const dados = await res.json();
+    ultimosDadosRelatorio = dados; // Salva para exportar
+    
     const div = document.getElementById("resultadoRelatorio");
-    div.innerHTML = "<h4>Resultados:</h4>";
+    const divExport = document.getElementById("acoesExportacao");
+    div.innerHTML = "";
 
     if (!dados || dados.length === 0) {
-      div.innerHTML += "<p>Nenhum dado no período selecionado.</p>";
+      div.innerHTML = "<p>Nenhum dado encontrado no período selecionado.</p>";
+      if (divExport) divExport.style.display = "none";
       return;
     }
 
-    let html = "<table border='1' style='width:100%; text-align:center;'><tr><th>Data</th><th>Caixa 1</th><th>Caixa 2</th><th>Bomba</th></tr>";
+    // Exibe tabela na tela
+    let html = `<table border='1' style='width:100%; text-align:center; margin-top: 10px;'>
+      <thead>
+        <tr>
+          <th>Data / Hora</th>
+          <th>Caixa 1 (%)</th>
+          <th>Caixa 2 (%)</th>
+          <th>Estado Bomba</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
     dados.forEach((d) => {
       html += `<tr>
-        <td>${d.data}</td>
-        <td>${d.caixa1}</td>
-        <td>${d.caixa2}</td>
+        <td>${d.data || d.created_at}</td>
+        <td>${d.caixa1}%</td>
+        <td>${d.caixa2}%</td>
         <td>${d.bomba ? "Ligada" : "Desligada"}</td>
       </tr>`;
     });
-    html += "</table>";
-    div.innerHTML += html;
+
+    html += "tbody></table>";
+    div.innerHTML = html;
+
+    // Exibe botões de download
+    if (divExport) divExport.style.display = "block";
+
   } catch (err) {
     console.error("Erro ao gerar relatório:", err);
+    alert("❌ Erro ao buscar relatório no servidor.");
   }
+}
+
+// 📁 Exportar para CSV
+function exportarCSV() {
+  if (ultimosDadosRelatorio.length === 0) return;
+
+  let csvContent = "data:text/csv;charset=utf-8,Data/Hora,Caixa 1 (%),Caixa 2 (%),Bomba\n";
+
+  ultimosDadosRelatorio.forEach(d => {
+    const dataHora = d.data || d.created_at;
+    const bombaStatus = d.bomba ? "Ligada" : "Desligada";
+    csvContent += `"${dataHora}",${d.caixa1},${d.caixa2},"${bombaStatus}"\n`;
+  });
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", `relatorio_leituras_${Date.now()}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// 📄 Exportar para PDF
+function exportarPDF() {
+  if (ultimosDadosRelatorio.length === 0) return;
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  doc.setFontSize(16);
+  doc.text("Relatório de Monitoramento - Reservatório", 14, 15);
+  doc.setFontSize(10);
+  doc.text(`Gerado em: ${new Date().toLocaleString()}`, 14, 22);
+
+  const colunas = ["Data / Hora", "Caixa 1 (%)", "Caixa 2 (%)", "Bomba"];
+  const linhas = ultimosDadosRelatorio.map(d => [
+    d.data || d.created_at,
+    `${d.caixa1}%`,
+    `${d.caixa2}%`,
+    d.bomba ? "Ligada" : "Desligada"
+  ]);
+
+  doc.autoTable({
+    startY: 28,
+    head: [colunas],
+    body: linhas,
+    theme: 'grid',
+    headStyles: { fillColor: [37, 99, 235] }
+  });
+
+  doc.save(`relatorio_leituras_${Date.now()}.pdf`);
 }
 
 // =======================

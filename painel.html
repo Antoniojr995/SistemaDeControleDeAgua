@@ -4,7 +4,9 @@
   <meta charset="UTF-8">
   <title>Painel do Cliente</title>
   <link rel="stylesheet" href="styles.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
 
@@ -65,14 +67,29 @@
     </thead>
     <tbody></tbody>
   </table>
-  
-  <hr>
-  <h3>📊 Gerar Relatório</h3>
-  De: <input type="date" id="dataInicio">
-  Até: <input type="date" id="dataFim">
-  <button id="btnRelatorio">Gerar</button>
 
-  <div id="resultadoRelatorio"></div>
+  <hr>
+  <div class="secao-relatorio" style="margin-top: 30px; text-align: center;">
+    <h3>📊 Gerar Relatório de Consumo</h3>
+    
+    <div style="margin-bottom: 15px;">
+      <label for="dataInicio">De:</label>
+      <input type="date" id="dataInicio">
+      
+      <label for="dataFim">Até:</label>
+      <input type="date" id="dataFim">
+      
+      <button id="btnRelatorio">Buscar Leituras</button>
+    </div>
+  
+    <div id="resultadoRelatorio"></div>
+  
+    <!-- Botões de Exportação (iniciam ocultos) -->
+    <div id="acoesExportacao" style="display: none; margin-top: 15px;">
+      <button onclick="exportarCSV()" style="background-color: #22c55e;">📁 Baixar CSV</button>
+      <button onclick="exportarPDF()" style="background-color: #ef4444;">picture_as_pdf Baixar PDF</button>
+    </div>
+  </div>
 
   <!-- Modal do Perfil -->
   <div id="modalPerfil" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
