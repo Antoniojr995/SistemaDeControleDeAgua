@@ -94,3 +94,23 @@ button:hover {
   max-height: 80vh !important;
   overflow-y: auto !important;
 }
+
+/* Garante que a caixa inteira do modal limite o tamanho e role */
+.modal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto !important; /* Permite rolar se o modal for maior que a tela */
+}
+
+.modal-content {
+  max-height: 80vh !important; /* Trava a altura em 80% da tela */
+  overflow-y: auto !important; /* Cria a barra de rolagem na div de dentro */
+}
+
+/* Coloque essa classe na div container do Histórico de Chamados */
+#historicoChamados, .historico-container {
+  max-height: 250px !important;
+  overflow-y: auto !important;
+  padding-right: 8px;
+}

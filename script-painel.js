@@ -175,6 +175,8 @@ async function enviarAlertaTecnico(event) {
 // =======================
 // 📅 Histórico e Relatórios
 // =======================
+let meuGrafico = null; // Guarda a referência do gráfico para atualizar sem duplicar
+
 async function carregarHistorico() {
   try {
     const caixaId = sessionStorage.getItem("caixaSelecionada") || 1;
@@ -186,28 +188,86 @@ async function carregarHistorico() {
 
     const data = await res.json();
     const tbody = document.querySelector("#tabelaHistorico tbody");
-    if (!tbody) return;
-
-    tbody.innerHTML = "";
 
     if (!Array.isArray(data) || data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="4">Nenhum registro encontrado.</td></tr>';
+      if (tbody) tbody.innerHTML = '<tr><td colspan="4">Nenhum registro encontrado.</td></tr>';
       return;
     }
 
-    data.forEach((d) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${d.dia}</td>
-        <td>${d.media_caixa1}%</td>
-        <td>${d.media_caixa2}%</td>
-        <td>${d.leituras}</td>
-      `;
-      tbody.appendChild(tr);
-    });
+    // 1. Atualizar Tabela
+    if (tbody) {
+      tbody.innerHTML = "";
+      data.forEach((d) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${d.dia || d.data}</td>
+          <td>${d.media_caixa1 ?? d.caixa1}%</td>
+          <td>${d.media_caixa2 ?? d.caixa2}%</td>
+          <td>${d.leituras ?? 1}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // 2. Montar Dados para o Gráfico (invertemos para ficar em ordem cronológica)
+    const historicoOrdenado = [...data].reverse();
+    const rotulos = historicoOrdenado.map(d => d.dia || d.data);
+    const dadosCaixa1 = historicoOrdenado.map(d => d.media_caixa1 ?? d.caixa1);
+    const dadosCaixa2 = historicoOrdenado.map(d => d.media_caixa2 ?? d.caixa2);
+
+    renderizarGrafico(rotulos, dadosCaixa1, dadosCaixa2);
+
   } catch (err) {
-    console.error("Erro ao carregar histórico:", err);
+    console.error("Erro ao carregar histórico e gráfico:", err);
   }
+}
+
+function renderizarGrafico(labels, caixa1, caixa2) {
+  const ctx = document.getElementById('graficoNivelAgua');
+  if (!ctx) return;
+
+  // Destrói gráfico antigo se já existir para evitar bugs visuais
+  if (meuGrafico) {
+    meuGrafico.destroy();
+  }
+
+  meuGrafico = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Caixa 1 (%)',
+          data: caixa1,
+          borderColor: '#00a2ff',
+          backgroundColor: 'rgba(0, 162, 255, 0.2)',
+          fill: true,
+          tension: 0.3
+        },
+        {
+          label: 'Caixa 2 (%)',
+          data: caixa2,
+          borderColor: '#0057e7',
+          backgroundColor: 'rgba(0, 87, 231, 0.2)',
+          fill: true,
+          tension: 0.3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100,
+          title: { display: true, text: 'Nível (%)' }
+        },
+        x: {
+          title: { display: true, text: 'Data / Hora' }
+        }
+      }
+    }
+  });
 }
 
 async function gerarRelatorio() {

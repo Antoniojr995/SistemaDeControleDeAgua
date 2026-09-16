@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>Painel do Cliente</title>
   <link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -45,7 +46,14 @@
     <button id="btnAtualizar">🔄 Atualizar Agora</button>
   </div>
 
-  <h3>📅 Histórico dos últimos 30 dias</h3>
+  <h3>📅 Histórico e Gráfico dos Últimos 30 Dias</h3>
+
+  <!-- Canvas onde o gráfico será desenhado pelo JS -->
+  <div style="width: 100%; max-width: 700px; margin: 0 auto 20px auto; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+    <canvas id="graficoNivelAgua"></canvas>
+  </div>
+  
+  <!-- Tabela de Histórico -->
   <table id="tabelaHistorico" border="1" style="width:100%; text-align:center;">
     <thead>
       <tr>
@@ -57,7 +65,7 @@
     </thead>
     <tbody></tbody>
   </table>
-
+  
   <hr>
   <h3>📊 Gerar Relatório</h3>
   De: <input type="date" id="dataInicio">
