@@ -6,31 +6,90 @@
   <title>Painel do Administrador</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="styles-painel-admin.css">
+  
+  <!-- Script do Admin carregado com defer -->
+  <script src="script-admin.js" defer></script>
 </head>
 <body>
   <h2>🧰 Painel do Administrador</h2>
-  <p>Bem-vindo, <span id="adminNome"></span>! <button id="btnLogout">🚪 Sair</button></p>
+  <p>Bem-vindo, <span id="adminNome"></span>! <button id="btnLogout" style="background:#dc3545; color:#fff; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">🚪 Sair</button></p>
 
   <!-- 🗂️ Menu de Navegação por Abas -->
-  <div class="menu-abas">
+  <div class="menu-abas" style="margin-bottom: 15px;">
     <button onclick="mudarAba('abaCaixas')">📦 Caixas d'Água</button>
     <button onclick="mudarAba('abaClientes')">👥 Clientes</button>
     <button onclick="mudarAba('abaRegistros')">📝 Cadastros</button>
     <button onclick="mudarAba('abaChamados')">🔔 Chamados</button>
   </div>
 
-  <hr>
+  <hr style="margin-bottom: 20px;">
 
   <!-- 📦 CAMADA 1: Caixas d'Água -->
   <div id="abaCaixas" class="camada-conteudo">
-    <h3>📦 Caixas d'Água Cadastradas</h3>
+    <!-- Seção de Cadastro / Configuração da Caixa -->
+    <div class="card-admin" style="background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+      <h3>⚙️ Cadastrar / Vincular Caixa d'Água</h3>
+      
+      <form id="formCadastrarCaixa" onsubmit="salvarCaixaAdmin(event)">
+        <label style="display:block; margin-bottom:5px; font-weight:bold;">Selecione o Cliente:</label>
+        <select id="selectUsuarioDono" required style="width:100%; padding:8px; margin-bottom:10px; border-radius:4px; border:1px solid #ccc;">
+          <!-- Preenchido via JS com a lista de clientes -->
+        </select>
+
+        <label style="display:block; margin-bottom:5px; font-weight:bold;">Modelo Comercial:</label>
+        <select id="selectModeloCaixa" onchange="selecionarModeloCaixa(this.value)" style="width:100%; padding:8px; margin-bottom:10px; border-radius:4px; border:1px solid #ccc;">
+          <option value="500">500 Litros (Polietileno)</option>
+          <option value="1000" selected>1.000 Litros (Polietileno - Padrão)</option>
+          <option value="1500">1.500 Litros (Polietileno)</option>
+          <option value="2000">2.000 Litros (Polietileno)</option>
+          <option value="5000">5.000 Litros (Fibra/Polietileno)</option>
+          <option value="custom">Outro / Personalizado...</option>
+        </select>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+          <div>
+            <label style="display:block; margin-bottom:5px; font-weight:bold;">Capacidade (L):</label>
+            <input type="number" id="caixaCapacidade" value="1000" required style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc; box-sizing:border-box;">
+          </div>
+          <div>
+            <label style="display:block; margin-bottom:5px; font-weight:bold;">Altura do Sensor (cm):</label>
+            <input type="number" id="caixaAltura" value="95" required style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc; box-sizing:border-box;">
+          </div>
+        </div>
+
+        <button type="submit" style="background: #10b981; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">
+          ➕ Cadastrar Caixa
+        </button>
+      </form>
+    </div>
+
+    <!-- Gerenciamento das Caixas Existentes -->
+    <h3>📋 Caixas Cadastradas no Sistema</h3>
     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 15px;">
-      <select id="listaCaixas" style="padding: 8px; min-width: 250px;"></select>
-      <button id="btnVer">👁️ Ver Caixa Selecionada</button>
+      <select id="listaCaixas" style="padding: 8px; min-width: 250px; border-radius:4px; border:1px solid #ccc;"></select>
+      <button id="btnVer" style="padding: 8px 12px; cursor: pointer;">👁️ Ver Caixa Selecionada</button>
       <button onclick="renomearCaixaSelecionada()" style="background-color: #f0ad4e; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">✏️ Renomear Caixa</button>
       <button onclick="deletarCaixaSelecionada()" style="background-color: #d9534f; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">🗑️ Apagar Caixa</button>
     </div>
+    
     <div id="dadosCaixaSelecionada" style="margin-top: 15px;"></div>
+
+    <h4 style="margin-top: 25px;">Tabela Resumo</h4>
+    <table border="1" style="width:100%; text-align:center; border-collapse: collapse;">
+      <thead>
+        <tr style="background: #f1f5f9;">
+          <th>ID</th>
+          <th>Cliente</th>
+          <th>Modelo</th>
+          <th>Capacidade</th>
+          <th>Altura Sensor</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="tabelaCaixasAdmin">
+        <!-- Preenchido via JS -->
+      </tbody>
+    </table>
   </div>
 
   <!-- 👥 CAMADA 2: Clientes -->
@@ -41,7 +100,7 @@
     </div>
   </div>
 
-  <!-- 📝 CAMADA 3: Registros divididos em 3 colunas -->
+  <!-- 📝 CAMADA 3: Registros Rápido -->
   <div id="abaRegistros" class="camada-conteudo" style="display:none;">
     <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 10px;">
       
@@ -49,10 +108,10 @@
       <div style="flex: 1; min-width: 260px; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
         <h3>👤 Cadastrar Cliente</h3>
         <form id="formNovoCliente" style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
-          <input type="text" id="novoClienteNome" placeholder="Nome do Cliente">
-          <input type="email" id="novoClienteEmail" placeholder="E-mail" required>
-          <input type="password" id="novoClienteSenha" placeholder="Senha" required>
-          <button type="button" id="btnCadastrarCliente">Cadastrar Cliente</button>
+          <input type="text" id="novoClienteNome" placeholder="Nome do Cliente" style="padding:8px; border:1px solid #ccc; border-radius:4px;">
+          <input type="email" id="novoClienteEmail" placeholder="E-mail" required style="padding:8px; border:1px solid #ccc; border-radius:4px;">
+          <input type="password" id="novoClienteSenha" placeholder="Senha" required style="padding:8px; border:1px solid #ccc; border-radius:4px;">
+          <button type="button" id="btnCadastrarCliente" style="padding:8px; background:#007bff; color:#fff; border:none; border-radius:4px; cursor:pointer;">Cadastrar Cliente</button>
         </form>
       </div>
 
@@ -60,11 +119,11 @@
       <div style="flex: 1; min-width: 260px; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
         <h3>📦 Criar Nova Caixa</h3>
         <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
-          <input id="nomeCaixa" placeholder="Ex: Caixa Bloco A">
-          <select id="selectClienteCriar">
+          <input id="nomeCaixa" placeholder="Ex: Caixa Bloco A" style="padding:8px; border:1px solid #ccc; border-radius:4px;">
+          <select id="selectClienteCriar" style="padding:8px; border:1px solid #ccc; border-radius:4px;">
             <option value="">Vincular a um cliente (Opcional)...</option>
           </select>
-          <button id="btnAdicionar">Adicionar Caixa</button>
+          <button id="btnAdicionar" style="padding:8px; background:#28a745; color:#fff; border:none; border-radius:4px; cursor:pointer;">Adicionar Caixa</button>
         </div>
       </div>
 
@@ -72,13 +131,13 @@
       <div style="flex: 1; min-width: 260px; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
         <h3>🔗 Associar Caixa Existente</h3>
         <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
-          <select id="selectCaixaAssociar">
+          <select id="selectCaixaAssociar" style="padding:8px; border:1px solid #ccc; border-radius:4px;">
             <option value="">Selecione a Caixa...</option>
           </select>
-          <select id="selectClienteAssociar">
+          <select id="selectClienteAssociar" style="padding:8px; border:1px solid #ccc; border-radius:4px;">
             <option value="">Selecione o Cliente...</option>
           </select>
-          <button id="btnAssociar">Associar Caixa</button>
+          <button id="btnAssociar" style="padding:8px; background:#17a2b8; color:#fff; border:none; border-radius:4px; cursor:pointer;">Associar Caixa</button>
         </div>
       </div>
 
@@ -104,7 +163,7 @@
     </table>
   </div>
 
-  <p id="msg" style="margin-top: 15px; font-weight: bold;"></p>
+  <p id="msg" style="margin-top: 15px; font-weight: bold; text-align:center;"></p>
 
   <!-- 🪟 MODAL: Ficha do Cliente -->
   <div id="modalFichaCliente" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); align-items:center; justify-content:center; z-index:1000;">
@@ -116,18 +175,18 @@
 
       <!-- Dados Cadastrais -->
       <div style="margin-bottom:15px;">
-        <label><b>E-mail / Usuário:</b></label>
-        <input type="text" id="fichaUsuario" style="width:100%; padding:8px; margin-top:5px; border:1px solid #ccc; border-radius:4px;">
+        <label style="font-weight:bold;">E-mail / Usuário:</label>
+        <input type="text" id="fichaUsuario" style="width:100%; padding:8px; margin-top:5px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
       </div>
 
       <div style="margin-bottom:15px;">
-        <label><b>Nova Senha:</b> <small style="color:#666;">(deixe em branco se não quiser alterar)</small></label>
-        <input type="password" id="fichaSenha" placeholder="••••••••" style="width:100%; padding:8px; margin-top:5px; border:1px solid #ccc; border-radius:4px;">
+        <label style="font-weight:bold;">Nova Senha: <small style="color:#666; font-weight:normal;">(deixe em branco se não quiser alterar)</small></label>
+        <input type="password" id="fichaSenha" placeholder="••••••••" style="width:100%; padding:8px; margin-top:5px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
       </div>
 
       <!-- Caixas d'Água do Cliente -->
       <div style="margin-bottom:15px;">
-        <label><b>Caixas d'Água Vinculadas:</b></label>
+        <label style="font-weight:bold;">Caixas d'Água Vinculadas:</label>
         <div id="fichaListaCaixas" style="margin-top:8px; background:#f8f9fa; padding:10px; border-radius:5px; max-height:130px; overflow-y:auto; border:1px solid #eee;">
           <!-- Carregado via JS -->
         </div>
@@ -135,8 +194,8 @@
 
       <!-- Vincular Caixa Livre -->
       <div style="margin-bottom:20px;">
-        <label><b>Vincular Nova Caixa (sem dono):</b></label>
-        <select id="fichaSelectCaixasLivre" style="width:100%; padding:8px; margin-top:5px; border:1px solid #ccc; border-radius:4px;">
+        <label style="font-weight:bold;">Vincular Nova Caixa (sem dono):</label>
+        <select id="fichaSelectCaixasLivre" style="width:100%; padding:8px; margin-top:5px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
           <option value="">Selecione para vincular...</option>
         </select>
       </div>
@@ -152,6 +211,5 @@
     </div>
   </div>
 
-  <script src="script-admin.js"></script>
 </body>
 </html>

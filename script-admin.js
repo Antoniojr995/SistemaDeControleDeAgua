@@ -28,35 +28,160 @@ function mudarAba(idAba) {
   const aba = document.getElementById(idAba);
   if (aba) aba.style.display = "block";
 
-  if (idAba === "abaCaixas") carregarCaixas();
+  if (idAba === "abaCaixas") {
+    carregarCaixas();
+    carregarClientesSelectAdmin(); // Carrega clientes no select de cadastro/configuração
+  }
   if (idAba === "abaClientes") carregarClientes();
   if (idAba === "abaRegistros") carregarSelectsFormularios();
   if (idAba === "abaChamados") carregarChamados();
 }
 
-// CAIXAS D'ÁGUA
+// SELEÇÃO AUTOMÁTICA DE MODELO DE CAIXA
+function selecionarModeloCaixa(valor) {
+  const capInput = document.getElementById("caixaCapacidade");
+  const altInput = document.getElementById("caixaAltura");
+
+  const tabelaModelos = {
+    "500": { cap: 500, alt: 72 },
+    "1000": { cap: 1000, alt: 95 },
+    "1500": { cap: 1500, alt: 110 },
+    "2000": { cap: 2000, alt: 125 },
+    "5000": { cap: 5000, alt: 160 }
+  };
+
+  if (valor !== "custom" && tabelaModelos[valor]) {
+    if (capInput) capInput.value = tabelaModelos[valor].cap;
+    if (altInput) altInput.value = tabelaModelos[valor].alt;
+  }
+}
+
+// CARREGAR CLIENTES NO SELECT DE CONFIGURAÇÃO DE CAIXA (ABA CAIXAS)
+async function carregarClientesSelectAdmin() {
+  const selectUsuario = document.getElementById("selectUsuarioDono");
+  if (!selectUsuario) return;
+
+  try {
+    const res = await fetch(API_BASE + "/api/clientes", { credentials: "same-origin" });
+    const clientes = await res.json();
+    selectUsuario.innerHTML = '<option value="">Sem Dono (Caixa Livre)</option>';
+
+    if (Array.isArray(clientes)) {
+      clientes.forEach(c => {
+        selectUsuario.innerHTML += `<option value="${c.id}">${c.usuario} (ID: ${c.id})</option>`;
+      });
+    }
+  } catch (err) {
+    console.error("Erro ao carregar clientes no select:", err);
+  }
+}
+
+// SALVAR/CADASTRAR CAIXA VIA FORMULÁRIO ADMIN
+async function salvarCaixaAdmin(event) {
+  event.preventDefault();
+
+  const usuarioId = document.getElementById("selectUsuarioDono")?.value || null;
+  const modelo = document.getElementById("selectModeloCaixa")?.value || "custom";
+  const capacidade = document.getElementById("caixaCapacidade")?.value;
+  const altura = document.getElementById("caixaAltura")?.value;
+
+  const nomeCaixa = modelo !== "custom" 
+    ? `Caixa d'Água ${modelo}L` 
+    : `Caixa Personalizada ${capacidade}L`;
+
+  try {
+    const res = await fetch(API_BASE + "/api/caixas", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        nome: nomeCaixa,
+        usuario_id: usuarioId || null,
+        capacidade: parseInt(capacidade),
+        altura_sensor: parseInt(altura),
+        modelo: modelo
+      }),
+      credentials: "same-origin"
+    });
+
+    if (res.ok) {
+      alert("✅ Caixa d'água cadastrada com sucesso!");
+      carregarCaixas();
+    } else {
+      alert("❌ Erro ao cadastrar caixa.");
+    }
+  } catch (err) {
+    alert("❌ Falha na conexão com o servidor.");
+  }
+}
+
+// CAIXAS D'ÁGUA - LISTAGEM E TABELA
 async function carregarCaixas() {
   const listaCaixas = document.getElementById("listaCaixas");
-  if (!listaCaixas) return;
+  const tabelaAdmin = document.getElementById("tabelaCaixasAdmin");
 
   try {
     const res = await fetch(API_BASE + "/api/caixas", { credentials: "same-origin" });
     const caixas = await res.json();
-    listaCaixas.innerHTML = "";
 
-    if (!Array.isArray(caixas) || !caixas.length) {
-      listaCaixas.innerHTML = '<option value="">Nenhuma caixa cadastrada</option>';
-      return;
+    // Se existir o select antigo de caixas
+    if (listaCaixas) {
+      listaCaixas.innerHTML = "";
+      if (!Array.isArray(caixas) || !caixas.length) {
+        listaCaixas.innerHTML = '<option value="">Nenhuma caixa cadastrada</option>';
+      } else {
+        caixas.forEach(c => {
+          const opt = document.createElement("option");
+          opt.value = c.id;
+          opt.textContent = `ID ${c.id} - ${c.nome} ${c.cliente_nome ? `(Cliente: ${c.cliente_nome})` : '(Sem Dono)'}`;
+          listaCaixas.appendChild(opt);
+        });
+      }
     }
 
-    caixas.forEach(c => {
-      const opt = document.createElement("option");
-      opt.value = c.id;
-      opt.textContent = `ID ${c.id} - ${c.nome} ${c.cliente_nome ? `(Cliente: ${c.cliente_nome})` : '(Sem Dono)'}`;
-      listaCaixas.appendChild(opt);
-    });
+    // Se existir a tabela nova do Admin
+    if (tabelaAdmin) {
+      if (!Array.isArray(caixas) || caixas.length === 0) {
+        tabelaAdmin.innerHTML = `<tr><td colspan="6" style="padding: 10px;">Nenhuma caixa cadastrada.</td></tr>`;
+        return;
+      }
+
+      tabelaAdmin.innerHTML = caixas.map(c => `
+        <tr style="border-bottom: 1px solid #ddd;">
+          <td style="padding: 8px;">${c.id}</td>
+          <td style="padding: 8px;">${c.cliente_nome || '<i>Sem Dono</i>'}</td>
+          <td style="padding: 8px;">${c.modelo ? `${c.modelo}L` : 'Padrão'}</td>
+          <td style="padding: 8px;">${c.capacidade || 1000} L</td>
+          <td style="padding: 8px;">${c.altura_sensor || 95} cm</td>
+          <td style="padding: 8px;">
+            <button onclick="deletarCaixaDireto(${c.id})" style="background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">Excluir</button>
+          </td>
+        </tr>
+      `).join("");
+    }
+
   } catch (err) {
-    listaCaixas.innerHTML = '<option value="">Erro ao carregar caixas</option>';
+    if (listaCaixas) listaCaixas.innerHTML = '<option value="">Erro ao carregar caixas</option>';
+  }
+}
+
+async function deletarCaixaDireto(id) {
+  if (confirm(`Tem certeza que deseja apagar a caixa ID ${id}?`)) {
+    try {
+      const res = await fetch(`${API_BASE}/api/caixas/${id}`, { 
+        method: "DELETE",
+        credentials: "same-origin"
+      });
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        alert("✅ Caixa removida com sucesso!");
+        carregarCaixas();
+      } else {
+        alert("❌ Erro ao apagar caixa.");
+      }
+    } catch (err) {
+      alert("❌ Falha na conexão com o servidor.");
+    }
   }
 }
 
@@ -94,25 +219,7 @@ async function deletarCaixaSelecionada() {
   const id = select ? select.value : null;
 
   if (!id) return alert("⚠️ Selecione uma caixa para excluir!");
-
-  if (confirm(`Tem certeza que deseja apagar a caixa ID ${id}?`)) {
-    try {
-      const res = await fetch(`${API_BASE}/api/caixas/${id}`, { 
-        method: "DELETE",
-        credentials: "same-origin"
-      });
-      const data = await res.json();
-
-      if (res.ok && data.success) {
-        alert("✅ Caixa removida com sucesso!");
-        carregarCaixas();
-      } else {
-        alert("❌ Erro ao apagar caixa.");
-      }
-    } catch (err) {
-      alert("❌ Falha na conexão com o servidor.");
-    }
-  }
+  deletarCaixaDireto(id);
 }
 
 // CLIENTES & FICHA HISTÓRICO
@@ -380,7 +487,7 @@ async function carregarChamados() {
 
 window.atualizarStatus = async function(id) {
   const solucaoText = prompt("Descreva o que foi feito para resolver este problema:");
-  if (solucaoText === null) return; // Cancelou a operacao
+  if (solucaoText === null) return; 
 
   if (!solucaoText.trim()) {
     return alert("⚠️ É necessário descrever a solução para concluir o chamado!");
@@ -413,6 +520,7 @@ window.atualizarStatus = async function(id) {
 document.addEventListener("DOMContentLoaded", () => {
   verificarSessao();
   carregarCaixas();
+  carregarClientesSelectAdmin();
   carregarChamados();
 
   const btnVer = document.getElementById("btnVer");
@@ -447,6 +555,7 @@ document.addEventListener("DOMContentLoaded", () => {
           alert("✅ Cliente cadastrado com sucesso!");
           document.getElementById("formNovoCliente").reset();
           carregarSelectsFormularios();
+          carregarClientesSelectAdmin();
         } else {
           alert("❌ Erro ao cadastrar cliente.");
         }
@@ -476,6 +585,7 @@ document.addEventListener("DOMContentLoaded", () => {
           alert("✅ Caixa criada com sucesso!");
           document.getElementById("nomeCaixa").value = "";
           carregarSelectsFormularios();
+          carregarCaixas();
         } else {
           alert("❌ Erro ao criar caixa.");
         }
@@ -505,6 +615,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (res.ok && data.success) {
           alert("✅ Caixa vinculada com sucesso!");
           carregarSelectsFormularios();
+          carregarCaixas();
         } else {
           alert("❌ Erro ao associar caixa.");
         }

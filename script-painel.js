@@ -2,6 +2,9 @@ const API_BASE = window.location.origin;
 const token = sessionStorage.getItem("token");
 const tipo = sessionStorage.getItem("tipo");
 
+let meuGrafico = null; // Guarda a referência do gráfico para atualizar sem duplicar
+let ultimosDadosRelatorio = []; // Guarda os dados buscados para exportar CSV/PDF
+
 document.addEventListener("DOMContentLoaded", () => {
   // 1. Verificação de Autenticação
   if (!token) {
@@ -123,17 +126,17 @@ async function enviarComandoBomba(ligar) {
 // =======================
 // ⚠️ Chamados e Alertas de Suporte Técnico
 // =======================
-function abrirModalAlerta() {
+window.abrirModalAlerta = function() {
   const modal = document.getElementById("modalAlertaTecnico");
   if (modal) modal.style.display = "block";
-}
+};
 
-function fecharModalAlerta() {
+window.fecharModalAlerta = function() {
   const modal = document.getElementById("modalAlertaTecnico");
   if (modal) modal.style.display = "none";
-}
+};
 
-async function enviarAlertaTecnico(event) {
+window.enviarAlertaTecnico = async function(event) {
   if (event) event.preventDefault();
 
   const tipoElemento = document.getElementById("alertaTipo") || document.getElementById("tipoAlerta");
@@ -162,7 +165,7 @@ async function enviarAlertaTecnico(event) {
     if (res.ok && data.success) {
       alert("✅ Chamado aberto com sucesso!");
       if (mensagemElemento) mensagemElemento.value = "";
-      fecharModalAlerta();
+      window.fecharModalAlerta();
     } else {
       alert("❌ Erro ao enviar: " + (data.error || "Erro desconhecido"));
     }
@@ -170,13 +173,11 @@ async function enviarAlertaTecnico(event) {
     console.error("Erro na requisição de alerta:", err);
     alert("❌ Erro de conexão com o servidor.");
   }
-}
+};
 
 // =======================
 // 📅 Histórico e Relatórios
 // =======================
-let meuGrafico = null; // Guarda a referência do gráfico para atualizar sem duplicar
-
 async function carregarHistorico() {
   try {
     const caixaId = sessionStorage.getItem("caixaSelecionada") || 1;
@@ -279,12 +280,15 @@ function renderizarGrafico(labels, caixa1, caixa2) {
   });
 }
 
-let ultimosDadosRelatorio = []; // Variável global para guardar os dados buscados
-
-async function gerarRelatorio() {
+window.gerarRelatorio = async function() {
   const caixaId = sessionStorage.getItem("caixaSelecionada") || 1;
-  const dataInicio = document.getElementById("dataInicio").value;
-  const dataFim = document.getElementById("dataFim").value;
+  const elInicio = document.getElementById("dataInicio");
+  const elFim = document.getElementById("dataFim");
+
+  if (!elInicio || !elFim) return;
+
+  const dataInicio = elInicio.value;
+  const dataFim = elFim.value;
 
   if (!dataInicio || !dataFim) {
     alert("⚠️ Preencha as duas datas!");
@@ -306,6 +310,8 @@ async function gerarRelatorio() {
     
     const div = document.getElementById("resultadoRelatorio");
     const divExport = document.getElementById("acoesExportacao");
+
+    if (!div) return;
     div.innerHTML = "";
 
     if (!dados || dados.length === 0) {
@@ -335,7 +341,7 @@ async function gerarRelatorio() {
       </tr>`;
     });
 
-    html += "tbody></table>";
+    html += "</tbody></table>";
     div.innerHTML = html;
 
     // Exibe botões de download
@@ -345,11 +351,32 @@ async function gerarRelatorio() {
     console.error("Erro ao gerar relatório:", err);
     alert("❌ Erro ao buscar relatório no servidor.");
   }
-}
+};
+
+window.selecionarModeloCaixa = function(valor) {
+  const capInput = document.getElementById("caixaCapacidade");
+  const altInput = document.getElementById("caixaAltura");
+
+  if (!capInput || !altInput) return;
+
+  // Tabela de dimensões comerciais padrões (Capacidade em Litros e Altura em cm)
+  const tabelaModelos = {
+    "500": { cap: 500, alt: 72 },
+    "1000": { cap: 1000, alt: 95 },
+    "1500": { cap: 1500, alt: 110 },
+    "2000": { cap: 2000, alt: 125 },
+    "5000": { cap: 5000, alt: 160 }
+  };
+
+  if (valor !== "custom" && tabelaModelos[valor]) {
+    capInput.value = tabelaModelos[valor].cap;
+    altInput.value = tabelaModelos[valor].alt;
+  }
+};
 
 // 📁 Exportar para CSV
-function exportarCSV() {
-  if (ultimosDadosRelatorio.length === 0) return;
+window.exportarCSV = function() {
+  if (!ultimosDadosRelatorio || ultimosDadosRelatorio.length === 0) return;
 
   let csvContent = "data:text/csv;charset=utf-8,Data/Hora,Caixa 1 (%),Caixa 2 (%),Bomba\n";
 
@@ -366,11 +393,16 @@ function exportarCSV() {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-}
+};
 
 // 📄 Exportar para PDF
-function exportarPDF() {
-  if (ultimosDadosRelatorio.length === 0) return;
+window.exportarPDF = function() {
+  if (!ultimosDadosRelatorio || ultimosDadosRelatorio.length === 0) return;
+
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    alert("⚠️ Biblioteca jsPDF não foi carregada na página.");
+    return;
+  }
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
@@ -388,21 +420,23 @@ function exportarPDF() {
     d.bomba ? "Ligada" : "Desligada"
   ]);
 
-  doc.autoTable({
-    startY: 28,
-    head: [colunas],
-    body: linhas,
-    theme: 'grid',
-    headStyles: { fillColor: [37, 99, 235] }
-  });
+  if (typeof doc.autoTable === "function") {
+    doc.autoTable({
+      startY: 28,
+      head: [colunas],
+      body: linhas,
+      theme: 'grid',
+      headStyles: { fillColor: [37, 99, 235] }
+    });
+  }
 
   doc.save(`relatorio_leituras_${Date.now()}.pdf`);
-}
+};
 
 // =======================
 // 👤 Modal Perfil
 // =======================
-async function abrirModalPerfil() {
+window.abrirModalPerfil = async function() {
   const modal = document.getElementById("modalPerfil");
   if (modal) modal.style.display = "block";
 
@@ -413,24 +447,26 @@ async function abrirModalPerfil() {
     const dados = await res.json();
 
     if (res.ok && dados.logado) {
-      document.getElementById("perfilUsuario").value = dados.usuario || "";
-      document.getElementById("perfilSenha").value = "";
+      const userEl = document.getElementById("perfilUsuario");
+      const passEl = document.getElementById("perfilSenha");
+      if (userEl) userEl.value = dados.usuario || "";
+      if (passEl) passEl.value = "";
     }
   } catch (err) {
     console.error("Erro ao buscar dados do perfil:", err);
   }
-}
+};
 
-function fecharModalPerfil() {
+window.fecharModalPerfil = function() {
   const modal = document.getElementById("modalPerfil");
   if (modal) modal.style.display = "none";
-}
+};
 
-async function salvarPerfil(event) {
-  event.preventDefault();
+window.salvarPerfil = async function(event) {
+  if (event) event.preventDefault();
 
-  const usuario = document.getElementById("perfilUsuario").value;
-  const senha = document.getElementById("perfilSenha").value;
+  const usuario = document.getElementById("perfilUsuario")?.value;
+  const senha = document.getElementById("perfilSenha")?.value;
 
   try {
     const response = await fetch(API_BASE + "/api/perfil", {
@@ -445,13 +481,13 @@ async function salvarPerfil(event) {
     const result = await response.json();
 
     if (response.ok && result.success) {
-      alert("Perfil atualizado com sucesso!");
-      fecharModalPerfil();
+      alert("✅ Perfil atualizado com sucesso!");
+      window.fecharModalPerfil();
     } else {
-      alert(result.error || "Erro ao atualizar perfil.");
+      alert(result.error || "❌ Erro ao atualizar perfil.");
     }
   } catch (err) {
     console.error("Erro ao salvar perfil:", err);
-    alert("Erro de conexão com o servidor.");
+    alert("❌ Erro de conexão com o servidor.");
   }
-}
+};
