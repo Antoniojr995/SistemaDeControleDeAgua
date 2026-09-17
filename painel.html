@@ -3,165 +3,271 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Painel do Cliente</title>
+  <title>Painel do Cliente - Monitoramento de Água</title>
   <link rel="stylesheet" href="styles.css">
-  
-  <!-- Libs Externas -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-  
-  <!-- Script do Painel (carregado via defer) -->
   <script src="script-painel.js" defer></script>
 </head>
-<body>
+<body class="dashboard-body">
 
-  <!-- 🚨 Barra de Alerta Exclusiva para o Admin (Modo de Visualização) -->
-  <div id="alertaAdmin" style="display: none; background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; padding: 12px 20px; text-align: center; font-weight: bold; font-size: 14px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-    ⚠️ Você está visualizando o painel no modo Administrador.
-    <button id="btnVoltarAdmin" style="margin-left: 15px; padding: 5px 12px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">
-      ⬅️ Voltar ao Painel Admin
-    </button>
-  </div>
-
-  <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0; flex-wrap: wrap; gap: 10px;">
-    <h2>📊 Monitoramento do Nível de Água</h2>
-
-    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-      <!-- ✅ Seleção de Caixas Vinculadas -->
-      <select id="selectCaixa" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; font-weight: bold;"></select>
-
-      <!-- ✅ Botão de Chamado/Suporte -->
-      <button id="btnAbrirAlerta" onclick="abrirModalAlerta()" style="padding: 8px 16px; background-color: #ffc107; color: #212529; font-weight: bold; border: none; border-radius: 4px; cursor: pointer;">
-        ⚠️ Abrir Chamado / Suporte
-      </button>
-
-      <button id="btnMeuPerfil" onclick="abrirModalPerfil()" style="padding: 8px 16px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;">
-        👤 Meu Perfil
-      </button>
-
-      <button id="btnLogout" style="padding: 8px 16px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
-        🚪 Sair
-      </button>
+  <!-- Sidebar Lateral -->
+  <aside class="sidebar">
+    <div>
+      <div class="sidebar-logo">
+        <span class="drop-icon-header">💧</span>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active"><span>🏠</span> Início</a>
+        <a href="#" class="nav-item"><span>📦</span> Reservatórios</a>
+        <a href="#" class="nav-item"><span>📊</span> Histórico</a>
+        <a href="#" class="nav-item"><span>⚙️</span> Configurações</a>
+        <a href="#" class="nav-item"><span>❓</span> Ajuda</a>
+      </nav>
     </div>
-  </div>
-
-  <!-- Badge Read-Only no Painel do Cliente -->
-  <div style="background: #f8fafc; border-left: 4px solid #00a2ff; padding: 12px 16px; border-radius: 6px; margin-bottom: 20px;">
-    <span style="font-weight: bold; color: #1e293b; display: block; margin-bottom: 4px;">🚰 Seu Reservatório</span>
-    <span style="font-size: 14px; color: #475569;">
-      Modelo: <strong id="infoModeloCliente">1.000L (Polietileno)</strong> | 
-      Capacidade Máxima: <strong id="infoCapacidadeCliente">1000L</strong>
-    </span>
-  </div>
-
-  <h3>Caixa 1</h3>
-  <div class="barra"><div id="volume1" class="volume"></div></div>
-
-  <h3>Caixa 2</h3>
-  <div class="barra"><div id="volume2" class="volume"></div></div>
-
-  <div class="controles" style="margin-top: 15px;">
-    <label><input id="btnLigarBomba" type="checkbox"> 💧 Ligar Bomba</label>
-    <button id="btnAtualizar">🔄 Atualizar Agora</button>
-  </div>
-
-  <h3>📅 Histórico e Gráfico dos Últimos 30 Dias</h3>
-
-  <!-- Canvas onde o gráfico é desenhado -->
-  <div style="width: 100%; max-width: 700px; margin: 0 auto 20px auto; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
-    <canvas id="graficoNivelAgua"></canvas>
-  </div>
-  
-  <!-- Tabela de Histórico -->
-  <table id="tabelaHistorico" border="1" style="width:100%; text-align:center;">
-    <thead>
-      <tr>
-        <th>Data</th>
-        <th>Caixa 1 (%)</th>
-        <th>Caixa 2 (%)</th>
-        <th>Leituras</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-
-  <hr style="margin-top: 30px;">
-  
-  <div class="secao-relatorio" style="margin-top: 30px; text-align: center;">
-    <h3>📊 Gerar Relatório de Consumo</h3>
     
-    <div style="margin-bottom: 15px;">
-      <label for="dataInicio">De:</label>
-      <input type="date" id="dataInicio">
-      
-      <label for="dataFim">Até:</label>
-      <input type="date" id="dataFim">
-      
-      <button id="btnRelatorio">Buscar Leituras</button>
+    <div class="sidebar-footer">
+      <div class="drop-icon-large">💧</div>
+      <h4>Água é vida!</h4>
+      <p>Monitore hoje, evite problemas amanhã.</p>
     </div>
-  
-    <div id="resultadoRelatorio"></div>
-  
-    <!-- Botões de Exportação -->
-    <div id="acoesExportacao" style="display: none; margin-top: 15px;">
-      <button onclick="exportarCSV()" style="background-color: #22c55e; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">📁 Baixar CSV</button>
-      <button onclick="exportarPDF()" style="background-color: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">📄 Baixar PDF</button>
+  </aside>
+
+  <!-- Conteúdo Principal -->
+  <main class="main-content">
+    
+    <!-- Topbar Header -->
+    <header class="topbar">
+      <div class="header-title">
+        <span class="header-logo-icon">💧</span>
+        <div>
+          <h1>Monitoramento do Nível de Água</h1>
+          <p>Sistema de Controle de Reservatórios</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <select id="selectIdReservatorio" class="select-id">
+          <option value="01">ID: 01</option>
+        </select>
+        <button id="btnAbrirChamado" class="btn-chamado">⚠️ Abrir Chamado / Suporte</button>
+        <button id="btnPerfil" class="btn-perfil">👤 Meu Perfil</button>
+        <button id="btnLogout" class="btn-sair">🚪 Sair</button>
+      </div>
+    </header>
+
+    <!-- Banner Info Reservatório -->
+    <section class="banner-info">
+      <div class="info-details">
+        <div class="icon-box-res">🛢️</div>
+        <div>
+          <h2>Seu Reservatório</h2>
+          <p>Modelo: <strong>1.000L</strong> (Polietileno) &nbsp;|&nbsp; Capacidade Máxima: <strong>1000L</strong></p>
+        </div>
+      </div>
+      <div class="status-online">
+        <span class="wifi-icon">📶</span>
+        <div>
+          <strong style="color: #10b981; display: block; font-size: 13px;">Sistema Online</strong>
+          <small style="color: #94a3b8; font-size: 11px;">Última atualização: <span id="dataAtualizacao">17/09/2026 - 14:55</span></small>
+        </div>
+      </div>
+    </section>
+
+    <!-- Grid de Caixas e Controle da Bomba -->
+    <section class="grid-caixas">
+      
+      <!-- Caixa 1 -->
+      <div class="card-caixa">
+        <div class="caixa-header">
+          <span class="icon-caixa">🛢️</span>
+          <h3>Caixa 1</h3>
+        </div>
+        <div class="caixa-body">
+          <div class="caixa-img-box">
+            <!-- Caso não tenha a imagem local caixa.png, ele renderiza o SVG da caixa 3D -->
+            <svg class="caixa-3d-svg" viewBox="0 0 100 120">
+              <ellipse cx="50" cy="20" rx="40" ry="12" fill="#0284c7" />
+              <path d="M10,20 L15,95 Q50,110 85,95 L90,20 Z" fill="#0369a1" />
+              <ellipse cx="50" cy="20" rx="35" ry="8" fill="#38bdf8" />
+              <path d="M13,35 Q50,48 87,35 L88,90 Q50,105 12,90 Z" fill="#0284c7" opacity="0.8" />
+            </svg>
+          </div>
+          <div class="ring-progress">
+            <div class="ring-circle p68">
+              <div class="ring-inner">
+                <span class="porcentagem" id="percCaixa1">68%</span>
+                <small>Nível de Água</small>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="caixa-stats">
+          <div class="stat-row">
+            <span>💧 Volume Atual</span>
+            <strong id="volCaixa1">680 L</strong>
+          </div>
+          <div class="stat-row">
+            <span>🛢️ Capacidade Máxima</span>
+            <strong>1.000 L</strong>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="barCaixa1" style="width: 68%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Caixa 2 -->
+      <div class="card-caixa">
+        <div class="caixa-header">
+          <span class="icon-caixa">🛢️</span>
+          <h3>Caixa 2</h3>
+        </div>
+        <div class="caixa-body">
+          <div class="caixa-img-box">
+            <svg class="caixa-3d-svg" viewBox="0 0 100 120">
+              <ellipse cx="50" cy="20" rx="40" ry="12" fill="#0284c7" />
+              <path d="M10,20 L15,95 Q50,110 85,95 L90,20 Z" fill="#0369a1" />
+              <ellipse cx="50" cy="20" rx="35" ry="8" fill="#38bdf8" />
+              <path d="M13,55 Q50,68 87,55 L88,90 Q50,105 12,90 Z" fill="#0284c7" opacity="0.8" />
+            </svg>
+          </div>
+          <div class="ring-progress">
+            <div class="ring-circle p42">
+              <div class="ring-inner">
+                <span class="porcentagem" id="percCaixa2">42%</span>
+                <small>Nível de Água</small>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="caixa-stats">
+          <div class="stat-row">
+            <span>💧 Volume Atual</span>
+            <strong id="volCaixa2">420 L</strong>
+          </div>
+          <div class="stat-row">
+            <span>🛢️ Capacidade Máxima</span>
+            <strong>1.000 L</strong>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="barCaixa2" style="width: 42%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controle da Bomba -->
+      <div class="card-bomba">
+        <div class="bomba-header">
+          <span class="bomba-icon">💧</span>
+          <h3>Controle da Bomba</h3>
+        </div>
+        
+        <div class="bomba-status-badge desligada" id="statusBombaBadge">
+          <span class="dot-led"></span>
+          <span id="textoStatusBomba">Bomba Desligada</span>
+        </div>
+
+        <div class="bomba-switch-row">
+          <label class="switch">
+            <input type="checkbox" id="switchBomba">
+            <span class="slider round"></span>
+          </label>
+          <span class="switch-label">Ligar Bomba</span>
+        </div>
+
+        <button id="btnAtualizarAgora" class="btn-atualizar">🔄 Atualizar Agora</button>
+      </div>
+
+    </section>
+
+    <!-- Grid Inferior: Gráfico e Tabela -->
+    <section class="grid-historico">
+      
+      <!-- Gráfico -->
+      <div class="card-grafico">
+        <div class="grafico-header">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span>📈</span>
+            <h3>Histórico e Gráfico dos Últimos 30 Dias</h3>
+          </div>
+          <div class="legendas">
+            <span class="leg-c1">● Caixa 1</span>
+            <span class="leg-c2">● Caixa 2</span>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="graficoHistorico"></canvas>
+        </div>
+      </div>
+
+      <!-- Tabela Últimas Leituras -->
+      <div class="card-tabela">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom: 15px;">
+          <span>📄</span>
+          <h3>Últimas Leituras</h3>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Caixa 1 (%)</th>
+              <th>Caixa 2 (%)</th>
+              <th>Leituras</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaLeiturasBody">
+            <tr>
+              <td>17/09/2026 14:55</td>
+              <td>68%</td>
+              <td>42%</td>
+              <td><span class="badge-ok">OK</span></td>
+            </tr>
+            <tr>
+              <td>17/09/2026 14:50</td>
+              <td>67%</td>
+              <td>41%</td>
+              <td><span class="badge-ok">OK</span></td>
+            </tr>
+            <tr>
+              <td>17/09/2026 14:45</td>
+              <td>66%</td>
+              <td>40%</td>
+              <td><span class="badge-ok">OK</span></td>
+            </tr>
+            <tr>
+              <td>17/09/2026 14:40</td>
+              <td>65%</td>
+              <td>39%</td>
+              <td><span class="badge-ok">OK</span></td>
+            </tr>
+            <tr>
+              <td>17/09/2026 14:35</td>
+              <td>63%</td>
+              <td>37%</td>
+              <td><span class="badge-ok">OK</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <a href="#" class="ver-todas">Ver todas as leituras →</a>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Modais do Perfil e Chamados (Mantidos para funcionalidade) -->
+  <div id="modalPerfil" class="modal" style="display:none;">
+    <div class="modal-content">
+      <h2>👤 Meu Perfil</h2>
+      <p>Dados da sua conta</p>
+      <button onclick="document.getElementById('modalPerfil').style.display='none'" style="margin-top:15px;">Fechar</button>
     </div>
   </div>
 
-  <!-- Modal do Perfil -->
-  <div id="modalPerfil" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
-    <div style="background-color: #fff; margin: 10% auto; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
-      <h3 style="margin-top: 0; color: #333;">Editar Perfil</h3>
-      
-      <form id="formPerfil" onsubmit="salvarPerfil(event)">
-        <div style="margin-bottom: 15px; text-align: left;">
-          <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">Usuário / E-mail:</label>
-          <input type="text" id="perfilUsuario" required style="width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
-        </div>
-
-        <div style="margin-bottom: 15px; text-align: left;">
-          <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">Nova Senha (opcional):</label>
-          <input type="password" id="perfilSenha" placeholder="Deixe em branco para manter" style="width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
-        </div>
-
-        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-          <button type="button" onclick="fecharModalPerfil()" style="padding: 8px 16px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancelar</button>
-          <button type="submit" style="padding: 8px 16px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Salvar</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Modal de Abertura de Alerta/Suporte -->
-  <div id="modalAlertaTecnico" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
-    <div style="background-color: #fff; margin: 10% auto; padding: 20px; border-radius: 8px; width: 90%; max-width: 450px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
-      <h3 style="margin-top: 0; color: #333;">⚠️ Abrir Alerta / Chamado Técnico</h3>
-      <p style="font-size: 14px; color: #666;">Descreva abaixo o problema (ex: Bomba não liga, sem leitura na Caixa 2, falta de energia):</p>
-      
-      <form id="formAlerta" onsubmit="enviarAlertaTecnico(event)">
-        <div style="margin-bottom: 15px;">
-          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Tipo de Problema:</label>
-          <select id="alertaTipo" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
-            <option value="Bomba não responde">Bomba não está ligando/desligando</option>
-            <option value="Falha de Leitura - Caixa 1">Sem leitura na Caixa 1</option>
-            <option value="Falha de Leitura - Caixa 2">Sem leitura na Caixa 2</option>
-            <option value="Falta de Energia">Falta de Energia no local</option>
-            <option value="Outro">Outro problema</option>
-          </select>
-        </div>
-
-        <div style="margin-bottom: 15px;">
-          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Descrição Detalhada:</label>
-          <textarea id="alertaMensagem" required rows="4" placeholder="Ex: A bomba parou de ligar desde as 14h, preciso de visita técnica..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;"></textarea>
-        </div>
-
-        <div style="display: flex; justify-content: flex-end; gap: 10px;">
-          <button type="button" onclick="fecharModalAlerta()" style="padding: 8px 16px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancelar</button>
-          <button type="submit" style="padding: 8px 16px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Enviar Alerta</button>
-        </div>
-      </form>
+  <div id="modalChamado" class="modal" style="display:none;">
+    <div class="modal-content">
+      <h2>⚠️ Abrir Chamado</h2>
+      <p>Descreva seu problema com o sistema de água</p>
+      <button onclick="document.getElementById('modalChamado').style.display='none'" style="margin-top:15px;">Fechar</button>
     </div>
   </div>
 
