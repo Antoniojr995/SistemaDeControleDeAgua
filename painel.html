@@ -263,13 +263,65 @@
     </div>
   </div>
 
-  <div id="modalChamado" class="modal" style="display:none;">
-    <div class="modal-content">
-      <h2>⚠️ Abrir Chamado</h2>
-      <p>Descreva seu problema com o sistema de água</p>
-      <button onclick="document.getElementById('modalChamado').style.display='none'" style="margin-top:15px;">Fechar</button>
-    </div>
+  <<!-- MODAL DE CHAMADO / SUPORTE -->
+<div id="modalChamado" class="modal" style="display: none;">
+  <div class="modal-content">
+    <h3>⚠️ Abrir Chamado</h3>
+    <p>Descreva seu problema com o sistema de água</p>
+    
+    <form onsubmit="enviarAlertaTecnico(event)">
+      <div class="form-group" style="margin-bottom: 12px; text-align: left;">
+        <label for="alertaTipo" style="display:block; margin-bottom: 4px; font-size: 0.85rem; color: #94a3b8;">Tipo de Problema:</label>
+        <select id="alertaTipo" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid #1e293b;">
+          <option value="Vazamento">Vazamento</option>
+          <option value="Bomba não liga">Bomba não liga</option>
+          <option value="Erro na leitura do nível">Erro na leitura do nível</option>
+          <option value="Outro problema">Outro problema</option>
+        </select>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 15px; text-align: left;">
+        <label for="alertaMensagem" style="display:block; margin-bottom: 4px; font-size: 0.85rem; color: #94a3b8;">Descrição:</label>
+        <textarea id="alertaMensagem" rows="4" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid #1e293b;" placeholder="Explique detalhadamente..." required></textarea>
+      </div>
+
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button type="button" onclick="fecharModal('modalChamado')" style="padding: 8px 16px; border-radius: 6px; background: #334155; color: #fff; border: none; cursor: pointer;">Fechar</button>
+        <button type="submit" style="padding: 8px 16px; border-radius: 6px; background: #0284c7; color: #fff; border: none; cursor: pointer;">Enviar Chamado</button>
+      </div>
+    </form>
   </div>
+</div>
+
+<!-- MODAL DE MEU PERFIL -->
+<div id="modalPerfil" class="modal" style="display: none;">
+  <div class="modal-content">
+    <h3>👤 Meu Perfil</h3>
+    <p>Dados da sua conta</p>
+
+    <form onsubmit="salvarPerfil(event)">
+      <div class="form-group" style="margin-bottom: 12px; text-align: left;">
+        <label for="perfilNome" style="display:block; margin-bottom: 4px; font-size: 0.85rem; color: #94a3b8;">Nome / Usuário:</label>
+        <input type="text" id="perfilNome" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid #1e293b;" required />
+      </div>
+
+      <div class="form-group" style="margin-bottom: 12px; text-align: left;">
+        <label for="perfilEmail" style="display:block; margin-bottom: 4px; font-size: 0.85rem; color: #94a3b8;">E-mail:</label>
+        <input type="email" id="perfilEmail" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid #1e293b;" required />
+      </div>
+
+      <div class="form-group" style="margin-bottom: 15px; text-align: left;">
+        <label for="perfilSenha" style="display:block; margin-bottom: 4px; font-size: 0.85rem; color: #94a3b8;">Nova Senha (deixe em branco para não alterar):</label>
+        <input type="password" id="perfilSenha" placeholder="••••••••" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid #1e293b;" />
+      </div>
+
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button type="button" onclick="fecharModal('modalPerfil')" style="padding: 8px 16px; border-radius: 6px; background: #334155; color: #fff; border: none; cursor: pointer;">Fechar</button>
+        <button type="submit" style="padding: 8px 16px; border-radius: 6px; background: #10b981; color: #fff; border: none; cursor: pointer;">Salvar Alterações</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 </body>
 </html>

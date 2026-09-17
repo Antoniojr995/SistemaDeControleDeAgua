@@ -410,3 +410,69 @@ window.gerarRelatorio = async function() {
     console.error("Erro no relatório:", err);
   }
 };
+
+// =======================
+// 🚪 Função genérica para fechar modais
+// =======================
+window.fecharModal = function(idModal) {
+  const modal = document.getElementById(idModal);
+  if (modal) modal.style.display = "none";
+};
+
+// =======================
+// 👤 Perfil do Usuário (Carregar e Salvar)
+// =======================
+window.abrirModalPerfil = async function() {
+  const modal = document.getElementById("modalPerfil");
+  if (modal) modal.style.display = "flex";
+
+  try {
+    const res = await fetch(API_BASE + "/api/usuario-atual", {
+      headers: { Authorization: "Bearer " + token }
+    });
+    const dados = await res.json();
+
+    if (res.ok && dados.logado) {
+      const nomeEl = document.getElementById("perfilNome");
+      const emailEl = document.getElementById("perfilEmail");
+      const senhaEl = document.getElementById("perfilSenha");
+
+      if (nomeEl) nomeEl.value = dados.nome || dados.usuario || "";
+      if (emailEl) emailEl.value = dados.email || "";
+      if (senhaEl) senhaEl.value = "";
+    }
+  } catch (err) {
+    console.error("Erro ao carregar perfil:", err);
+  }
+};
+
+window.salvarPerfil = async function(event) {
+  if (event) event.preventDefault();
+
+  const nome = document.getElementById("perfilNome")?.value;
+  const email = document.getElementById("perfilEmail")?.value;
+  const senha = document.getElementById("perfilSenha")?.value;
+
+  try {
+    const response = await fetch(API_BASE + "/api/perfil", {
+      method: "PUT",
+      headers: { 
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token 
+      },
+      body: JSON.stringify({ nome, email, senha })
+    });
+
+    const result = await response.json();
+
+    if (response.ok && result.success) {
+      alert("✅ Perfil atualizado com sucesso!");
+      window.fecharModal("modalPerfil");
+    } else {
+      alert(result.error || "❌ Erro ao atualizar perfil.");
+    }
+  } catch (err) {
+    console.error("Erro ao salvar perfil:", err);
+    alert("❌ Erro de conexão com o servidor.");
+  }
+};
