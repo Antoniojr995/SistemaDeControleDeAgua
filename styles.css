@@ -1,114 +1,230 @@
-body {
-  font-family: Arial, sans-serif;
-  text-align: center;
-  background: #f3f4f6;
-  color: #222;
+/* Reset Básico */
+* {
+  box-sizing: border-box;
   margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: #030a1a;
+  color: #e2e8f0;
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar Lateral */
+.sidebar {
+  width: 240px;
+  background: #06152e;
+  border-right: 1px solid #0d2850;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px 15px;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.nav-item {
+  color: #94a3b8;
+  text-decoration: none;
+  padding: 12px 15px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+  transition: 0.3s;
+}
+
+.nav-item:hover, .nav-item.active {
+  background: #0284c7;
+  color: #fff;
+}
+
+.sidebar-footer {
+  background: linear-gradient(180deg, #092248 0%, #030a1a 100%);
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  border: 1px solid #0e356e;
+}
+
+.sidebar-footer h4 { margin: 10px 0 5px 0; font-size: 14px; }
+.sidebar-footer p { font-size: 11px; color: #64748b; }
+
+/* Conteúdo Principal */
+.main-content {
+  flex: 1;
+  padding: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+}
+
+/* Header & Topbar */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-title { display: flex; align-items: center; gap: 12px; }
+.header-title h1 { font-size: 20px; color: #fff; }
+.header-title p { font-size: 12px; color: #64748b; }
+
+.header-actions { display: flex; gap: 10px; align-items: center; }
+
+.select-id {
+  background: #081d3d;
+  color: #fff;
+  border: 1px solid #1e3a8a;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+/* Botões Customizados */
+button, .btn-primary {
+  background-color: #0284c7;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+button:hover {
+  background-color: #0369a1;
+}
+
+.btn-chamado { background: #eab308; color: #000; }
+.btn-chamado:hover { background: #ca8a04; }
+.btn-sair { background: #dc2626; }
+.btn-sair:hover { background: #b91c1c; }
+
+/* Banner Informativo */
+.banner-info {
+  background: #071935;
+  border: 1px solid #0e3266;
+  border-radius: 10px;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.info-details { display: flex; align-items: center; gap: 15px; }
+.status-online { display: flex; align-items: center; gap: 10px; background: #062340; padding: 10px 15px; border-radius: 8px; border: 1px solid #10b981; }
+
+/* Grid Caixas e Módulos */
+.grid-caixas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.card-caixa, .card-bomba, .card-grafico, .card-tabela {
+  background: #061733;
+  border: 1px solid #0e3266;
+  border-radius: 12px;
   padding: 20px;
 }
 
-h2 {
-  color: #007bff;
-}
-
+/* Barras de Nível de Água */
 .barra {
-  width: 80%;
-  max-width: 500px;
-  height: 40px;
-  background-color: #ddd;
-  border-radius: 10px;
-  margin: 10px auto;
+  width: 100%;
+  height: 12px;
+  background-color: #0d2850;
+  border-radius: 6px;
+  margin: 10px 0;
   overflow: hidden;
-  box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
+  box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
 }
 
 .volume {
   height: 100%;
-  background: linear-gradient(90deg, #00a2ff, #0057e7);
+  background: linear-gradient(90deg, #38bdf8, #0284c7);
   width: 0%;
-  border-radius: 10px;
-  transition: width 0.5s;
+  border-radius: 6px;
+  transition: width 0.5s ease-in-out;
 }
 
-.controles {
-  margin-top: 20px;
-}
-
+/* Switch Customizado (Interruptor da Bomba) */
 input[type="checkbox"] {
   position: relative;
-  width: 60px;
-  height: 30px;
+  width: 55px;
+  height: 28px;
   appearance: none;
   -webkit-appearance: none;
-  background-color: #ccc;
+  background-color: #1e293b;
   outline: none;
   border-radius: 20px;
   transition: 0.3s;
   cursor: pointer;
-  margin-right: 10px;
+  vertical-align: middle;
 }
 
 input[type="checkbox"]::before {
   content: "";
   position: absolute;
-  width: 28px;
-  height: 28px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: white;
-  top: 1px;
-  left: 1px;
+  top: 3px;
+  left: 3px;
   transition: 0.3s;
 }
 
 input[type="checkbox"]:checked {
-  background-color: #007bff;
+  background-color: #10b981;
 }
 
 input[type="checkbox"]:checked::before {
-  left: 31px;
+  left: 30px;
 }
 
-button {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-button:hover {
-  background-color: #0056b3;
-}
-
-#status {
-  margin-top: 20px;
-  font-style: italic;
-  color: #555;
+/* Modais e Caixas de Diálogo */
+.modal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 1000;
+  overflow-y: auto !important;
 }
 
 #modalEditarCliente .modal-content,
 #modalFichaCliente .modal-content,
 .modal-content {
+  background: #061733;
+  color: #fff;
+  padding: 25px;
+  border-radius: 10px;
+  border: 1px solid #0e3266;
+  width: 90%;
+  max-width: 550px;
   max-height: 80vh !important;
   overflow-y: auto !important;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
 }
 
-/* Garante que a caixa inteira do modal limite o tamanho e role */
-.modal {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow-y: auto !important; /* Permite rolar se o modal for maior que a tela */
-}
-
-.modal-content {
-  max-height: 80vh !important; /* Trava a altura em 80% da tela */
-  overflow-y: auto !important; /* Cria a barra de rolagem na div de dentro */
-}
-
-/* Coloque essa classe na div container do Histórico de Chamados */
+/* Histórico Interno */
 #historicoChamados, .historico-container {
   max-height: 250px !important;
   overflow-y: auto !important;
