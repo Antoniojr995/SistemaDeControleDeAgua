@@ -137,11 +137,9 @@ async function fetchLatest() {
 
     const d = await res.json();
 
-    // Valores recebidos
     const valC1 = d.caixa1 ?? d.nivel ?? 0;
     const valC2 = d.caixa2 ?? 0;
 
-    // Atualiza Caixas da Interface Nova (Textos e Barras de Progresso)
     const perc1 = document.getElementById("percCaixa1");
     const perc2 = document.getElementById("percCaixa2");
     if (perc1) perc1.innerText = `${valC1}%`;
@@ -157,14 +155,12 @@ async function fetchLatest() {
     if (bar1) bar1.style.width = `${valC1}%`;
     if (bar2) bar2.style.width = `${valC2}%`;
 
-    // Atualiza data/hora no topo
     const elData = document.getElementById("dataAtualizacao");
     if (elData) {
       const agora = new Date();
       elData.innerText = agora.toLocaleDateString("pt-BR") + " - " + agora.toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' });
     }
 
-    // Atualiza Estado da Bomba
     atualizarEstadoBombaUI(d.bomba === 1);
 
   } catch (err) {
@@ -214,7 +210,7 @@ async function enviarComandoBomba(ligar) {
 }
 
 // =======================
-// 📈 Histórico, Tabela e Gráfico Integrados
+// 📈 Histórico e Gráfico
 // =======================
 async function carregarHistorico() {
   try {
@@ -233,7 +229,6 @@ async function carregarHistorico() {
       return;
     }
 
-    // 1. Atualizar Tabela com o Visual Dark
     if (tbody) {
       tbody.innerHTML = "";
       data.slice(0, 5).forEach((d) => {
@@ -248,7 +243,6 @@ async function carregarHistorico() {
       });
     }
 
-    // 2. Montar Gráfico Dark com os dados da API
     const historicoOrdenado = [...data].reverse();
     const rotulos = historicoOrdenado.map(d => d.dia || d.data);
     const dadosCaixa1 = historicoOrdenado.map(d => d.media_caixa1 ?? d.caixa1);
@@ -350,8 +344,8 @@ window.enviarAlertaTecnico = async function(event) {
     if (res.ok && data.success) {
       alert("✅ Chamado enviado com sucesso!");
       if (mensagemElemento) mensagemElemento.value = "";
-      const modal = document.getElementById("modalChamado") || document.getElementById("modalAlertaTecnico");
-      if (modal) modal.style.display = "none";
+      window.fecharModal("modalChamado");
+      window.fecharModal("modalAlertaTecnico");
     } else {
       alert("❌ Erro: " + (data.error || "Falha ao enviar chamado"));
     }
@@ -362,29 +356,7 @@ window.enviarAlertaTecnico = async function(event) {
 };
 
 // =======================
-// 👤 Perfil do Usuário
-// =======================
-window.abrirModalPerfil = async function() {
-  const modal = document.getElementById("modalPerfil");
-  if (modal) modal.style.display = "flex";
-
-  try {
-    const res = await fetch(API_BASE + "/api/usuario-atual", {
-      headers: { Authorization: "Bearer " + token }
-    });
-    const dados = await res.json();
-
-    if (res.ok && dados.logado) {
-      const userEl = document.getElementById("perfilUsuario");
-      if (userEl) userEl.value = dados.usuario || "";
-    }
-  } catch (err) {
-    console.error("Erro ao carregar perfil:", err);
-  }
-};
-
-// =======================
-// 📁 Relatórios (Exportação)
+// 📁 Relatórios
 // =======================
 window.gerarRelatorio = async function() {
   const caixaId = sessionStorage.getItem("caixaSelecionada") || 1;
@@ -412,7 +384,7 @@ window.gerarRelatorio = async function() {
 };
 
 // =======================
-// 🚪 Função genérica para fechar modais
+// 🚪 Fechar Modal
 // =======================
 window.fecharModal = function(idModal) {
   const modal = document.getElementById(idModal);
@@ -420,7 +392,7 @@ window.fecharModal = function(idModal) {
 };
 
 // =======================
-// 👤 Perfil do Usuário (Carregar e Salvar)
+// 👤 Perfil do Usuário
 // =======================
 window.abrirModalPerfil = async function() {
   const modal = document.getElementById("modalPerfil");
@@ -433,25 +405,35 @@ window.abrirModalPerfil = async function() {
     const dados = await res.json();
 
     if (res.ok && dados.logado) {
-      const nomeEl = document.getElementById("perfilNome");
+      const userEl = document.getElementById("perfilUsuario") || document.getElementById("perfilNome");
       const emailEl = document.getElementById("perfilEmail");
-      const senhaEl = document.getElementById("perfilSenha");
+      const passEl = document.getElementById("perfilSenha");
 
-      if (nomeEl) nomeEl.value = dados.nome || dados.usuario || "";
+      if (userEl) userEl.value = dados.usuario || dados.nome || "";
       if (emailEl) emailEl.value = dados.email || "";
-      if (senhaEl) senhaEl.value = "";
+      if (passEl) passEl.value = "";
     }
   } catch (err) {
-    console.error("Erro ao carregar perfil:", err);
+    console.error("Erro ao carregar dados do perfil:", err);
   }
 };
 
 window.salvarPerfil = async function(event) {
   if (event) event.preventDefault();
 
-  const nome = document.getElementById("perfilNome")?.value;
-  const email = document.getElementById("perfilEmail")?.value;
-  const senha = document.getElementById("perfilSenha")?.value;
+  const userEl = document.getElementById("perfilUsuario") || document.getElementById("perfilNome");
+  const emailEl = document.getElementById("perfilEmail");
+  const passEl = document.getElementById("perfilSenha");
+
+  const usuario = userEl ? userEl.value.trim() : "";
+  const nome = userEl ? userEl.value.trim() : "";
+  const email = emailEl ? emailEl.value.trim() : "";
+  const senha = passEl ? passEl.value.trim() : "";
+
+  if (!usuario && !nome) {
+    alert("⚠️ Por favor, informe o nome de usuário.");
+    return;
+  }
 
   try {
     const response = await fetch(API_BASE + "/api/perfil", {
@@ -460,7 +442,7 @@ window.salvarPerfil = async function(event) {
         "Content-Type": "application/json",
         Authorization: "Bearer " + token 
       },
-      body: JSON.stringify({ nome, email, senha })
+      body: JSON.stringify({ usuario, nome, email, senha })
     });
 
     const result = await response.json();
