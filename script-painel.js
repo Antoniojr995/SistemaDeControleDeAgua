@@ -2,8 +2,8 @@ const API_BASE = window.location.origin;
 const token = sessionStorage.getItem("token");
 const tipo = sessionStorage.getItem("tipo");
 
-let meuGrafico = null; // Guarda a referência do gráfico para atualizar sem duplicar
-let ultimosDadosRelatorio = []; // Guarda os dados buscados para exportar CSV/PDF
+let meuGrafico = null; // Guarda referência do Chart.js
+let ultimosDadosRelatorio = []; // Relatórios CSV/PDF
 
 document.addEventListener("DOMContentLoaded", () => {
   // 1. Verificação de Autenticação
@@ -12,13 +12,12 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  // 2. Exibir barra de alerta e botão para Administradores
+  // 2. Alerta e botão de Voltar para Administradores
   if (tipo === "admin") {
     const alertaAdmin = document.getElementById("alertaAdmin");
     const btnVoltar = document.getElementById("btnVoltarAdmin");
 
     if (alertaAdmin) alertaAdmin.style.display = "block";
-
     if (btnVoltar) {
       btnVoltar.style.display = "inline-block";
       btnVoltar.addEventListener("click", () => {
@@ -27,32 +26,67 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // 3. Configuração dos Eventos Básicos
-  document.getElementById("btnAtualizar")?.addEventListener("click", fetchLatest);
+  // 3. Eventos da Interface (Botões e Selects)
   
-  document.getElementById("btnLigarBomba")?.addEventListener("change", (ev) => {
+  // Atualizar Manualmente
+  const btnAtualizar = document.getElementById("btnAtualizarAgora") || document.getElementById("btnAtualizar");
+  btnAtualizar?.addEventListener("click", () => {
+    btnAtualizar.innerText = "⏳ Atualizando...";
+    fetchLatest().then(() => {
+      setTimeout(() => {
+        btnAtualizar.innerText = "🔄 Atualizar Agora";
+      }, 500);
+    });
+  });
+
+  // Switch de Controle da Bomba
+  const switchBomba = document.getElementById("switchBomba") || document.getElementById("btnLigarBomba");
+  switchBomba?.addEventListener("change", (ev) => {
     enviarComandoBomba(ev.target.checked);
   });
 
+  // Botão Sair
   document.getElementById("btnLogout")?.addEventListener("click", () => {
-    if (confirm("Deseja realmente sair?")) {
+    if (confirm("Deseja realmente sair do sistema?")) {
       sessionStorage.clear();
       window.location.href = "index.html";
     }
   });
 
-  // Evento do botão de Relatório
+  // Troca de Reservatório / Caixa Selecionada
+  const selectCaixa = document.getElementById("selectIdReservatorio") || document.getElementById("selectCaixa") || document.getElementById("minhasCaixas");
+  selectCaixa?.addEventListener("change", (e) => {
+    sessionStorage.setItem("caixaSelecionada", e.target.value);
+    carregarHistorico();
+  });
+
+  // Modais de Chamado e Perfil
+  document.getElementById("btnAbrirChamado")?.addEventListener("click", () => {
+    const modal = document.getElementById("modalChamado") || document.getElementById("modalAlertaTecnico");
+    if (modal) modal.style.display = "flex";
+  });
+
+  document.getElementById("btnPerfil")?.addEventListener("click", () => {
+    if (typeof window.abrirModalPerfil === "function") {
+      window.abrirModalPerfil();
+    } else {
+      const modal = document.getElementById("modalPerfil");
+      if (modal) modal.style.display = "flex";
+    }
+  });
+
+  // Botão de Relatório
   document.getElementById("btnRelatorio")?.addEventListener("click", gerarRelatorio);
 
-  // 4. Inicialização das Chamadas
+  // 4. Inicialização de Dados
   fetchLatest();
-  carregarMinhasCaixas(); // Puxa apenas as caixas do cliente logado
+  carregarMinhasCaixas();
   carregarHistorico();
-  setInterval(fetchLatest, 3000);
+  setInterval(fetchLatest, 3000); // Polling a cada 3 segundos
 });
 
 // =======================
-// 📦 Busca Apenas Caixas do Cliente Logado
+// 📦 Busca Caixas do Cliente
 // =======================
 async function carregarMinhasCaixas() {
   try {
@@ -63,53 +97,109 @@ async function carregarMinhasCaixas() {
     if (!res.ok) return;
 
     const caixas = await res.json();
-    const selectCaixa = document.getElementById("selectCaixa") || document.getElementById("minhasCaixas");
+    const selectCaixa = document.getElementById("selectIdReservatorio") || document.getElementById("selectCaixa");
     
     if (selectCaixa) {
       selectCaixa.innerHTML = "";
       if (caixas.length === 0) {
-        selectCaixa.innerHTML = '<option value="">Nenhuma caixa vinculada</option>';
+        selectCaixa.innerHTML = '<option value="">Sem caixas</option>';
         return;
       }
 
       caixas.forEach(caixa => {
         const option = document.createElement("option");
         option.value = caixa.id;
-        option.textContent = `${caixa.nome} (ID: ${caixa.id})`;
+        option.textContent = `ID: ${caixa.id} (${caixa.nome || 'Reservatório'})`;
         selectCaixa.appendChild(option);
       });
+
+      const caixaSalva = sessionStorage.getItem("caixaSelecionada");
+      if (caixaSalva) {
+        selectCaixa.value = caixaSalva;
+      } else if (caixas.length > 0) {
+        sessionStorage.setItem("caixaSelecionada", caixas[0].id);
+      }
     }
   } catch (err) {
-    console.error("Erro ao carregar minhas caixas:", err);
+    console.error("Erro ao carregar caixas:", err);
   }
 }
 
 // =======================
-// 💧 Leitura dos Dados e Bomba
+// 💧 Leitura em Tempo Real e Atualização da UI
 // =======================
 async function fetchLatest() {
   try {
     const res = await fetch(API_BASE + "/api/dados/latest", {
       headers: { Authorization: "Bearer " + token }
     });
-    if (!res.ok) throw new Error("Erro na resposta do servidor");
+    if (!res.ok) throw new Error("Erro na resposta da API");
 
     const d = await res.json();
-    const vol1 = document.getElementById("volume1");
-    const vol2 = document.getElementById("volume2");
-    
-    if (vol1) vol1.style.width = (d.caixa1 || d.nivel || 0) + "%";
-    if (vol2) vol2.style.width = (d.caixa2 || 0) + "%";
-    
-    const btnBomba = document.getElementById("btnLigarBomba");
-    if (btnBomba) btnBomba.checked = d.bomba === 1;
+
+    // Valores recebidos
+    const valC1 = d.caixa1 ?? d.nivel ?? 0;
+    const valC2 = d.caixa2 ?? 0;
+
+    // Atualiza Caixas da Interface Nova (Textos e Barras de Progresso)
+    const perc1 = document.getElementById("percCaixa1");
+    const perc2 = document.getElementById("percCaixa2");
+    if (perc1) perc1.innerText = `${valC1}%`;
+    if (perc2) perc2.innerText = `${valC2}%`;
+
+    const vol1Text = document.getElementById("volCaixa1");
+    const vol2Text = document.getElementById("volCaixa2");
+    if (vol1Text) vol1Text.innerText = `${Math.round((valC1 / 100) * 1000)} L`;
+    if (vol2Text) vol2Text.innerText = `${Math.round((valC2 / 100) * 1000)} L`;
+
+    const bar1 = document.getElementById("barCaixa1");
+    const bar2 = document.getElementById("barCaixa2");
+    if (bar1) bar1.style.width = `${valC1}%`;
+    if (bar2) bar2.style.width = `${valC2}%`;
+
+    // Atualiza data/hora no topo
+    const elData = document.getElementById("dataAtualizacao");
+    if (elData) {
+      const agora = new Date();
+      elData.innerText = agora.toLocaleDateString("pt-BR") + " - " + agora.toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // Atualiza Estado da Bomba
+    atualizarEstadoBombaUI(d.bomba === 1);
+
   } catch (err) {
-    console.error("Erro ao buscar dados:", err);
+    console.error("Erro ao carregar dados em tempo real:", err);
+  }
+}
+
+function atualizarEstadoBombaUI(ligada) {
+  const switchBomba = document.getElementById("switchBomba") || document.getElementById("btnLigarBomba");
+  const statusBadge = document.getElementById("statusBombaBadge");
+  const statusTexto = document.getElementById("textoStatusBomba");
+
+  if (switchBomba) switchBomba.checked = ligada;
+
+  if (statusBadge && statusTexto) {
+    if (ligada) {
+      statusBadge.className = "bomba-status-badge ligada";
+      statusBadge.style.background = "#022c22";
+      statusBadge.style.borderColor = "#10b981";
+      statusTexto.innerText = "Bomba Ligada";
+      statusTexto.style.color = "#10b981";
+    } else {
+      statusBadge.className = "bomba-status-badge desligada";
+      statusBadge.style.background = "#1a0c0c";
+      statusBadge.style.borderColor = "#ef4444";
+      statusTexto.innerText = "Bomba Desligada";
+      statusTexto.style.color = "#ef4444";
+    }
   }
 }
 
 async function enviarComandoBomba(ligar) {
   try {
+    atualizarEstadoBombaUI(ligar);
+
     await fetch(API_BASE + "/api/bomba", {
       method: "POST",
       headers: {
@@ -124,59 +214,7 @@ async function enviarComandoBomba(ligar) {
 }
 
 // =======================
-// ⚠️ Chamados e Alertas de Suporte Técnico
-// =======================
-window.abrirModalAlerta = function() {
-  const modal = document.getElementById("modalAlertaTecnico");
-  if (modal) modal.style.display = "block";
-};
-
-window.fecharModalAlerta = function() {
-  const modal = document.getElementById("modalAlertaTecnico");
-  if (modal) modal.style.display = "none";
-};
-
-window.enviarAlertaTecnico = async function(event) {
-  if (event) event.preventDefault();
-
-  const tipoElemento = document.getElementById("alertaTipo") || document.getElementById("tipoAlerta");
-  const mensagemElemento = document.getElementById("alertaMensagem") || document.getElementById("descricaoAlerta") || document.getElementById("mensagem");
-
-  const assunto = tipoElemento ? tipoElemento.value : "Outro problema";
-  const mensagem = mensagemElemento ? mensagemElemento.value.trim() : "";
-
-  if (!mensagem) {
-    alert("⚠️ Por favor, preencha a descrição do problema.");
-    return;
-  }
-
-  try {
-    const res = await fetch(API_BASE + "/api/chamados", {
-      method: "POST",
-      headers: { 
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + token
-      },
-      body: JSON.stringify({ assunto, mensagem })
-    });
-
-    const data = await res.json();
-
-    if (res.ok && data.success) {
-      alert("✅ Chamado aberto com sucesso!");
-      if (mensagemElemento) mensagemElemento.value = "";
-      window.fecharModalAlerta();
-    } else {
-      alert("❌ Erro ao enviar: " + (data.error || "Erro desconhecido"));
-    }
-  } catch (err) {
-    console.error("Erro na requisição de alerta:", err);
-    alert("❌ Erro de conexão com o servidor.");
-  }
-};
-
-// =======================
-// 📅 Histórico e Relatórios
+// 📈 Histórico, Tabela e Gráfico Integrados
 // =======================
 async function carregarHistorico() {
   try {
@@ -188,38 +226,29 @@ async function carregarHistorico() {
     if (!res.ok) return;
 
     const data = await res.json();
-    const tbody = document.querySelector("#tabelaHistorico tbody");
+    const tbody = document.getElementById("tabelaLeiturasBody") || document.querySelector("#tabelaHistorico tbody");
 
     if (!Array.isArray(data) || data.length === 0) {
-      if (tbody) tbody.innerHTML = '<tr><td colspan="4">Nenhum registro encontrado.</td></tr>';
-      
-      // Oculta a área do gráfico se não houver leituras para desenhar
-      const areaGrafico = document.getElementById("graficoNivelAgua")?.parentElement;
-      if (areaGrafico) areaGrafico.style.display = "none";
-      
+      if (tbody) tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum registro encontrado.</td></tr>';
       return;
-    } else {
-      // Exibe a área do gráfico se houver dados
-      const areaGrafico = document.getElementById("graficoNivelAgua")?.parentElement;
-      if (areaGrafico) areaGrafico.style.display = "block";
     }
 
-    // 1. Atualizar Tabela
+    // 1. Atualizar Tabela com o Visual Dark
     if (tbody) {
       tbody.innerHTML = "";
-      data.forEach((d) => {
+      data.slice(0, 5).forEach((d) => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td>${d.dia || d.data}</td>
+          <td>${d.dia || d.data || d.created_at}</td>
           <td>${d.media_caixa1 ?? d.caixa1}%</td>
           <td>${d.media_caixa2 ?? d.caixa2}%</td>
-          <td>${d.leituras ?? 1}</td>
+          <td><span class="badge-ok">OK</span></td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    // 2. Montar Dados para o Gráfico (invertemos para ficar em ordem cronológica)
+    // 2. Montar Gráfico Dark com os dados da API
     const historicoOrdenado = [...data].reverse();
     const rotulos = historicoOrdenado.map(d => d.dia || d.data);
     const dadosCaixa1 = historicoOrdenado.map(d => d.media_caixa1 ?? d.caixa1);
@@ -228,217 +257,116 @@ async function carregarHistorico() {
     renderizarGrafico(rotulos, dadosCaixa1, dadosCaixa2);
 
   } catch (err) {
-    console.error("Erro ao carregar histórico e gráfico:", err);
+    console.error("Erro ao carregar histórico:", err);
   }
 }
 
 function renderizarGrafico(labels, caixa1, caixa2) {
-  const ctx = document.getElementById('graficoNivelAgua');
+  const ctx = document.getElementById("graficoHistorico") || document.getElementById("graficoNivelAgua");
   if (!ctx) return;
 
-  // Destrói gráfico antigo se já existir para evitar bugs visuais
   if (meuGrafico) {
     meuGrafico.destroy();
   }
 
-  meuGrafico = new Chart(ctx, {
-    type: 'line',
+  meuGrafico = new Chart(ctx.getContext("2d"), {
+    type: "line",
     data: {
       labels: labels,
       datasets: [
         {
-          label: 'Caixa 1 (%)',
+          label: "Caixa 1 (%)",
           data: caixa1,
-          borderColor: '#00a2ff',
-          backgroundColor: 'rgba(0, 162, 255, 0.2)',
-          fill: true,
-          tension: 0.3
+          borderColor: "#38bdf8",
+          backgroundColor: "rgba(56, 189, 248, 0.1)",
+          tension: 0.4,
+          borderWidth: 2,
+          pointRadius: 3,
+          fill: true
         },
         {
-          label: 'Caixa 2 (%)',
+          label: "Caixa 2 (%)",
           data: caixa2,
-          borderColor: '#0057e7',
-          backgroundColor: 'rgba(0, 87, 231, 0.2)',
-          fill: true,
-          tension: 0.3
+          borderColor: "#10b981",
+          backgroundColor: "rgba(16, 185, 129, 0.1)",
+          tension: 0.4,
+          borderWidth: 2,
+          pointRadius: 3,
+          fill: true
         }
       ]
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
       scales: {
         y: {
-          beginAtZero: true,
+          min: 0,
           max: 100,
-          title: { display: true, text: 'Nível (%)' }
+          ticks: { color: "#64748b", callback: value => value + "%" },
+          grid: { color: "#0d284f" }
         },
         x: {
-          title: { display: true, text: 'Data / Hora' }
+          ticks: { color: "#64748b" },
+          grid: { color: "#0d284f" }
         }
       }
     }
   });
 }
 
-window.gerarRelatorio = async function() {
-  const caixaId = sessionStorage.getItem("caixaSelecionada") || 1;
-  const elInicio = document.getElementById("dataInicio");
-  const elFim = document.getElementById("dataFim");
+// =======================
+// ⚠️ Chamados e Suporte
+// =======================
+window.enviarAlertaTecnico = async function(event) {
+  if (event) event.preventDefault();
 
-  if (!elInicio || !elFim) return;
+  const tipoElemento = document.getElementById("alertaTipo") || document.getElementById("tipoAlerta");
+  const mensagemElemento = document.getElementById("alertaMensagem") || document.getElementById("descricaoAlerta") || document.getElementById("mensagem");
 
-  const dataInicio = elInicio.value;
-  const dataFim = elFim.value;
+  const assunto = tipoElemento ? tipoElemento.value : "Outro problema";
+  const mensagem = mensagemElemento ? mensagemElemento.value.trim() : "";
 
-  if (!dataInicio || !dataFim) {
-    alert("⚠️ Preencha as duas datas!");
+  if (!mensagem) {
+    alert("⚠️ Por favor, descreva o problema.");
     return;
   }
 
   try {
-    const res = await fetch(API_BASE + "/api/relatorio", {
+    const res = await fetch(API_BASE + "/api/chamados", {
       method: "POST",
-      headers: {
+      headers: { 
         "Content-Type": "application/json",
-        Authorization: "Bearer " + token,
+        Authorization: "Bearer " + token
       },
-      body: JSON.stringify({ caixa_id: caixaId, dataInicio, dataFim }),
+      body: JSON.stringify({ assunto, mensagem })
     });
 
-    const dados = await res.json();
-    ultimosDadosRelatorio = dados; // Salva para exportar
-    
-    const div = document.getElementById("resultadoRelatorio");
-    const divExport = document.getElementById("acoesExportacao");
+    const data = await res.json();
 
-    if (!div) return;
-    div.innerHTML = "";
-
-    if (!dados || dados.length === 0) {
-      div.innerHTML = "<p>Nenhum dado encontrado no período selecionado.</p>";
-      if (divExport) divExport.style.display = "none";
-      return;
+    if (res.ok && data.success) {
+      alert("✅ Chamado enviado com sucesso!");
+      if (mensagemElemento) mensagemElemento.value = "";
+      const modal = document.getElementById("modalChamado") || document.getElementById("modalAlertaTecnico");
+      if (modal) modal.style.display = "none";
+    } else {
+      alert("❌ Erro: " + (data.error || "Falha ao enviar chamado"));
     }
-
-    // Exibe tabela na tela
-    let html = `<table border='1' style='width:100%; text-align:center; margin-top: 10px;'>
-      <thead>
-        <tr>
-          <th>Data / Hora</th>
-          <th>Caixa 1 (%)</th>
-          <th>Caixa 2 (%)</th>
-          <th>Estado Bomba</th>
-        </tr>
-      </thead>
-      <tbody>`;
-
-    dados.forEach((d) => {
-      html += `<tr>
-        <td>${d.data || d.created_at}</td>
-        <td>${d.caixa1}%</td>
-        <td>${d.caixa2}%</td>
-        <td>${d.bomba ? "Ligada" : "Desligada"}</td>
-      </tr>`;
-    });
-
-    html += "</tbody></table>";
-    div.innerHTML = html;
-
-    // Exibe botões de download
-    if (divExport) divExport.style.display = "block";
-
   } catch (err) {
-    console.error("Erro ao gerar relatório:", err);
-    alert("❌ Erro ao buscar relatório no servidor.");
+    console.error("Erro ao enviar chamado:", err);
+    alert("❌ Erro de conexão com o servidor.");
   }
-};
-
-window.selecionarModeloCaixa = function(valor) {
-  const capInput = document.getElementById("caixaCapacidade");
-  const altInput = document.getElementById("caixaAltura");
-
-  if (!capInput || !altInput) return;
-
-  // Tabela de dimensões comerciais padrões (Capacidade em Litros e Altura em cm)
-  const tabelaModelos = {
-    "500": { cap: 500, alt: 72 },
-    "1000": { cap: 1000, alt: 95 },
-    "1500": { cap: 1500, alt: 110 },
-    "2000": { cap: 2000, alt: 125 },
-    "5000": { cap: 5000, alt: 160 }
-  };
-
-  if (valor !== "custom" && tabelaModelos[valor]) {
-    capInput.value = tabelaModelos[valor].cap;
-    altInput.value = tabelaModelos[valor].alt;
-  }
-};
-
-// 📁 Exportar para CSV
-window.exportarCSV = function() {
-  if (!ultimosDadosRelatorio || ultimosDadosRelatorio.length === 0) return;
-
-  let csvContent = "data:text/csv;charset=utf-8,Data/Hora,Caixa 1 (%),Caixa 2 (%),Bomba\n";
-
-  ultimosDadosRelatorio.forEach(d => {
-    const dataHora = d.data || d.created_at;
-    const bombaStatus = d.bomba ? "Ligada" : "Desligada";
-    csvContent += `"${dataHora}",${d.caixa1},${d.caixa2},"${bombaStatus}"\n`;
-  });
-
-  const encodedUri = encodeURI(csvContent);
-  const link = document.createElement("a");
-  link.setAttribute("href", encodedUri);
-  link.setAttribute("download", `relatorio_leituras_${Date.now()}.csv`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
-
-// 📄 Exportar para PDF
-window.exportarPDF = function() {
-  if (!ultimosDadosRelatorio || ultimosDadosRelatorio.length === 0) return;
-
-  if (!window.jspdf || !window.jspdf.jsPDF) {
-    alert("⚠️ Biblioteca jsPDF não foi carregada na página.");
-    return;
-  }
-
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-
-  doc.setFontSize(16);
-  doc.text("Relatório de Monitoramento - Reservatório", 14, 15);
-  doc.setFontSize(10);
-  doc.text(`Gerado em: ${new Date().toLocaleString()}`, 14, 22);
-
-  const colunas = ["Data / Hora", "Caixa 1 (%)", "Caixa 2 (%)", "Bomba"];
-  const linhas = ultimosDadosRelatorio.map(d => [
-    d.data || d.created_at,
-    `${d.caixa1}%`,
-    `${d.caixa2}%`,
-    d.bomba ? "Ligada" : "Desligada"
-  ]);
-
-  if (typeof doc.autoTable === "function") {
-    doc.autoTable({
-      startY: 28,
-      head: [colunas],
-      body: linhas,
-      theme: 'grid',
-      headStyles: { fillColor: [37, 99, 235] }
-    });
-  }
-
-  doc.save(`relatorio_leituras_${Date.now()}.pdf`);
 };
 
 // =======================
-// 👤 Modal Perfil
+// 👤 Perfil do Usuário
 // =======================
 window.abrirModalPerfil = async function() {
   const modal = document.getElementById("modalPerfil");
-  if (modal) modal.style.display = "block";
+  if (modal) modal.style.display = "flex";
 
   try {
     const res = await fetch(API_BASE + "/api/usuario-atual", {
@@ -448,46 +376,37 @@ window.abrirModalPerfil = async function() {
 
     if (res.ok && dados.logado) {
       const userEl = document.getElementById("perfilUsuario");
-      const passEl = document.getElementById("perfilSenha");
       if (userEl) userEl.value = dados.usuario || "";
-      if (passEl) passEl.value = "";
     }
   } catch (err) {
-    console.error("Erro ao buscar dados do perfil:", err);
+    console.error("Erro ao carregar perfil:", err);
   }
 };
 
-window.fecharModalPerfil = function() {
-  const modal = document.getElementById("modalPerfil");
-  if (modal) modal.style.display = "none";
-};
+// =======================
+// 📁 Relatórios (Exportação)
+// =======================
+window.gerarRelatorio = async function() {
+  const caixaId = sessionStorage.getItem("caixaSelecionada") || 1;
+  const elInicio = document.getElementById("dataInicio");
+  const elFim = document.getElementById("dataFim");
 
-window.salvarPerfil = async function(event) {
-  if (event) event.preventDefault();
-
-  const usuario = document.getElementById("perfilUsuario")?.value;
-  const senha = document.getElementById("perfilSenha")?.value;
+  if (!elInicio || !elFim) return;
 
   try {
-    const response = await fetch(API_BASE + "/api/perfil", {
-      method: "PUT",
-      headers: { 
+    const res = await fetch(API_BASE + "/api/relatorio", {
+      method: "POST",
+      headers: {
         "Content-Type": "application/json",
-        Authorization: "Bearer " + token 
+        Authorization: "Bearer " + token,
       },
-      body: JSON.stringify({ usuario, senha })
+      body: JSON.stringify({ caixa_id: caixaId, dataInicio: elInicio.value, dataFim: elFim.value }),
     });
 
-    const result = await response.json();
-
-    if (response.ok && result.success) {
-      alert("✅ Perfil atualizado com sucesso!");
-      window.fecharModalPerfil();
-    } else {
-      alert(result.error || "❌ Erro ao atualizar perfil.");
-    }
+    const dados = await res.json();
+    ultimosDadosRelatorio = dados;
+    alert("Relatório gerado com sucesso! Utilize as opções de exportar.");
   } catch (err) {
-    console.error("Erro ao salvar perfil:", err);
-    alert("❌ Erro de conexão com o servidor.");
+    console.error("Erro no relatório:", err);
   }
 };
