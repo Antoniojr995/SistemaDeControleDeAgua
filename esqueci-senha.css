@@ -24,3 +24,13 @@
 .back-link:hover {
   color: #ffffff;
 }
+
+.recovery-step.hidden {
+    display: none !important;
+  }
+  
+  .recovery-step.active {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
