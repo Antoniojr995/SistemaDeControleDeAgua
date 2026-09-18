@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recuperar Senha - Sistema de Controle de Nível de Água</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="login-body">
+  <div class="login-container">
+    <div class="login-card">
+      <div class="login-header">
+        <i class="fa-solid fa-key header-icon"></i>
+        <h2>Recuperação de Senha</h2>
+        <p id="step-description">Informe seu e-mail para receber o código de verificação.</p>
+      </div>
+
+      <!-- PASSO 1: Solicitar E-mail -->
+      <form id="form-passo-1" class="recovery-step active">
+        <div class="input-group">
+          <i class="fa-solid fa-envelope input-icon"></i>
+          <input type="email" id="email-recuperacao" placeholder="Seu e-mail cadastrado" required>
+        </div>
+        <button type="submit" class="btn-primary">
+          <i class="fa-solid fa-paper-plane"></i> Enviar Código
+        </button>
+      </form>
+
+      <!-- PASSO 2: Validar Código (Escondido inicialmente) -->
+      <form id="form-passo-2" class="recovery-step hidden">
+        <div class="input-group">
+          <i class="fa-solid fa-shield-halved input-icon"></i>
+          <input type="text" id="codigo-verificacao" placeholder="Código de 6 dígitos" maxlength="6" required>
+        </div>
+        <button type="submit" class="btn-primary">
+          <i class="fa-solid fa-check-double"></i> Validar Código
+        </button>
+      </form>
+
+      <!-- PASSO 3: Nova Senha (Escondido inicialmente) -->
+      <form id="form-passo-3" class="recovery-step hidden">
+        <div class="input-group">
+          <i class="fa-solid fa-lock input-icon"></i>
+          <input type="password" id="nova-senha" placeholder="Nova senha" required>
+        </div>
+        <div class="input-group">
+          <i class="fa-solid fa-lock input-icon"></i>
+          <input type="password" id="confirmar-nova-senha" placeholder="Confirme a nova senha" required>
+        </div>
+        <button type="submit" class="btn-primary">
+          <i class="fa-solid fa-rotate"></i> Alterar Senha
+        </button>
+      </form>
+
+      <div class="login-footer">
+        <a href="index.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Voltar ao Login</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="script-esqueci-senha.js"></script>
+</body>
+</html>

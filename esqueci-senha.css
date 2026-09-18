@@ -1,0 +1,26 @@
+/* Importa a estrutura de layout do login caso utilize variáveis ou fontes globais */
+@import url('styles.css');
+
+.recovery-step.hidden {
+  display: none !important;
+}
+
+.recovery-step.active {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.back-link {
+  color: #a0aec0;
+  text-decoration: none;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: color 0.2s;
+}
+
+.back-link:hover {
+  color: #ffffff;
+}
