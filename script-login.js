@@ -43,3 +43,20 @@ document.getElementById("btnLogin").addEventListener("click", async () => {
     console.error(err);
   }
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+  const togglePassword = document.querySelector('.toggle-password');
+  const passwordInput = document.getElementById('senha');
+
+  if (togglePassword && passwordInput) {
+    togglePassword.addEventListener('click', () => {
+      // Alterna o tipo do input entre 'password' e 'text'
+      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      passwordInput.setAttribute('type', type);
+
+      // Alterna o ícone do olho (fechado / aberto)
+      togglePassword.classList.toggle('fa-eye-slash');
+      togglePassword.classList.toggle('fa-eye');
+    });
+  }
+});
