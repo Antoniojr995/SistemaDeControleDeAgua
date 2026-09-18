@@ -354,3 +354,30 @@
 .card-cliente * {
   color: #ffffff !important;
 }
+
+/* FIX DA FICHA DO CLIENTE (MODAL) */
+#fichaListaCaixas {
+    background-color: #030d1e !important;
+    border: 1px solid #0e2a54 !important;
+    padding: 10px;
+    border-radius: 8px;
+  }
+  
+  /* Forçar a cor do texto do ID/Nome da Caixa */
+  #fichaListaCaixas *,
+  #fichaListaCaixas div,
+  #fichaListaCaixas span {
+    color: #ffffff !important;
+  }
+  
+  /* Ajuste do elemento do item da caixa vinculada */
+  #fichaListaCaixas > div {
+    background-color: #081a38 !important;
+    border: 1px solid #102a54 !important;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
