@@ -95,24 +95,28 @@ async function initDb() {
 initDb();
 
 // CONFIGURAÇÃO DE RECUPERAÇÃO DE SENHA (NODEMAILER)
+// CONFIGURAÇÃO DE RECUPERAÇÃO DE SENHA (NODEMAILER)
 const codigosRecuperacao = {};
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true, // Usa SSL/TLS diretamente na porta 465
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
+  },
+  tls: {
+    rejectUnauthorized: false // Evita bloqueios de certificado em servidores como Render
   }
 });
 
-// 1. SOLICITAR CÓDIGO DE RECUPERAÇÃO
 // 1. SOLICITAR CÓDIGO DE RECUPERAÇÃO
 app.post('/api/solicitar-codigo', async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ erro: 'Informe o e-mail.' });
 
   try {
-    // CORREÇÃO AQUI: troque 'email = $1' por 'usuario = $1'
     const userResult = await pool.query('SELECT * FROM usuarios WHERE usuario = $1', [email]);
     
     if (userResult.rows.length === 0) {
@@ -141,8 +145,8 @@ app.post('/api/solicitar-codigo', async (req, res) => {
 
     res.json({ mensagem: 'Código enviado com sucesso!' });
   } catch (error) {
-    console.error('Erro no envio do e-mail:', error);
-    res.status(500).json({ erro: 'Erro ao enviar e-mail. Tente novamente mais tarde.' });
+    console.error('ERRO DETALHADO NO NODEMAILER:', error);
+    res.status(500).json({ erro: 'Erro ao enviar o e-mail. Verifique as credenciais SMTP no Render.' });
   }
 });
 
@@ -176,84 +180,9 @@ app.post('/api/redefinir-senha', async (req, res) => {
 
   try {
     await pool.query('UPDATE usuarios SET senha = $1 WHERE usuario = $2', [novaSenha, email]);
-    delete codigosRecuperacao[email]; // Apaga o código usado
-    res.json({ success: true, mensagem: 'Senha alterada com sucesso!' });
-  } catch (err) {
-    res.status(500).json({ erro: 'Erro ao redefinir a senha no banco.' });
-  }
-});
-
-// 1. SOLICITAR CÓDIGO
-app.post('/api/solicitar-codigo', async (req, res) => {
-  const { email } = req.body;
-  if (!email) return res.status(400).json({ erro: 'Informe o e-mail.' });
-
-  try {
-    // Verifica se o e-mail existe no banco de dados
-    const userResult = await pool.query('SELECT * FROM usuarios WHERE usuario = $1', [email]);
-    if (userResult.rows.length === 0) {
-      return res.status(404).json({ erro: 'E-mail não cadastrado no sistema.' });
-    }
-
-    const codigo = Math.floor(100000 + Math.random() * 900000).toString();
-    codigosRecuperacao[email] = {
-      codigo,
-      expiracao: Date.now() + 10 * 60 * 1000 // Expira em 10 min
-    };
-
-    await transporter.sendMail({
-      from: `"Sistema Nível de Água" <${process.env.EMAIL_USER}>`, // Remetente dinâmico corrigido
-      to: email,
-      subject: 'Código de Recuperação de Senha',
-      html: `
-        <div style="font-family: Arial, sans-serif; background: #031229; color: #fff; padding: 20px; border-radius: 8px;">
-          <h2 style="color: #0088ff;">Recuperação de Senha</h2>
-          <p>Seu código de verificação é:</p>
-          <h1 style="color: #0099ff; letter-spacing: 5px;">${codigo}</h1>
-          <p>O código expira em 10 minutos.</p>
-        </div>
-      `
-    });
-
-    res.json({ mensagem: 'Código enviado com sucesso!' });
-  } catch (error) {
-    console.error('Erro no envio de e-mail:', error);
-    res.status(500).json({ erro: 'Erro ao enviar o e-mail. Verifique as credenciais SMTP.' });
-  }
-});
-
-// 2. VALIDAR CÓDIGO
-app.post('/api/validar-codigo', (req, res) => {
-  const { email, codigo } = req.body;
-  const dados = codigosRecuperacao[email];
-
-  if (!dados) return res.status(400).json({ erro: 'Nenhum código solicitado para este e-mail.' });
-  if (Date.now() > dados.expiracao) {
     delete codigosRecuperacao[email];
-    return res.status(400).json({ erro: 'Código expirado. Solicite um novo.' });
-  }
-  if (dados.codigo !== codigo.trim()) {
-    return res.status(400).json({ erro: 'Código incorreto.' });
-  }
-
-  res.json({ mensagem: 'Código verificado com sucesso!' });
-});
-
-// 3. REDEFINIR SENHA
-app.post('/api/redefinir-senha', async (req, res) => {
-  const { email, novaSenha } = req.body;
-  const dados = codigosRecuperacao[email];
-
-  if (!dados) {
-    return res.status(400).json({ erro: 'Sessão de recuperação inválida ou expirada.' });
-  }
-
-  try {
-    await pool.query('UPDATE usuarios SET senha = $1 WHERE usuario = $2', [novaSenha, email]);
-    delete codigosRecuperacao[email]; // Limpa a memória após alterar
     res.json({ success: true, mensagem: 'Senha alterada com sucesso!' });
   } catch (err) {
-    console.error('Erro ao atualizar senha:', err);
     res.status(500).json({ erro: 'Erro ao redefinir a senha no banco.' });
   }
 });
