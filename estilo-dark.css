@@ -381,3 +381,37 @@
     align-items: center;
     justify-content: space-between;
   }
+
+  /* FIX DO HISTÓRICO DE CHAMADOS (MODAL) */
+.modal-box-dark div[style*="background"],
+.modal-box-dark .card-chamado,
+.modal-box-dark .historico-item,
+#modalFichaCliente .card,
+#modalFichaCliente [class*="chamado"] {
+  background-color: #081a38 !important;
+  border: 1px solid #102a54 !important;
+  color: #ffffff !important;
+}
+
+/* Forçar a cor de todo o texto dentro dos cartões de chamados */
+.modal-box-dark p,
+.modal-box-dark span,
+.modal-box-dark div,
+.modal-box-dark strong,
+.modal-box-dark small {
+  color: #ffffff !important;
+}
+
+/* Manter a cor verde das soluções clara e legível */
+.modal-box-dark div[style*="background-color: #d4edda"],
+.modal-box-dark div[style*="background: #d4edda"],
+.modal-box-dark .solucao-box {
+  background-color: #052622 !important;
+  border: 1px solid #0e5a50 !important;
+  color: #00e676 !important;
+}
+
+.modal-box-dark div[style*="background-color: #d4edda"] *,
+.modal-box-dark div[style*="background: #d4edda"] * {
+  color: #00e676 !important;
+}
