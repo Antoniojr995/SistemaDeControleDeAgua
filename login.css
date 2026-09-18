@@ -78,8 +78,9 @@
   }
   
   .tank-img {
-    max-width: 260px;
+    max-width: 480px; /* Aumentado para ocupar a área total da ilustração */
     width: 100%;
+    border-radius: 12px;
     filter: drop-shadow(0 10px 20px rgba(0, 120, 255, 0.3));
   }
   
