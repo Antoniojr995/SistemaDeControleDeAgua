@@ -422,7 +422,9 @@ window.fecharModal = function(idModal) {
 // =======================
 window.abrirModalPerfil = async function() {
   const modal = document.getElementById("modalPerfil");
-  if (modal) modal.style.display = "flex";
+  if (modal) {
+    modal.style.display = "flex";
+  }
 
   try {
     const res = await fetch(API_BASE + "/api/usuario-atual", {
@@ -431,11 +433,11 @@ window.abrirModalPerfil = async function() {
     const dados = await res.json();
 
     if (res.ok && dados.logado) {
-      const userEl = document.getElementById("perfilUsuario") || document.getElementById("perfilNome");
+      const userEl = document.getElementById("perfilNome") || document.getElementById("perfilUsuario");
       const emailEl = document.getElementById("perfilEmail");
       const passEl = document.getElementById("perfilSenha");
 
-      if (userEl) userEl.value = dados.usuario || dados.nome || "";
+      if (userEl) userEl.value = dados.nome || dados.usuario || "";
       if (emailEl) emailEl.value = dados.email || "";
       if (passEl) passEl.value = "";
     }
