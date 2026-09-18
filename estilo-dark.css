@@ -339,3 +339,18 @@
     justify-content: space-between;
     margin-top: 20px;
   }
+
+  /* FORÇAR VISIBILIDADE DOS NORMES E EMAILS DOS CLIENTES */
+#listaClientes > div,
+.item-cliente,
+.card-cliente {
+  background-color: #030d1e !important;
+  border: 1px solid #0e2a54 !important;
+  color: #ffffff !important;
+}
+
+#listaClientes *,
+.item-cliente *,
+.card-cliente * {
+  color: #ffffff !important;
+}
