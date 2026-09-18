@@ -97,6 +97,9 @@ initDb();
 // CONFIGURAÇÃO DE RECUPERAÇÃO DE SENHA (NODEMAILER)
 const codigosRecuperacao = {};
 
+console.log('EMAIL_USER:', process.env.EMAIL_USER);
+console.log('EMAIL_PASS existe:', !!process.env.EMAIL_PASS);
+
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
   port: 587,
@@ -104,19 +107,17 @@ const transporter = nodemailer.createTransport({
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
-  },
-  tls: {
-    rejectUnauthorized: false
   }
 });
 
 transporter.verify((error, success) => {
   if (error) {
-    console.error('❌ SMTP ERRO:', error);
+    console.error('❌ SMTP ERRO:', error.message);
   } else {
     console.log('✅ SMTP OK:', success);
   }
 });
+
 
 
 // 1. SOLICITAR CÓDIGO DE RECUPERAÇÃO
