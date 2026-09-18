@@ -436,12 +436,3 @@ body {
       repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0px, rgba(255, 255, 255, 0.02) 1px, transparent 1px, transparent 12px) !important;
     background-attachment: fixed !important;
   }
-
-  body {
-    background-color: #030813 !important;
-    background-image: url('fundo-ondas.svg') !important;
-    background-size: cover !important;
-    background-position: center !important;
-    background-repeat: no-repeat !important;
-    background-attachment: fixed !important;
-  }
