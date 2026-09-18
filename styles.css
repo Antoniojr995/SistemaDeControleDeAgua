@@ -536,15 +536,18 @@ td {
 }
 
 /* Modais */
+/* Modais */
 .modal {
   position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.8);
+  top: 0; 
+  left: 0;
+  width: 100vw; 
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.75);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 999;
+  z-index: 9999;
 }
 
 .modal-content {
@@ -553,4 +556,7 @@ td {
   padding: 25px;
   border-radius: 12px;
   color: #fff;
+  width: 90%;
+  max-width: 450px; /* Define o tamanho correto da caixa do modal */
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 }

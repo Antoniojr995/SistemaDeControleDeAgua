@@ -83,7 +83,6 @@
         </div>
         <div class="caixa-body">
           <div class="caixa-img-box">
-            <!-- Caso não tenha a imagem local caixa.png, ele renderiza o SVG da caixa 3D -->
             <svg class="caixa-3d-svg" viewBox="0 0 100 120">
               <ellipse cx="50" cy="20" rx="40" ry="12" fill="#0284c7" />
               <path d="M10,20 L15,95 Q50,110 85,95 L90,20 Z" fill="#0369a1" />
@@ -254,74 +253,67 @@
 
   </main>
 
-  <!-- Modais do Perfil e Chamados (Mantidos para funcionalidade) -->
-  <div id="modalPerfil" class="modal" style="display:none;">
+  <!-- MODAL DE CHAMADO / SUPORTE -->
+  <div id="modalChamado" class="modal" style="display: none;">
     <div class="modal-content">
-      <h2>👤 Meu Perfil</h2>
-      <p>Dados da sua conta</p>
-      <button onclick="document.getElementById('modalPerfil').style.display='none'" style="margin-top:15px;">Fechar</button>
+      <h3>⚠️ Abrir Chamado</h3>
+      <p>Descreva seu problema com o sistema de água</p>
+      
+      <form onsubmit="enviarAlertaTecnico(event)">
+        <div class="form-group" style="margin-bottom: 12px; text-align: left;">
+          <label for="alertaTipo" style="display:block; margin-bottom: 4px; font-size: 0.85rem; color: #94a3b8;">Tipo de Problema:</label>
+          <select id="alertaTipo" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid #1e293b;">
+            <option value="Vazamento">Vazamento</option>
+            <option value="Bomba não liga">Bomba não liga</option>
+            <option value="Erro na leitura do nível">Erro na leitura do nível</option>
+            <option value="Outro problema">Outro problema</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 15px; text-align: left;">
+          <label for="alertaMensagem" style="display:block; margin-bottom: 4px; font-size: 0.85rem; color: #94a3b8;">Descrição:</label>
+          <textarea id="alertaMensagem" rows="4" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid #1e293b;" placeholder="Explique detalhadamente..." required></textarea>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          <button type="button" onclick="fecharModal('modalChamado')" style="padding: 8px 16px; border-radius: 6px; background: #334155; color: #fff; border: none; cursor: pointer;">Fechar</button>
+          <button type="submit" style="padding: 8px 16px; border-radius: 6px; background: #0284c7; color: #fff; border: none; cursor: pointer;">Enviar Chamado</button>
+        </div>
+      </form>
     </div>
   </div>
 
-  <<!-- MODAL DE CHAMADO / SUPORTE -->
-<div id="modalChamado" class="modal" style="display: none;">
-  <div class="modal-content">
-    <h3>⚠️ Abrir Chamado</h3>
-    <p>Descreva seu problema com o sistema de água</p>
-    
-    <form onsubmit="enviarAlertaTecnico(event)">
-      <div class="form-group" style="margin-bottom: 12px; text-align: left;">
-        <label for="alertaTipo" style="display:block; margin-bottom: 4px; font-size: 0.85rem; color: #94a3b8;">Tipo de Problema:</label>
-        <select id="alertaTipo" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid #1e293b;">
-          <option value="Vazamento">Vazamento</option>
-          <option value="Bomba não liga">Bomba não liga</option>
-          <option value="Erro na leitura do nível">Erro na leitura do nível</option>
-          <option value="Outro problema">Outro problema</option>
-        </select>
-      </div>
+  <!--<button id="btnPerfil" onclick="abrirModalPerfil()">👤 <span id="nomeUsuarioHeader">Meu Perfil</span></button>
+   MODAL DE MEU PERFIL -->
+  <!-- MODAL DE MEU PERFIL -->
+  <div id="modalPerfil" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h3>👤 Perfil do Usuário</h3>
+      <p style="margin-bottom: 15px; color: #94a3b8; font-size: 0.9rem;">Informações da conta cadastrada</p>
 
-      <div class="form-group" style="margin-bottom: 15px; text-align: left;">
-        <label for="alertaMensagem" style="display:block; margin-bottom: 4px; font-size: 0.85rem; color: #94a3b8;">Descrição:</label>
-        <textarea id="alertaMensagem" rows="4" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid #1e293b;" placeholder="Explique detalhadamente..." required></textarea>
-      </div>
+      <form onsubmit="salvarPerfil(event)">
+        <div class="form-group" style="margin-bottom: 12px; text-align: left;">
+          <label for="perfilNome" style="display:block; margin-bottom: 4px; font-size: 0.85rem; color: #94a3b8;">Nome / Usuário:</label>
+          <input type="text" id="perfilNome" value="Nome Dela Aqui" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid #1e293b;" required />
+        </div>
 
-      <div style="display: flex; gap: 10px; justify-content: flex-end;">
-        <button type="button" onclick="fecharModal('modalChamado')" style="padding: 8px 16px; border-radius: 6px; background: #334155; color: #fff; border: none; cursor: pointer;">Fechar</button>
-        <button type="submit" style="padding: 8px 16px; border-radius: 6px; background: #0284c7; color: #fff; border: none; cursor: pointer;">Enviar Chamado</button>
-      </div>
-    </form>
+        <div class="form-group" style="margin-bottom: 12px; text-align: left;">
+          <label for="perfilEmail" style="display:block; margin-bottom: 4px; font-size: 0.85rem; color: #94a3b8;">E-mail:</label>
+          <input type="email" id="perfilEmail" value="emaildela@email.com" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid #1e293b;" required />
+        </div>
+
+        <div class="form-group" style="margin-bottom: 15px; text-align: left;">
+          <label for="perfilSenha" style="display:block; margin-bottom: 4px; font-size: 0.85rem; color: #94a3b8;">Nova Senha (deixe em branco para não alterar):</label>
+          <input type="password" id="perfilSenha" placeholder="••••••••" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid #1e293b;" />
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          <button type="button" onclick="fecharModal('modalPerfil')" style="padding: 8px 16px; border-radius: 6px; background: #334155; color: #fff; border: none; cursor: pointer;">Fechar</button>
+          <button type="submit" style="padding: 8px 16px; border-radius: 6px; background: #10b981; color: #fff; border: none; cursor: pointer;">Salvar Alterações</button>
+        </div>
+      </form>
+    </div>
   </div>
-</div>
-
-<!-- MODAL DE MEU PERFIL -->
-<div id="modalPerfil" class="modal" style="display: none;">
-  <div class="modal-content">
-    <h3>👤 Meu Perfil</h3>
-    <p>Dados da sua conta</p>
-
-    <form onsubmit="salvarPerfil(event)">
-      <div class="form-group" style="margin-bottom: 12px; text-align: left;">
-        <label for="perfilNome" style="display:block; margin-bottom: 4px; font-size: 0.85rem; color: #94a3b8;">Nome / Usuário:</label>
-        <input type="text" id="perfilNome" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid #1e293b;" required />
-      </div>
-
-      <div class="form-group" style="margin-bottom: 12px; text-align: left;">
-        <label for="perfilEmail" style="display:block; margin-bottom: 4px; font-size: 0.85rem; color: #94a3b8;">E-mail:</label>
-        <input type="email" id="perfilEmail" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid #1e293b;" required />
-      </div>
-
-      <div class="form-group" style="margin-bottom: 15px; text-align: left;">
-        <label for="perfilSenha" style="display:block; margin-bottom: 4px; font-size: 0.85rem; color: #94a3b8;">Nova Senha (deixe em branco para não alterar):</label>
-        <input type="password" id="perfilSenha" placeholder="••••••••" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid #1e293b;" />
-      </div>
-
-      <div style="display: flex; gap: 10px; justify-content: flex-end;">
-        <button type="button" onclick="fecharModal('modalPerfil')" style="padding: 8px 16px; border-radius: 6px; background: #334155; color: #fff; border: none; cursor: pointer;">Fechar</button>
-        <button type="submit" style="padding: 8px 16px; border-radius: 6px; background: #10b981; color: #fff; border: none; cursor: pointer;">Salvar Alterações</button>
-      </div>
-    </form>
-  </div>
-</div>
 
 </body>
 </html>
