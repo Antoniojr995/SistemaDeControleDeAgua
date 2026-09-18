@@ -106,27 +106,25 @@ const transporter = nodemailer.createTransport({
 });
 
 // 1. SOLICITAR CÓDIGO DE RECUPERAÇÃO
+// 1. SOLICITAR CÓDIGO DE RECUPERAÇÃO
 app.post('/api/solicitar-codigo', async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ erro: 'Informe o e-mail.' });
 
   try {
-    // Busca o usuário no banco pelo e-mail
+    // CORREÇÃO AQUI: troque 'email = $1' por 'usuario = $1'
     const userResult = await pool.query('SELECT * FROM usuarios WHERE usuario = $1', [email]);
     
-    // Se não encontrar, avisa na hora
     if (userResult.rows.length === 0) {
       return res.status(404).json({ erro: 'E-mail não cadastrado no sistema.' });
     }
 
-    // Gerar código de 6 dígitos
     const codigo = Math.floor(100000 + Math.random() * 900000).toString();
     codigosRecuperacao[email] = {
       codigo,
-      expiracao: Date.now() + 10 * 60 * 1000 // Validade de 10 minutos
+      expiracao: Date.now() + 10 * 60 * 1000
     };
 
-    // Enviar o e-mail para o e-mail do cliente
     await transporter.sendMail({
       from: `"Suporte Nível de Água" <${process.env.EMAIL_USER}>`,
       to: email,

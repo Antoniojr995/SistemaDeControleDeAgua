@@ -21,7 +21,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const data = await response.json();
 
-        if (!response.ok) throw new Error(data.erro || 'Erro ao enviar e-mail.');
+        if (!response.ok) {
+          throw new Error(data.erro || 'Erro ao enviar e-mail.');
+        }
 
         alert('Código enviado com sucesso! Verifique a sua caixa de entrada.');
         
@@ -29,7 +31,9 @@ document.addEventListener('DOMContentLoaded', () => {
         formPasso1.classList.add('hidden');
         formPasso2.classList.remove('hidden');
         formPasso2.classList.add('active');
-        stepDescription.textContent = 'Digite o código de 6 dígitos enviado ao seu e-mail.';
+        if (stepDescription) {
+          stepDescription.textContent = 'Digite o código de 6 dígitos enviado ao seu e-mail.';
+        }
 
       } catch (err) {
         alert(err.message);
@@ -52,13 +56,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const data = await response.json();
 
-        if (!response.ok) throw new Error(data.erro || 'Código inválido.');
+        if (!response.ok) {
+          throw new Error(data.erro || 'Código inválido.');
+        }
 
         formPasso2.classList.remove('active');
         formPasso2.classList.add('hidden');
         formPasso3.classList.remove('hidden');
         formPasso3.classList.add('active');
-        stepDescription.textContent = 'Informe e confirme a sua nova senha.';
+        if (stepDescription) {
+          stepDescription.textContent = 'Informe e confirme a sua nova senha.';
+        }
 
       } catch (err) {
         alert(err.message);
@@ -87,7 +95,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const data = await response.json();
 
-        if (!response.ok) throw new Error(data.erro || 'Erro ao atualizar senha.');
+        if (!response.ok) {
+          throw new Error(data.erro || 'Erro ao atualizar senha.');
+        }
 
         alert('Senha alterada com sucesso!');
         window.location.href = 'index.html';
@@ -98,24 +108,3 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
-
-// Exemplo de chamada na Tela 1 (Solicitar Código)
-async function solicitarCodigo(email) {
-  const response = await fetch('/api/solicitar-codigo', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email })
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    // Exibe o erro retornado pelo servidor ("E-mail não cadastrado no sistema.")
-    alert(data.erro);
-    return;
-  }
-
-  alert('Código enviado para o seu e-mail!');
-  // Avança para a tela de digitar o código
-  mostrarTelaValidarCodigo(email);
-}
