@@ -95,13 +95,12 @@ async function initDb() {
 initDb();
 
 // CONFIGURAÇÃO DE RECUPERAÇÃO DE SENHA (NODEMAILER)
-// CONFIGURAÇÃO DE RECUPERAÇÃO DE SENHA (NODEMAILER)
 const codigosRecuperacao = {};
 
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
   port: 587,
-  secure: false, // usa STARTTLS na 587
+  secure: false,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
@@ -110,6 +109,15 @@ const transporter = nodemailer.createTransport({
     rejectUnauthorized: false
   }
 });
+
+transporter.verify((error, success) => {
+  if (error) {
+    console.error('❌ SMTP ERRO:', error);
+  } else {
+    console.log('✅ SMTP OK:', success);
+  }
+});
+
 
 // 1. SOLICITAR CÓDIGO DE RECUPERAÇÃO
 app.post('/api/solicitar-codigo', async (req, res) => {
