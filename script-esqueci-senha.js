@@ -98,3 +98,24 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+// Exemplo de chamada na Tela 1 (Solicitar Código)
+async function solicitarCodigo(email) {
+  const response = await fetch('/api/solicitar-codigo', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email })
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    // Exibe o erro retornado pelo servidor ("E-mail não cadastrado no sistema.")
+    alert(data.erro);
+    return;
+  }
+
+  alert('Código enviado para o seu e-mail!');
+  // Avança para a tela de digitar o código
+  mostrarTelaValidarCodigo(email);
+}

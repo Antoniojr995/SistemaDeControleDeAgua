@@ -105,6 +105,86 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+// 1. SOLICITAR CÓDIGO DE RECUPERAÇÃO
+app.post('/api/solicitar-codigo', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ erro: 'Informe o e-mail.' });
+
+  try {
+    // Busca o usuário no banco pelo e-mail
+    const userResult = await pool.query('SELECT * FROM usuarios WHERE usuario = $1', [email]);
+    
+    // Se não encontrar, avisa na hora
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ erro: 'E-mail não cadastrado no sistema.' });
+    }
+
+    // Gerar código de 6 dígitos
+    const codigo = Math.floor(100000 + Math.random() * 900000).toString();
+    codigosRecuperacao[email] = {
+      codigo,
+      expiracao: Date.now() + 10 * 60 * 1000 // Validade de 10 minutos
+    };
+
+    // Enviar o e-mail para o e-mail do cliente
+    await transporter.sendMail({
+      from: `"Suporte Nível de Água" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: 'Código de Recuperação de Senha',
+      html: `
+        <div style="font-family: Arial, sans-serif; background: #031229; color: #fff; padding: 20px; border-radius: 8px;">
+          <h2 style="color: #0088ff;">Recuperação de Senha</h2>
+          <p>Seu código de verificação é:</p>
+          <h1 style="color: #0099ff; letter-spacing: 5px;">${codigo}</h1>
+          <p>Este código expira em 10 minutos.</p>
+        </div>
+      `
+    });
+
+    res.json({ mensagem: 'Código enviado com sucesso!' });
+  } catch (error) {
+    console.error('Erro no envio do e-mail:', error);
+    res.status(500).json({ erro: 'Erro ao enviar e-mail. Tente novamente mais tarde.' });
+  }
+});
+
+// 2. VALIDAR CÓDIGO
+app.post('/api/validar-codigo', (req, res) => {
+  const { email, codigo } = req.body;
+  const dados = codigosRecuperacao[email];
+
+  if (!dados) {
+    return res.status(400).json({ erro: 'Nenhum código solicitado para este e-mail.' });
+  }
+  if (Date.now() > dados.expiracao) {
+    delete codigosRecuperacao[email];
+    return res.status(400).json({ erro: 'Código expirado. Solicite um novo.' });
+  }
+  if (dados.codigo !== codigo.trim()) {
+    return res.status(400).json({ erro: 'Código incorreto.' });
+  }
+
+  res.json({ success: true, mensagem: 'Código verificado com sucesso!' });
+});
+
+// 3. REDEFINIR SENHA NO BANCO DE DADOS
+app.post('/api/redefinir-senha', async (req, res) => {
+  const { email, novaSenha } = req.body;
+  const dados = codigosRecuperacao[email];
+
+  if (!dados) {
+    return res.status(400).json({ erro: 'Sessão expirada. Solicite o código novamente.' });
+  }
+
+  try {
+    await pool.query('UPDATE usuarios SET senha = $1 WHERE usuario = $2', [novaSenha, email]);
+    delete codigosRecuperacao[email]; // Apaga o código usado
+    res.json({ success: true, mensagem: 'Senha alterada com sucesso!' });
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao redefinir a senha no banco.' });
+  }
+});
+
 // 1. SOLICITAR CÓDIGO
 app.post('/api/solicitar-codigo', async (req, res) => {
   const { email } = req.body;
