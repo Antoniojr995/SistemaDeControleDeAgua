@@ -100,14 +100,14 @@ const codigosRecuperacao = {};
 
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
-  port: 465,
-  secure: true, // Usa SSL/TLS diretamente na porta 465
+  port: 587,
+  secure: false, // usa STARTTLS na 587
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
   },
   tls: {
-    rejectUnauthorized: false // Evita bloqueios de certificado em servidores como Render
+    rejectUnauthorized: false
   }
 });
 
