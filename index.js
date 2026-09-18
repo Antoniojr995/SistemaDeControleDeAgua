@@ -3,6 +3,7 @@ const express = require('express');
 const { Pool } = require('pg');
 const path = require('path');
 const session = require('express-session');
+const nodemailer = require('nodemailer');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -37,7 +38,7 @@ async function initDb() {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS usuarios (
         id SERIAL PRIMARY KEY,
-        usuario VARCHAR(50) UNIQUE NOT NULL,
+        usuario VARCHAR(100) UNIQUE NOT NULL,
         senha VARCHAR(100) NOT NULL,
         tipo VARCHAR(20) DEFAULT 'usuario'
       )
@@ -71,10 +72,7 @@ async function initDb() {
       )
     `);
     
-    // Adiciona a coluna solucao caso a tabela ja existisse sem ela
-    await pool.query(`
-      ALTER TABLE chamados ADD COLUMN IF NOT EXISTS solucao TEXT;
-    `);
+    await pool.query(`ALTER TABLE chamados ADD COLUMN IF NOT EXISTS solucao TEXT;`);
 
     await pool.query(`
       INSERT INTO usuarios (usuario, senha, tipo) 
@@ -95,6 +93,92 @@ async function initDb() {
 }
 
 initDb();
+
+// CONFIGURAÇÃO DE RECUPERAÇÃO DE SENHA (NODEMAILER)
+const codigosRecuperacao = {};
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
+
+// 1. SOLICITAR CÓDIGO
+app.post('/api/solicitar-codigo', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ erro: 'Informe o e-mail.' });
+
+  try {
+    // Verifica se o e-mail existe no banco de dados
+    const userResult = await pool.query('SELECT * FROM usuarios WHERE usuario = $1', [email]);
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ erro: 'E-mail não cadastrado no sistema.' });
+    }
+
+    const codigo = Math.floor(100000 + Math.random() * 900000).toString();
+    codigosRecuperacao[email] = {
+      codigo,
+      expiracao: Date.now() + 10 * 60 * 1000 // Expira em 10 min
+    };
+
+    await transporter.sendMail({
+      from: `"Sistema Nível de Água" <${process.env.EMAIL_USER}>`, // Remetente dinâmico corrigido
+      to: email,
+      subject: 'Código de Recuperação de Senha',
+      html: `
+        <div style="font-family: Arial, sans-serif; background: #031229; color: #fff; padding: 20px; border-radius: 8px;">
+          <h2 style="color: #0088ff;">Recuperação de Senha</h2>
+          <p>Seu código de verificação é:</p>
+          <h1 style="color: #0099ff; letter-spacing: 5px;">${codigo}</h1>
+          <p>O código expira em 10 minutos.</p>
+        </div>
+      `
+    });
+
+    res.json({ mensagem: 'Código enviado com sucesso!' });
+  } catch (error) {
+    console.error('Erro no envio de e-mail:', error);
+    res.status(500).json({ erro: 'Erro ao enviar o e-mail. Verifique as credenciais SMTP.' });
+  }
+});
+
+// 2. VALIDAR CÓDIGO
+app.post('/api/validar-codigo', (req, res) => {
+  const { email, codigo } = req.body;
+  const dados = codigosRecuperacao[email];
+
+  if (!dados) return res.status(400).json({ erro: 'Nenhum código solicitado para este e-mail.' });
+  if (Date.now() > dados.expiracao) {
+    delete codigosRecuperacao[email];
+    return res.status(400).json({ erro: 'Código expirado. Solicite um novo.' });
+  }
+  if (dados.codigo !== codigo.trim()) {
+    return res.status(400).json({ erro: 'Código incorreto.' });
+  }
+
+  res.json({ mensagem: 'Código verificado com sucesso!' });
+});
+
+// 3. REDEFINIR SENHA
+app.post('/api/redefinir-senha', async (req, res) => {
+  const { email, novaSenha } = req.body;
+  const dados = codigosRecuperacao[email];
+
+  if (!dados) {
+    return res.status(400).json({ erro: 'Sessão de recuperação inválida ou expirada.' });
+  }
+
+  try {
+    await pool.query('UPDATE usuarios SET senha = $1 WHERE usuario = $2', [novaSenha, email]);
+    delete codigosRecuperacao[email]; // Limpa a memória após alterar
+    res.json({ success: true, mensagem: 'Senha alterada com sucesso!' });
+  } catch (err) {
+    console.error('Erro ao atualizar senha:', err);
+    res.status(500).json({ erro: 'Erro ao redefinir a senha no banco.' });
+  }
+});
 
 // GERENCIAMENTO DE CAIXAS
 app.post('/api/caixas', requererAutenticacao, async (req, res) => {
@@ -237,7 +321,6 @@ app.get("/api/admin/clientes/:id", requererAutenticacao, async (req, res) => {
     const cliente = clienteQuery.rows[0];
     const caixasQuery = await pool.query("SELECT id, nome FROM caixas WHERE usuario_id = $1", [id]);
     
-    // Busca historico de chamados do cliente pelo nome de usuario
     const chamadosQuery = await pool.query(
       "SELECT id, assunto, mensagem, solucao, status, TO_CHAR(data_hora, 'DD/MM/YYYY HH24:MI') as data_hora FROM chamados WHERE cliente_nome = $1 ORDER BY id DESC",
       [cliente.usuario]
@@ -253,68 +336,6 @@ app.get("/api/admin/clientes/:id", requererAutenticacao, async (req, res) => {
   }
 });
 
-const nodemailer = require('nodemailer');
-
-// Armazenamento temporário dos códigos na memória
-const codigosRecuperacao = {};
-
-// Configuração do Gmail
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER, // Seu e-mail cadastrado nas variáveis do Render
-    pass: process.env.EMAIL_PASS  // Sua Senha de App do Google de 16 caracteres
-  }
-});
-
-// Rota 1: Enviar Código
-app.post('/api/solicitar-codigo', async (req, res) => {
-  const { email } = req.body;
-  if (!email) return res.status(400).json({ erro: 'Informe o e-mail.' });
-
-  const codigo = Math.floor(100000 + Math.random() * 900000).toString();
-  codigosRecuperacao[email] = {
-    codigo,
-    expiracao: Date.now() + 10 * 60 * 1000 // Validade de 10 minutos
-  };
-
-  try {
-    await transporter.sendMail({
-      from: '"Sistema Nível de Água" <seu-email@gmail.com>',
-      to: email,
-      subject: 'Código de Recuperação de Senha',
-      html: `
-        <div style="font-family: Arial, sans-serif; background: #031229; color: #fff; padding: 20px; border-radius: 8px;">
-          <h2 style="color: #0088ff;">Recuperação de Senha</h2>
-          <p>Seu código de verificação é:</p>
-          <h1 style="color: #0099ff; letter-spacing: 5px;">${codigo}</h1>
-          <p>O código expira em 10 minutos.</p>
-        </div>
-      `
-    });
-    res.json({ mensagem: 'Código enviado com sucesso!' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ erro: 'Erro ao enviar o e-mail.' });
-  }
-});
-
-// Rota 2: Validar Código
-app.post('/api/validar-codigo', (req, res) => {
-  const { email, codigo } = req.body;
-  const dados = codigosRecuperacao[email];
-
-  if (!dados) return res.status(400).json({ erro: 'Nenhum código encontrado.' });
-  if (Date.now() > dados.expiracao) {
-    delete codigosRecuperacao[email];
-    return res.status(400).json({ erro: 'Código expirado.' });
-  }
-  if (dados.codigo !== codigo) return res.status(400).json({ erro: 'Código incorreto.' });
-
-  res.json({ mensagem: 'Código confirmado!' });
-});
-
-// ROTA DE COMPATIBILIDADE / ALIAS PARA O PAINEL DO CLIENTE
 app.post('/api/alertas', requererAutenticacao, async (req, res) => {
   const { cliente_nome, assunto, mensagem, tipo_problema, descricao } = req.body;
   const usuarioLogado = req.session.usuario || cliente_nome || 'Cliente';
@@ -471,7 +492,7 @@ app.get('/api/usuario-atual', (req, res) => {
   }
 });
 
-// 1. ROTA DE HISTÓRICO (Corrige o erro GET /api/historico/1)
+// HISTÓRICO E RELATÓRIOS
 app.get('/api/historico/:caixaId', requererAutenticacao, async (req, res) => {
   try {
     const result = await pool.query(`
@@ -490,7 +511,6 @@ app.get('/api/historico/:caixaId', requererAutenticacao, async (req, res) => {
   }
 });
 
-// 2. ROTA DE RELATÓRIO (Atende a geração de relatórios por período)
 app.post('/api/relatorio', requererAutenticacao, async (req, res) => {
   const { dataInicio, dataFim } = req.body;
   try {
@@ -510,7 +530,6 @@ app.post('/api/relatorio', requererAutenticacao, async (req, res) => {
   }
 });
 
-// ROTA QUE ESTAVA FALTANDO PARA O PAINEL DO CLIENTE
 app.get('/api/dados/latest', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM leituras ORDER BY id DESC LIMIT 1');
