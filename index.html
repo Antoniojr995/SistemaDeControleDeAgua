@@ -3,17 +3,127 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - Sistema de Monitoramento</title>
-  <link rel="stylesheet" href="styles.css">
+  <title>Login - Sistema de Controle de Nível de Água</title>
+  <link rel="stylesheet" href="login.css">
+  <!-- Ícones do Lucide / FontAwesome para os detalhes do formulário e destaques -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-  <div class="login-container">
-    <h2>🔒 Login no Sistema</h2>
-    <input id="email" type="email" placeholder="E-mail" required><br>
-    <input id="senha" type="password" placeholder="Senha" required><br>
-    <button id="btnLogin">Entrar</button>
+  <div class="page-wrapper">
+    <main class="main-container">
+      
+      <!-- Lado Esquerdo: Informações do Sistema -->
+      <section class="info-section">
+        <div class="brand-header">
+          <div class="brand-icon">
+            <i class="fa-solid fa-droplet"></i>
+          </div>
+          <div class="brand-text">
+            <h1>Sistema de Controle de <span>Nível de Água</span></h1>
+            <p>Monitore e gerencie seus reservatórios com segurança e praticidade.</p>
+          </div>
+        </div>
 
-    <p id="mensagem" style="color:red;"></p>
+        <div class="illustration-area">
+          <div class="tank-wrapper">
+            <!-- Imagem da caixa d'água -->
+            <img src="caixa-dagua.png" alt="Reservatório de Água" class="tank-img">
+          </div>
+
+          <div class="features-card">
+            <div class="feature-item">
+              <i class="fa-solid fa-box-archive"></i>
+              <div>
+                <strong>2 Caixas d'Água</strong>
+                <p>Monitoradas</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <i class="fa-solid fa-shield-halved"></i>
+              <div>
+                <strong>Bomba Controlada</strong>
+                <p>Automaticamente</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <i class="fa-solid fa-wifi"></i>
+              <div>
+                <strong>Acesso Online</strong>
+                <p>Em tempo real</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="highlights-row">
+          <div class="highlight-item">
+            <i class="fa-solid fa-circle-check"></i>
+            <div>
+              <strong>Mais Segurança</strong>
+              <p>Evite o desperdício de água</p>
+            </div>
+          </div>
+          <div class="highlight-item">
+            <i class="fa-solid fa-gear"></i>
+            <div>
+              <strong>Total Controle</strong>
+              <p>Acompanhe de qualquer lugar</p>
+            </div>
+          </div>
+          <div class="highlight-item">
+            <i class="fa-solid fa-clock"></i>
+            <div>
+              <strong>Praticidade</strong>
+              <p>Sistema simples e eficiente</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Lado Direito: Card de Login -->
+      <section class="login-section">
+        <div class="login-card">
+          <div class="login-header">
+            <div class="lock-circle">
+              <i class="fa-solid fa-lock"></i>
+            </div>
+            <h2>Login no Sistema</h2>
+            <p>Acesse sua conta para continuar</p>
+          </div>
+
+          <form id="formLogin" onsubmit="return false;">
+            <div class="input-group">
+              <i class="fa-regular fa-envelope input-icon"></i>
+              <input id="email" type="email" placeholder="E-mail" required>
+            </div>
+
+            <div class="input-group">
+              <i class="fa-solid fa-lock input-icon"></i>
+              <input id="senha" type="password" placeholder="Senha" required>
+              <i class="fa-regular fa-eye-slash toggle-password"></i>
+            </div>
+
+            <button id="btnLogin" type="submit">
+              <i class="fa-solid fa-right-to-bracket"></i> Entrar
+            </button>
+          </form>
+
+          <a href="#" class="forgot-password">
+            <i class="fa-solid fa-user-plus"></i> Esqueceu sua senha?
+          </a>
+
+          <p id="mensagem"></p>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="footer">
+      <i class="fa-solid fa-droplet"></i>
+      <span>Sistema de Controle de Nível de Água</span>
+      <span class="divider">|</span>
+      <span>© 2026 - Todos os direitos reservados.</span>
+    </footer>
   </div>
 
   <script src="script-login.js"></script>
