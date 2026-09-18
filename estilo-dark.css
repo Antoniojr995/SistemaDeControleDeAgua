@@ -426,3 +426,22 @@
   .sidebar-menu {
     flex-grow: 1;
   }
+
+  /* Efeito de ondas/linhas no fundo da página */
+body {
+    background-color: #030813 !important;
+    background-image: 
+      radial-gradient(circle at 50% 0%, rgba(13, 71, 161, 0.25) 0%, transparent 75%),
+      radial-gradient(circle at 100% 100%, rgba(2, 136, 209, 0.15) 0%, transparent 60%),
+      repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0px, rgba(255, 255, 255, 0.02) 1px, transparent 1px, transparent 12px) !important;
+    background-attachment: fixed !important;
+  }
+
+  body {
+    background-color: #030813 !important;
+    background-image: url('fundo-ondas.svg') !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    background-attachment: fixed !important;
+  }
