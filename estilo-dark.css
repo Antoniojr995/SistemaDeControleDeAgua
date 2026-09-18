@@ -1,0 +1,91 @@
+:root {
+    --bg-main: #030a16;
+    --bg-card: #081730;
+    --bg-input: #0c2042;
+    --border-card: #13305c;
+    --border-input: #1a427a;
+    --primary-blue: #0088ff;
+    --primary-hover: #0066cc;
+    --text-main: #ffffff;
+    --text-muted: #8ab4f8;
+  }
+  
+  body {
+    background-color: var(--bg-main) !important;
+    color: var(--text-main) !important;
+    font-family: 'Segoe UI', system-ui, sans-serif !important;
+    margin: 0;
+    padding: 20px;
+  }
+  
+  /* CARDS E PAINÉIS */
+  .card, .panel, fieldset, form {
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--border-card) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+    color: var(--text-main) !important;
+    padding: 20px !important;
+  }
+  
+  /* TÍTULOS E TEXTOS */
+  h1, h2, h3, h4, label {
+    color: var(--text-main) !important;
+  }
+  
+  label {
+    font-weight: 600 !important;
+    margin-bottom: 8px !important;
+    display: block;
+  }
+  
+  /* INPUTS E SELECTS */
+  input, select, textarea {
+    background-color: var(--bg-input) !important;
+    border: 1px solid var(--border-input) !important;
+    border-radius: 8px !important;
+    color: #ffffff !important;
+    padding: 12px 16px !important;
+    outline: none !important;
+    transition: border-color 0.2s ease !important;
+  }
+  
+  input:focus, select:focus {
+    border-color: var(--primary-blue) !important;
+    box-shadow: 0 0 0 3px rgba(0, 136, 255, 0.25) !important;
+  }
+  
+  select option {
+    background-color: var(--bg-card) !important;
+    color: var(--text-main) !important;
+  }
+  
+  /* BOTÕES */
+  button, .btn, input[type="submit"] {
+    background: linear-gradient(135deg, #0088ff 0%, #0055ff 100%) !important;
+    border: none !important;
+    border-radius: 8px !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    padding: 12px 24px !important;
+    cursor: pointer !important;
+    transition: transform 0.1s ease, filter 0.2s ease !important;
+  }
+  
+  button:hover, .btn:hover {
+    filter: brightness(1.15) !important;
+  }
+  
+  button:active {
+    transform: scale(0.98) !important;
+  }
+  
+  /* NAV / ABAS */
+  .nav-tabs, .menu-container {
+    border-bottom: 1px solid var(--border-card) !important;
+  }
+  
+  .nav-link.active, .btn-primary {
+    background-color: var(--primary-blue) !important;
+    border-color: var(--primary-blue) !important;
+  }
