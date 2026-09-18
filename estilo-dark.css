@@ -415,3 +415,14 @@
 .modal-box-dark div[style*="background: #d4edda"] * {
   color: #00e676 !important;
 }
+
+/* Fixar o menu lateral no topo */
+.sidebar-container {
+    justify-content: flex-start !important;
+    gap: 20px;
+  }
+  
+  /* Fazer o menu ocupante o espaço restante para empurrar o cartão para o fundo */
+  .sidebar-menu {
+    flex-grow: 1;
+  }
