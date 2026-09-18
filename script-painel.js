@@ -355,6 +355,32 @@ window.enviarAlertaTecnico = async function(event) {
   }
 };
 
+// Função para carregar e exibir os dados fixos do usuário no topo
+async function carregarDadosUsuario() {
+  try {
+    const res = await fetch(API_BASE + "/api/usuario-atual", {
+      headers: { Authorization: "Bearer " + token }
+    });
+    const dados = await res.json();
+
+    if (res.ok && dados.logado) {
+      const elNomeHeader = document.getElementById("nomeUsuarioHeader");
+      if (elNomeHeader) {
+        // Exibe o nome retornado do banco de dados no botão superior
+        elNomeHeader.innerText = dados.nome || dados.usuario || "Perfil";
+      }
+    }
+  } catch (err) {
+    console.error("Erro ao carregar dados do usuário:", err);
+  }
+}
+
+// Chame a função dentro do DOMContentLoaded para carregar assim que a página abrir:
+document.addEventListener("DOMContentLoaded", () => {
+  // ... seus outros códigos ...
+  carregarDadosUsuario();
+});
+
 // =======================
 // 📁 Relatórios
 // =======================
@@ -458,3 +484,19 @@ window.salvarPerfil = async function(event) {
     alert("❌ Erro de conexão com o servidor.");
   }
 };
+
+// Função para abrir o modal de perfil
+function abrirPerfil() {
+  const modal = document.getElementById('modalPerfil');
+  if (modal) {
+    modal.style.display = 'flex';
+  }
+}
+
+// Função para fechar qualquer modal pelo ID
+function fecharModal(idModal) {
+  const modal = document.getElementById(idModal);
+  if (modal) {
+    modal.style.display = 'none';
+  }
+}
