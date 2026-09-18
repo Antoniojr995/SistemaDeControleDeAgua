@@ -65,10 +65,19 @@
   }
   
   .illustration-area {
+    width: 100%;
+    margin-bottom: 30px;
     display: flex;
-    align-items: center;
-    gap: 25px;
-    margin-bottom: 40px;
+    justify-content: center;
+  }
+  
+  .full-illustration-img {
+    width: 100%;
+    max-width: 650px; /* Aumenta a imagem para ocupar toda a largura igual ao modelo */
+    height: auto;
+    border-radius: 16px;
+    object-fit: contain;
+    filter: drop-shadow(0 10px 25px rgba(0, 102, 255, 0.25));
   }
   
   .tank-wrapper {
