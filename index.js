@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const { Pool } = require('pg');
 const path = require('path');
@@ -250,6 +251,67 @@ app.get("/api/admin/clientes/:id", requererAutenticacao, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: "Erro ao buscar dados do cliente" });
   }
+});
+
+const nodemailer = require('nodemailer');
+
+// Armazenamento temporário dos códigos na memória
+const codigosRecuperacao = {};
+
+// Configuração do Gmail
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER, // Seu e-mail cadastrado nas variáveis do Render
+    pass: process.env.EMAIL_PASS  // Sua Senha de App do Google de 16 caracteres
+  }
+});
+
+// Rota 1: Enviar Código
+app.post('/api/solicitar-codigo', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ erro: 'Informe o e-mail.' });
+
+  const codigo = Math.floor(100000 + Math.random() * 900000).toString();
+  codigosRecuperacao[email] = {
+    codigo,
+    expiracao: Date.now() + 10 * 60 * 1000 // Validade de 10 minutos
+  };
+
+  try {
+    await transporter.sendMail({
+      from: '"Sistema Nível de Água" <seu-email@gmail.com>',
+      to: email,
+      subject: 'Código de Recuperação de Senha',
+      html: `
+        <div style="font-family: Arial, sans-serif; background: #031229; color: #fff; padding: 20px; border-radius: 8px;">
+          <h2 style="color: #0088ff;">Recuperação de Senha</h2>
+          <p>Seu código de verificação é:</p>
+          <h1 style="color: #0099ff; letter-spacing: 5px;">${codigo}</h1>
+          <p>O código expira em 10 minutos.</p>
+        </div>
+      `
+    });
+    res.json({ mensagem: 'Código enviado com sucesso!' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ erro: 'Erro ao enviar o e-mail.' });
+  }
+});
+
+// Rota 2: Validar Código
+app.post('/api/validar-codigo', (req, res) => {
+  const { email, codigo } = req.body;
+  const dados = codigosRecuperacao[email];
+
+  if (!dados) return res.status(400).json({ erro: 'Nenhum código encontrado.' });
+  if (Date.now() > dados.expiracao) {
+    delete codigosRecuperacao[email];
+    return res.status(400).json({ erro: 'Código expirado.' });
+  }
+  if (dados.codigo !== codigo) return res.status(400).json({ erro: 'Código incorreto.' });
+
+  res.json({ mensagem: 'Código confirmado!' });
 });
 
 // ROTA DE COMPATIBILIDADE / ALIAS PARA O PAINEL DO CLIENTE
