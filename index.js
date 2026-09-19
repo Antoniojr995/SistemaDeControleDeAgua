@@ -3,11 +3,11 @@ const express = require('express');
 const { Pool } = require('pg');
 const path = require('path');
 const session = require('express-session');
-const nodemailer = require('nodemailer');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// CONEXÃO COM O BANCO DE DADOS
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
@@ -94,43 +94,56 @@ async function initDb() {
 
 initDb();
 
-// CONFIGURAÇÃO DE RECUPERAÇÃO DE SENHA (NODEMAILER)
+// CONFIGURAÇÃO DE RECUPERAÇÃO DE SENHA (BREVO API HTTP)
 const codigosRecuperacao = {};
 
-console.log('EMAIL_USER:', process.env.EMAIL_USER);
-console.log('EMAIL_PASS existe:', !!process.env.EMAIL_PASS);
+async function enviarEmailBrevo(destino, codigo) {
+  const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      'accept': 'application/json',
+      'api-key': process.env.EMAIL_PASS, // Sua chave v3 que começa com xkeysib-...
+      'content-type': 'application/json'
+    },
+    body: JSON.stringify({
+      sender: {
+        name: 'Suporte Nível de Água',
+        email: process.env.EMAIL_USER
+      },
+      to: [{ email: destino }],
+      subject: 'Código de Recuperação de Senha',
+      htmlContent: `
+        <div style="font-family: Arial, sans-serif; background: #031229; color: #fff; padding: 20px; border-radius: 8px;">
+          <h2 style="color: #0088ff;">Recuperação de Senha</h2>
+          <p>Seu código de verificação é:</p>
+          <h1 style="color: #0099ff; letter-spacing: 5px;">${codigo}</h1>
+          <p>Este código expira em 10 minutos.</p>
+        </div>
+      `
+    })
+  });
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp-relay.brevo.com',
-  port: 465,
-  secure: true, // deve ser true para a porta 465
-  family: 4,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Falha ao enviar e-mail via API Brevo');
   }
-});
 
-transporter.verify((error, success) => {
-  if (error) {
-    console.error('❌ SMTP ERRO:', error.message);
-  } else {
-    console.log('✅ SMTP OK:', success);
-  }
-});
-
-
+  return await response.json();
+}
 
 // 1. SOLICITAR CÓDIGO DE RECUPERAÇÃO
 app.post('/api/solicitar-codigo', async (req, res) => {
   const { email } = req.body;
-  if (!email) return res.status(400).json({ erro: 'Informe o e-mail.' });
+
+  if (!email) {
+    return res.status(400).json({ error: 'Informe o e-mail.' });
+  }
 
   try {
     const userResult = await pool.query('SELECT * FROM usuarios WHERE usuario = $1', [email]);
     
     if (userResult.rows.length === 0) {
-      return res.status(404).json({ erro: 'E-mail não cadastrado no sistema.' });
+      return res.status(404).json({ error: 'E-mail não cadastrado no sistema.' });
     }
 
     const codigo = Math.floor(100000 + Math.random() * 900000).toString();
@@ -139,24 +152,12 @@ app.post('/api/solicitar-codigo', async (req, res) => {
       expiracao: Date.now() + 10 * 60 * 1000
     };
 
-    await transporter.sendMail({
-      from: `"Suporte Nível de Água" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: 'Código de Recuperação de Senha',
-      html: `
-        <div style="font-family: Arial, sans-serif; background: #031229; color: #fff; padding: 20px; border-radius: 8px;">
-          <h2 style="color: #0088ff;">Recuperação de Senha</h2>
-          <p>Seu código de verificação é:</p>
-          <h1 style="color: #0099ff; letter-spacing: 5px;">${codigo}</h1>
-          <p>Este código expira em 10 minutos.</p>
-        </div>
-      `
-    });
-
-    res.json({ mensagem: 'Código enviado com sucesso!' });
+    await enviarEmailBrevo(email, codigo);
+    console.log(`✅ Código enviado via API Brevo para ${email}`);
+    res.json({ message: 'Código de verificação enviado com sucesso!' });
   } catch (error) {
-    console.error('ERRO DETALHADO NO NODEMAILER:', error);
-    res.status(500).json({ erro: 'Erro ao enviar o e-mail. Verifique as credenciais SMTP no Render.' });
+    console.error('❌ ERRO NO ENVIO BREVO:', error.message);
+    res.status(500).json({ error: 'Erro ao enviar o e-mail. Verifique a chave de API no Render.' });
   }
 });
 
