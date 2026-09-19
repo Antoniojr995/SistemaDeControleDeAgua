@@ -102,9 +102,9 @@ console.log('EMAIL_PASS existe:', !!process.env.EMAIL_PASS);
 
 const transporter = nodemailer.createTransport({
   host: 'smtp-relay.brevo.com',
-  port: 587,
-  secure: false,
-  family: 4, // Força o uso de IPv4 no Node.js
+  port: 465,
+  secure: true, // deve ser true para a porta 465
+  family: 4,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
