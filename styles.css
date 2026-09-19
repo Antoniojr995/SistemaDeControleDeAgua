@@ -560,3 +560,17 @@ td {
   max-width: 450px; /* Define o tamanho correto da caixa do modal */
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 }
+
+/* Garante que o container do gráfico seja perfeitamente redondo e sem fundos estranhos */
+.chart-container, 
+canvas {
+    background: transparent !important; /* Remove o fundo quadrado cinzento/escuro */
+    border-radius: 50%;                 /* Garante a curvatura perfeita */
+    overflow: hidden;                   /* Esconde pontas quadradas que sobram */
+}
+
+/* Caso estejas a usar um elemento customizado para o gráfico circular */
+.circle-chart-background {
+    stroke: rgba(255, 255, 255, 0.05); /* Cor suave do anel vazio sem criar quadrado */
+    fill: none !important;              /* Impede o preenchimento retangular */
+}

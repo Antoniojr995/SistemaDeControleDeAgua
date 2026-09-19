@@ -487,6 +487,32 @@ window.salvarPerfil = async function(event) {
   }
 };
 
+// Exemplo de função ao receber os dados do backend
+function atualizarPainel(dadosCaixa1, dadosCaixa2) {
+  // 1. Converter explicitamente para Número
+  const pct1 = Number(dadosCaixa1.porcentagem) || 0;
+  const vol1 = Number(dadosCaixa1.volumeAtual) || 0;
+  const cap1 = Number(dadosCaixa1.capacidadeMaxima) || 1000;
+
+  const pct2 = Number(dadosCaixa2.porcentagem) || 0;
+  const vol2 = Number(dadosCaixa2.volumeAtual) || 0;
+  const cap2 = Number(dadosCaixa2.capacidadeMaxima) || 1000;
+
+  // 2. Atualizar os textos do HTML
+  document.querySelector('#caixa1 .percent-text').innerText = `${pct1}%`;
+  document.querySelector('#caixa1 .vol-atual').innerText = `${vol1} L`;
+
+  document.querySelector('#caixa2 .percent-text').innerText = `${pct2}%`;
+  document.querySelector('#caixa2 .vol-atual').innerText = `${vol2} L`;
+
+  // 3. Atualizar o gráfico (Exemplo usando Chart.js)
+  graficoCaixa1.data.datasets[0].data = [pct1, 100 - pct1];
+  graficoCaixa1.update();
+
+  graficoCaixa2.data.datasets[0].data = [pct2, 100 - pct2];
+  graficoCaixa2.update();
+}
+
 // Função para abrir o modal de perfil
 function abrirPerfil() {
   const modal = document.getElementById('modalPerfil');
