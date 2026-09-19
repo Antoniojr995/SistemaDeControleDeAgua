@@ -137,24 +137,39 @@ async function fetchLatest() {
 
     const d = await res.json();
 
-    const valC1 = d.caixa1 ?? d.nivel ?? 0;
-    const valC2 = d.caixa2 ?? 0;
+    const valC1 = Number(d.caixa1 ?? d.nivel ?? 0);
+    const valC2 = Number(d.caixa2 ?? 0);
 
+    // 1. Atualizar Textos da Porcentagem
     const perc1 = document.getElementById("percCaixa1");
     const perc2 = document.getElementById("percCaixa2");
     if (perc1) perc1.innerText = `${valC1}%`;
     if (perc2) perc2.innerText = `${valC2}%`;
 
+    // 2. ATUALIZAR OS CÍRCULOS REDONDOS (conic-gradient)
+    const ring1 = document.querySelector(".card-caixa:nth-child(1) .ring-circle");
+    const ring2 = document.querySelector(".card-caixa:nth-child(2) .ring-circle");
+
+    if (ring1) {
+      ring1.style.background = `conic-gradient(#38bdf8 0% ${valC1}%, #082247 ${valC1}% 100%)`;
+    }
+    if (ring2) {
+      ring2.style.background = `conic-gradient(#38bdf8 0% ${valC2}%, #082247 ${valC2}% 100%)`;
+    }
+
+    // 3. Atualizar Volumes em Litros
     const vol1Text = document.getElementById("volCaixa1");
     const vol2Text = document.getElementById("volCaixa2");
     if (vol1Text) vol1Text.innerText = `${Math.round((valC1 / 100) * 1000)} L`;
     if (vol2Text) vol2Text.innerText = `${Math.round((valC2 / 100) * 1000)} L`;
 
+    // 4. Atualizar Barras Retas de Progresso
     const bar1 = document.getElementById("barCaixa1");
     const bar2 = document.getElementById("barCaixa2");
     if (bar1) bar1.style.width = `${valC1}%`;
     if (bar2) bar2.style.width = `${valC2}%`;
 
+    // 5. Data de Atualização
     const elData = document.getElementById("dataAtualizacao");
     if (elData) {
       const agora = new Date();
