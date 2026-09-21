@@ -299,34 +299,37 @@
   </div>
 
   <!-- MODAL DE MEU PERFIL -->
-  <div id="modalPerfil" class="modal" style="display: none;">
-    <div class="modal-content">
-      <h3>👤 Perfil do Usuário</h3>
-      <p style="margin-bottom: 15px; color: #94a3b8; font-size: 0.9rem;">Informações da conta cadastrada</p>
+ <!-- Modal Perfil Simplificado -->
+<div id="modalPerfil" class="modal" style="display: none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>👤 Perfil do Usuário</h2>
+      <p>Informações da conta vinculada</p>
+    </div>
+    
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Nome / Usuário:</label>
+        <input type="text" id="perfilNome" value="Antonio Bezerra" readonly style="opacity: 0.8; cursor: not-allowed;">
+      </div>
 
-      <form onsubmit="salvarPerfil(event)">
-        <div class="form-group" style="margin-bottom: 12px; text-align: left;">
-          <label for="perfilNome" style="display:block; margin-bottom: 4px; font-size: 0.85rem; color: #94a3b8;">Nome / Usuário:</label>
-          <input type="text" id="perfilNome" value="Nome Dela Aqui" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid #1e293b;" required />
-        </div>
+      <div class="form-group">
+        <label>E-mail:</label>
+        <input type="email" id="perfilEmail" value="elaine@teste.com" readonly style="opacity: 0.8; cursor: not-allowed;">
+      </div>
 
-        <div class="form-group" style="margin-bottom: 12px; text-align: left;">
-          <label for="perfilEmail" style="display:block; margin-bottom: 4px; font-size: 0.85rem; color: #94a3b8;">E-mail:</label>
-          <input type="email" id="perfilEmail" value="emaildela@email.com" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid #1e293b;" required />
-        </div>
+      <div class="form-group">
+        <label>ID do Reservatório:</label>
+        <input type="text" id="perfilCaixaId" value="ID: 1 (Caixa Principal)" readonly style="opacity: 0.8; cursor: not-allowed;">
+      </div>
+    </div>
 
-        <div class="form-group" style="margin-bottom: 15px; text-align: left;">
-          <label for="perfilSenha" style="display:block; margin-bottom: 4px; font-size: 0.85rem; color: #94a3b8;">Nova Senha (deixe em branco para não alterar):</label>
-          <input type="password" id="perfilSenha" placeholder="••••••••" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid #1e293b;" />
-        </div>
-
-        <div style="display: flex; gap: 10px; justify-content: flex-end;">
-          <button type="button" onclick="fecharModal('modalPerfil')" style="padding: 8px 16px; border-radius: 6px; background: #334155; color: #fff; border: none; cursor: pointer;">Fechar</button>
-          <button type="submit" style="padding: 8px 16px; border-radius: 6px; background: #10b981; color: #fff; border: none; cursor: pointer;">Salvar Alterações</button>
-        </div>
-      </form>
+    <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+      <a href="configuracoes.html" style="color: #38bdf8; text-decoration: none; font-size: 0.9rem;">⚙️ Ir para Configurações</a>
+      <button type="button" class="btn-fechar" onclick="fecharModalPerfil()">Fechar</button>
     </div>
   </div>
+</div>
 
 </body>
 </html>
