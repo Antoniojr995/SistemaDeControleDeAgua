@@ -1,0 +1,165 @@
+/* Layout da Página de Ajuda */
+.ajuda-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+    margin-top: 20px;
+  }
+  
+  @media (max-width: 900px) {
+    .ajuda-container {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  /* Seções */
+  .faq-section, .contato-section {
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    padding: 24px;
+  }
+  
+  .faq-section h2, .contato-section h2 {
+    font-size: 1.2rem;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  
+  .section-desc {
+    color: #64748b;
+    font-size: 0.88rem;
+    margin-bottom: 20px;
+  }
+  
+  /* FAQ (Accordion estilo details/summary) */
+  .faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .faq-item {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  
+  .faq-item:hover {
+    border-color: #0284c7;
+  }
+  
+  .faq-item summary {
+    padding: 14px 16px;
+    font-weight: 600;
+    color: #f1f5f9;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.95rem;
+  }
+  
+  .faq-item summary::-webkit-details-marker {
+    display: none;
+  }
+  
+  .faq-item summary::after {
+    content: '➕';
+    font-size: 0.8rem;
+  }
+  
+  .faq-item[open] summary::after {
+    content: '➖';
+  }
+  
+  .faq-answer {
+    padding: 0 16px 14px 16px;
+    color: #94a3b8;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    border-top: 1px solid #334155;
+    margin-top: 8px;
+    padding-top: 10px;
+  }
+  
+  /* Formulário de Suporte */
+  .form-suporte .form-group {
+    margin-bottom: 16px;
+  }
+  
+  .form-suporte label {
+    display: block;
+    color: #cbd5e1;
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+  }
+  
+  .form-suporte select,
+  .form-suporte textarea {
+    width: 100%;
+    padding: 10px 14px;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 0.95rem;
+    font-family: inherit;
+    resize: vertical;
+  }
+  
+  .form-suporte select:focus,
+  .form-suporte textarea:focus {
+    outline: none;
+    border-color: #0284c7;
+  }
+  
+  .btn-enviar-mensagem {
+    width: 100%;
+    background: #0284c7;
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.95rem;
+    transition: background 0.2s;
+  }
+  
+  .btn-enviar-mensagem:hover {
+    background: #0369a1;
+  }
+  
+  /* Card WhatsApp */
+  .suporte-direto-card {
+    margin-top: 24px;
+    padding-top: 18px;
+    border-top: 1px solid #1e293b;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    text-align: center;
+    color: #cbd5e1;
+    font-size: 0.9rem;
+  }
+  
+  .btn-whatsapp-suporte {
+    display: inline-block;
+    background: #22c55e;
+    color: #fff;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+  }
+  
+  .btn-whatsapp-suporte:hover {
+    background: #16a34a;
+  }

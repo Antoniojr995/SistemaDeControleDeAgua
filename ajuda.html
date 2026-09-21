@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ajuda e Suporte - ControlÁgua</title>
+  
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="ajuda.css">
+</head>
+<body class="dashboard-body">
+
+  <div class="app-layout">
+    <!-- Menu Lateral -->
+    <aside class="sidebar">
+      <div>
+        <div class="sidebar-logo"><span class="drop-icon-header">💧</span></div>
+        <nav class="sidebar-nav">
+          <a href="painel.html" class="nav-item"><span>🏠</span> Início</a>
+          <a href="reservatorios.html" class="nav-item"><span>🛢️</span> Reservatórios</a>
+          <a href="historico.html" class="nav-item"><span>📊</span> Histórico</a>
+          <a href="configuracoes.html" class="nav-item"><span>⚙️</span> Configurações</a>
+          <a href="ajuda.html" class="nav-item active"><span>❓</span> Ajuda</a>
+        </nav>
+      </div>
+    </aside>
+
+    <!-- Conteúdo Principal -->
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <h1>❓ Centro de Ajuda e Suporte</h1>
+          <p>Tire as suas dúvidas sobre o sistema e entre em contacto com o suporte</p>
+        </div>
+      </header>
+
+      <div class="ajuda-container">
+        
+        <!-- Coluna Esquerda: Perguntas Frequentes (FAQ) -->
+        <section class="faq-section">
+          <h2>💡 Guia Rápido e Perguntas Frequentes</h2>
+          <p class="section-desc">Clique numa pergunta para ver a explicação:</p>
+
+          <div class="faq-list">
+            <details class="faq-item">
+              <summary>🛢️ Como funciona a leitura dos reservatórios?</summary>
+              <div class="faq-answer">
+                <p>Os sensores ESP32 instalados no topo dos reservatórios medem continuamente a altura da água e enviam os dados em tempo real para este painel. O volume e a percentagem são calculados automaticamente.</p>
+              </div>
+            </details>
+
+            <details class="faq-item">
+              <summary>⚡ Como acionar a bomba d'água manualmente?</summary>
+              <div class="faq-answer">
+                <p>Aceda à página <strong>Início</strong> e, no card <strong>Controle da Bomba</strong>, utilize o interrutor (toggle) para ligar ou desligar a bomba à distância sempre que necessário.</p>
+              </div>
+            </details>
+
+            <details class="faq-item">
+              <summary>📈 Onde posso consultar os gráficos dos últimos dias?</summary>
+              <div class="faq-answer">
+                <p>Poderá consultar o histórico completo na página <strong>Histórico</strong> ou aceder a dados detalhados clicando no botão <em>"Ver Histórico"</em> de cada reservatório.</p>
+              </div>
+            </details>
+
+            <details class="faq-item">
+              <summary>⚠️ O que fazer se a leitura ficar offline?</summary>
+              <div class="faq-answer">
+                <p>Verifique se o seu módulo ESP32 está conectado à rede Wi-Fi e se a fonte de alimentação está ligada. Se o problema persistir, envie uma mensagem ao administrador através do formulário ao lado.</p>
+              </div>
+            </details>
+          </div>
+        </section>
+
+        <!-- Coluna Direita: Contactar o Administrador -->
+        <section class="contato-section">
+          <h2>📩 Falar com o Administrador</h2>
+          <p class="section-desc">Precisa de assistência técnica ou encontrou algum problema?</p>
+
+          <form id="formSuporte" class="form-suporte">
+            <div class="form-group">
+              <label for="assuntoChamado">Assunto:</label>
+              <select id="assuntoChamado" required>
+                <option value="">Selecione o assunto...</option>
+                <option value="Dúvida">Dúvida sobre o sistema</option>
+                <option value="Problema Técnico">Sensor ou leitura com falha</option>
+                <option value="Bomba">Problema no acionamento da bomba</option>
+                <option value="Outro">Outro assunto</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="mensagemChamado">Mensagem:</label>
+              <textarea id="mensagemChamado" rows="5" placeholder="Descreva o seu problema ou dúvida em detalhe..." required></textarea>
+            </div>
+
+            <button type="submit" class="btn-enviar-mensagem">🚀 Enviar Mensagem</button>
+          </form>
+
+          <!-- Atalho para Suporte Rápido -->
+          <div class="suporte-direto-card">
+            <span>💬 Precisa de atendimento urgente?</span>
+            <a href="https://wa.me/5588999999999" target="_blank" class="btn-whatsapp-suporte">
+              Falar no WhatsApp
+            </a>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="ajuda.js"></script>
+</body>
+</html>
