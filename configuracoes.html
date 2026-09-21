@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configurações - ControlÁgua</title>
+  
+  <!-- Estilos Globais e Específicos -->
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="configuracoes.css">
+</head>
+<body class="dashboard-body">
+
+  <div class="app-layout">
+    <!-- Menu Principal Lateral -->
+    <aside class="sidebar">
+      <div>
+        <div class="sidebar-logo"><span class="drop-icon-header">💧</span></div>
+        <nav class="sidebar-nav">
+          <a href="painel.html" class="nav-item"><span>🏠</span> Início</a>
+          <a href="reservatorios.html" class="nav-item"><span>🛢️</span> Reservatórios</a>
+          <a href="historico.html" class="nav-item"><span>📊</span> Histórico</a>
+          <a href="configuracoes.html" class="nav-item active"><span>⚙️</span> Configurações</a>
+        </nav>
+      </div>
+    </aside>
+
+    <!-- Conteúdo Principal -->
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <h1>⚙️ Configurações do Sistema</h1>
+          <p>Gerencie seus dados, segurança e preferências de alertas</p>
+        </div>
+      </header>
+
+      <div class="config-container">
+        <!-- Menu Lateral Interno de Configurações (Estilo Google) -->
+        <div class="config-tabs">
+          <button class="tab-btn active" data-tab="perfil">👤 Informações Pessoais</button>
+          <button class="tab-btn" data-tab="seguranca">🔒 Segurança e Login</button>
+          <button class="tab-btn" data-tab="alertas">🔔 Alertas e Notificações</button>
+          <button class="tab-btn" data-tab="dispositivos">📡 Dispositivos ESP32</button>
+        </div>
+
+        <!-- Conteúdo das Abas -->
+        <div class="config-content">
+          
+          <!-- Aba 1: Perfil -->
+          <div id="perfil" class="tab-pane active">
+            <h2>Informações Pessoais</h2>
+            <p class="tab-subtitle">Atualize os dados da sua conta de cliente</p>
+            
+            <form id="formPerfil">
+              <div class="form-group">
+                <label for="nomeCliente">Nome Completo</label>
+                <input type="text" id="nomeCliente" value="Antonio Bezerra">
+              </div>
+              <div class="form-group">
+                <label for="emailCliente">E-mail de Contato</label>
+                <input type="email" id="emailCliente" value="antoniobsjor@gmail.com">
+              </div>
+              <div class="form-group">
+                <label for="telefCliente">Telefone / WhatsApp</label>
+                <input type="text" id="telefCliente" value="(88) 99999-9999">
+              </div>
+              <button type="submit" class="btn-salvar">Salvar Alterações</button>
+            </form>
+          </div>
+
+          <!-- Aba 2: Segurança -->
+          <div id="seguranca" class="tab-pane">
+            <h2>Segurança e Login</h2>
+            <p class="tab-subtitle">Gerencie sua senha de acesso</p>
+
+            <form id="formSeguranca">
+              <div class="form-group">
+                <label for="senhaAtual">Senha Atual</label>
+                <input type="password" id="senhaAtual" required>
+              </div>
+              <div class="form-group">
+                <label for="novaSenha">Nova Senha</label>
+                <input type="password" id="novaSenha" required>
+              </div>
+              <div class="form-group">
+                <label for="confirmaSenha">Confirmar Nova Senha</label>
+                <input type="password" id="confirmaSenha" required>
+              </div>
+              <button type="submit" class="btn-salvar">Atualizar Senha</button>
+            </form>
+          </div>
+
+          <!-- Aba 3: Alertas -->
+          <div id="alertas" class="tab-pane">
+            <h2>Alertas e Notificações</h2>
+            <p class="tab-subtitle">Configure quando deseja ser avisado</p>
+
+            <div class="form-group">
+              <label for="nivelCritico">Notificar quando o nível for menor que:</label>
+              <select id="nivelCritico">
+                <option value="15">15% (Crítico)</option>
+                <option value="20" selected>20% (Atenção)</option>
+                <option value="30">30% (Recomendado)</option>
+              </select>
+            </div>
+            <div class="form-group checkbox-group">
+              <label><input type="checkbox" checked> Receber avisos via WhatsApp</label>
+            </div>
+            <div class="form-group checkbox-group">
+              <label><input type="checkbox" checked> Notificar quando a bomba for ligada</label>
+            </div>
+            <button type="button" class="btn-salvar">Salvar Preferências</button>
+          </div>
+
+          <!-- Aba 4: Dispositivos IoT -->
+          <div id="dispositivos" class="tab-pane">
+            <h2>Dispositivos Conectados (ESP32)</h2>
+            <p class="tab-subtitle">Módulos de sensor pareados ao seu painel</p>
+
+            <div class="device-card">
+              <strong>📡 ESP32 - Central Caixa 01 e 02</strong>
+              <div class="status-online">● Status: Conectado</div>
+              <div class="device-info">IP Local: 192.168.1.105</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Scripts -->
+  <script src="configuracoes.js"></script>
+</body>
+</html>
