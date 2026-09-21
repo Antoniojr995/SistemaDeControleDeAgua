@@ -20,7 +20,7 @@
         </div>
         <nav class="sidebar-nav">
           <a href="painel.html" class="nav-item"><span>🏠</span> Início</a>
-          <a href="reservatorios.html" class="nav-item active"><span>📦</span> Reservatórios</a>
+          <a href="reservatorios.html" class="nav-item active"><span>🛢️</span> Reservatórios</a>
           <a href="#" class="nav-item"><span>📊</span> Histórico</a>
           <a href="#" class="nav-item"><span>⚙️</span> Configurações</a>
           <a href="#" class="nav-item"><span>❓</span> Ajuda</a>
@@ -43,7 +43,7 @@
           <a href="reservatorios.html" style="color: #38bdf8; text-decoration: none; font-size: 1.2rem; margin-right: 10px;">← Voltar</a>
           <div>
             <h1 id="tituloCaixa">Caixa d'Água 01</h1>
-            <p>Monitoramento detalhado e dados em tempo real</p>
+            <p>Monitoramento detalhado dos 2 reservatórios em tempo real</p>
           </div>
         </div>
         <div class="header-actions">
@@ -52,45 +52,88 @@
         </div>
       </header>
 
-      <!-- Grid com os Dados Específicos da Caixa -->
-      <section class="grid-caixas" style="grid-template-columns: 1fr 1fr; margin-top: 20px;">
+      <!-- Grid com os Dados dos 2 Reservatórios + Especificações -->
+      <section class="grid-caixas" style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-top: 20px;">
         
-        <!-- Status Geral e Nível -->
-        <div class="card-caixa">
-          <div class="caixa-header">
-            <span class="icon-caixa">🛢️</span>
-            <h3>Nível Atual e Leitura</h3>
-          </div>
-          <div class="caixa-body">
-            <div class="caixa-img-box">
-              <svg class="caixa-3d-svg" viewBox="0 0 100 120">
-                <ellipse cx="50" cy="20" rx="40" ry="12" fill="#0284c7" />
-                <path d="M10,20 L15,95 Q50,110 85,95 L90,20 Z" fill="#0f172a" stroke="#0284c7" stroke-width="2" />
-                <path id="svgNivelCaixa" d="M13,90 Q50,105 87,90 L88,90 Q50,105 12,90 Z" fill="#38bdf8" opacity="0.85" />
-                <ellipse cx="50" cy="20" rx="40" ry="12" fill="none" stroke="#38bdf8" stroke-width="2" />
-              </svg>
+        <!-- Bloco dos 2 Reservatórios (Caixa 1 e Caixa 2) -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          
+          <!-- Caixa 1 -->
+          <div class="card-caixa">
+            <div class="caixa-header">
+              <span class="icon-caixa">🛢️</span>
+              <h3>Reservatório 1</h3>
             </div>
-            <div class="ring-progress">
-              <div class="ring-circle">
-                <div class="ring-inner">
-                  <span class="porcentagem" id="percCaixa">0%</span>
-                  <small>Capacidade</small>
+            <div class="caixa-body">
+              <div class="caixa-img-box">
+                <svg class="caixa-3d-svg" viewBox="0 0 100 120">
+                  <ellipse cx="50" cy="20" rx="40" ry="12" fill="#0284c7" />
+                  <path d="M10,20 L15,95 Q50,110 85,95 L90,20 Z" fill="#0f172a" stroke="#0284c7" stroke-width="2" />
+                  <path id="svgNivelCaixa1" d="M13,90 Q50,105 87,90 L88,90 Q50,105 12,90 Z" fill="#38bdf8" opacity="0.85" />
+                  <ellipse cx="50" cy="20" rx="40" ry="12" fill="none" stroke="#38bdf8" stroke-width="2" />
+                </svg>
+              </div>
+              <div class="ring-progress">
+                <div class="ring-circle">
+                  <div class="ring-inner">
+                    <span class="porcentagem" id="percCaixa1">0%</span>
+                    <small>Nível</small>
+                  </div>
                 </div>
               </div>
             </div>
+            <div class="caixa-stats" style="margin-top: 10px;">
+              <div class="stat-row">
+                <span>💧 Volume:</span>
+                <strong id="volCaixa1">0 L</strong> / 1.000 L
+              </div>
+            </div>
           </div>
+
+          <!-- Caixa 2 -->
+          <div class="card-caixa">
+            <div class="caixa-header">
+              <span class="icon-caixa">🛢️</span>
+              <h3>Reservatório 2</h3>
+            </div>
+            <div class="caixa-body">
+              <div class="caixa-img-box">
+                <svg class="caixa-3d-svg" viewBox="0 0 100 120">
+                  <ellipse cx="50" cy="20" rx="40" ry="12" fill="#0284c7" />
+                  <path d="M10,20 L15,95 Q50,110 85,95 L90,20 Z" fill="#0f172a" stroke="#0284c7" stroke-width="2" />
+                  <path id="svgNivelCaixa2" d="M13,90 Q50,105 87,90 L88,90 Q50,105 12,90 Z" fill="#38bdf8" opacity="0.85" />
+                  <ellipse cx="50" cy="20" rx="40" ry="12" fill="none" stroke="#38bdf8" stroke-width="2" />
+                </svg>
+              </div>
+              <div class="ring-progress">
+                <div class="ring-circle">
+                  <div class="ring-inner">
+                    <span class="porcentagem" id="percCaixa2">0%</span>
+                    <small>Nível</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="caixa-stats" style="margin-top: 10px;">
+              <div class="stat-row">
+                <span>💧 Volume:</span>
+                <strong id="volCaixa2">0 L</strong> / 1.000 L
+              </div>
+            </div>
+          </div>
+
         </div>
 
-        <!-- Ficha Técnica e Especificações da Caixa -->
-        <div class="card-bomba" style="text-align: left;">
+        <!-- Ficha Técnica e Especificações -->
+        <div class="card-bomba" style="text-align: left; height: 100%;">
           <div class="bomba-header">
             <span class="bomba-icon">📋</span>
             <h3>Especificações Técnicas</h3>
           </div>
-          <ul style="list-style: none; padding: 0; line-height: 2; color: #cbd5e1; font-size: 0.95rem;">
-            <li>🆔 <strong>ID do Dispositivo:</strong> <span id="infoId">RES-01</span></li>
-            <li>📏 <strong>Capacidade Total:</strong> <span id="infoCapacidade">1.000 Litros</span></li>
-            <li>💧 <strong>Volume Actual:</strong> <span id="infoVolume">0 Litros</span></li>
+          <ul style="list-style: none; padding: 0; line-height: 2.2; color: #cbd5e1; font-size: 0.9rem;">
+            <li>🆔 <strong>ID do Dispositivo:</strong> <span id="infoId">RES-1</span></li>
+            <li>📏 <strong>Capacidade Total:</strong> <span id="infoCapacidade">2.000 Litros</span></li>
+            <li>💧 <strong>Volume Total Atual:</strong> <span id="infoVolumeTotal">0 Litros</span></li>
             <li>🛠️ <strong>Material:</strong> Polietileno Tripla Camada</li>
             <li>📡 <strong>Status Sensor:</strong> <span style="color: #10b981;">Conectado (ESP32)</span></li>
             <li>⏱️ <strong>Última Leitura:</strong> <span id="infoData">--/--/---- --:--</span></li>
@@ -99,11 +142,11 @@
 
       </section>
 
-      <!-- Gráfico Exclusivo dessa Caixa -->
+      <!-- Gráfico das 2 Caixas -->
       <section class="grid-historico" style="margin-top: 20px;">
         <div class="card-grafico" style="width: 100%;">
           <div class="grafico-header">
-            <h3>📈 Histórico de Nível de Água (Esta Caixa)</h3>
+            <h3>📈 Histórico de Nível de Água (Reservatórios 1 e 2)</h3>
           </div>
           <div class="chart-container">
             <canvas id="graficoDetalhadoCaixa"></canvas>
