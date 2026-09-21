@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Histórico - ControlÁgua</title>
+  <link rel="stylesheet" href="reservatorios.css">
+</head>
+<body>
+
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="logo">
+        <h2>💧 ControlÁgua</h2>
+      </div>
+      <nav class="nav-menu">
+        <a href="painel.html" class="nav-item"><span>🏠</span> Início</a>
+        <a href="reservatorios.html" class="nav-item"><span>🛢️</span> Reservatórios</a>
+        <a href="historico.html" class="nav-item active"><span>📊</span> Histórico</a>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <header class="top-header">
+        <div>
+          <h1>Histórico de Consumo e Níveis</h1>
+          <p style="color: #64748b; font-size: 0.9rem; margin-top: 4px;">Selecione uma caixa d'água para abrir o histórico detalhado</p>
+        </div>
+        <button id="btnLogout" class="btn-sair">🚪 Sair</button>
+      </header>
+
+      <section id="containerHistoricos" class="grid-reservatorios">
+        <p class="msg-feedback">⏳ Carregando histórico dos reservatórios...</p>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const API_BASE = window.location.origin;
+    const token = sessionStorage.getItem("token");
+
+    document.addEventListener("DOMContentLoaded", () => {
+      if (!token) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      document.getElementById("btnLogout")?.addEventListener("click", () => {
+        sessionStorage.clear();
+        window.location.href = "index.html";
+      });
+
+      carregarHistoricos();
+    });
+
+    async function carregarHistoricos() {
+      const container = document.getElementById("containerHistoricos");
+      
+      try {
+        const res = await fetch(API_BASE + "/api/minhas-caixas", {
+          headers: { Authorization: "Bearer " + token }
+        });
+
+        if (!res.ok) throw new Error("Status " + res.status);
+        const caixas = await res.json();
+
+        if (!Array.isArray(caixas) || caixas.length === 0) {
+          container.innerHTML = `<p class="msg-feedback">Nenhum reservatório encontrado.</p>`;
+          return;
+        }
+
+        container.innerHTML = "";
+
+        caixas.forEach(caixa => {
+          const card = document.createElement("div");
+          card.className = "card-reservatorio";
+          card.innerHTML = `
+            <div>
+              <div class="res-header">
+                <span class="res-title">📊 Histórico - ${caixa.nome || 'Caixa ' + caixa.id}</span>
+                <span class="badge-status">Ativo</span>
+              </div>
+              <div class="res-details" style="margin: 15px 0;">
+                <div>Registros disponíveis: <strong>Últimos 30 dias</strong></div>
+                <div>Reservatórios vinculados: <strong>2 Caixas</strong></div>
+              </div>
+            </div>
+
+            <button class="btn-acessar" onclick="verHistoricoEspecifico('${caixa.id}')">
+              📈 Ver Histórico
+            </button>
+          `;
+
+          container.appendChild(card);
+        });
+
+      } catch (err) {
+        console.error("Erro ao carregar histórico:", err);
+        container.innerHTML = `<p class="msg-feedback" style="color: #ef4444;">❌ Erro ao carregar histórico.</p>`;
+      }
+    }
+
+    function verHistoricoEspecifico(caixaId) {
+      sessionStorage.setItem("caixaSelecionada", caixaId);
+      window.location.href = `historico-caixa.html?id=${caixaId}`;
+    }
+  </script>
+</body>
+</html>

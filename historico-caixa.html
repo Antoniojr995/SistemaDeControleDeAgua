@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Histórico Detalhado - ControlÁgua</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="dashboard-body">
+
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div>
+        <div class="sidebar-logo"><span class="drop-icon-header">💧</span></div>
+        <nav class="sidebar-nav">
+          <a href="painel.html" class="nav-item"><span>🏠</span> Início</a>
+          <a href="reservatorios.html" class="nav-item"><span>🛢️</span> Reservatórios</a>
+          <a href="historico.html" class="nav-item active"><span>📊</span> Histórico</a>
+        </nav>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="header-title">
+          <a href="historico.html" style="color: #38bdf8; text-decoration: none; margin-right: 10px;">← Voltar</a>
+          <div>
+            <h1 id="tituloHistorico">Histórico - Caixa d'Água 1</h1>
+            <p>Análise de leitura e nível de consumo dos 2 reservatórios</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button onclick="location.href='historico.html'" class="btn-chamado">⬅️ Todos os Históricos</button>
+        </div>
+      </header>
+
+      <!-- Gráfico Detalhado -->
+      <section style="margin-top: 20px;">
+        <div class="card-grafico" style="width: 100%;">
+          <div class="grafico-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h3>📈 Gráfico de Varíação do Nível (Reservatório 1 e 2)</h3>
+            <select id="filtroPeriodo" style="background: #0f172a; color: #fff; padding: 6px 12px; border-radius: 6px; border: 1px solid #0284c7;">
+              <option value="24h">Últimas 24 Horas</option>
+              <option value="7d">Últimos 7 Dias</option>
+              <option value="30d">Últimos 30 Dias</option>
+            </select>
+          </div>
+          <div class="chart-container" style="margin-top: 15px;">
+            <canvas id="graficoHistoricoCompleto"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tabela de Registros / Logs -->
+      <section style="margin-top: 20px;">
+        <div class="card-bomba" style="text-align: left;">
+          <h3>📑 Tabela de Registros Recentes</h3>
+          <table style="width: 100%; border-collapse: collapse; margin-top: 15px; color: #cbd5e1; text-align: left;">
+            <thead>
+              <tr style="border-bottom: 1px solid #334155; color: #38bdf8;">
+                <th style="padding: 10px;">Data/Hora</th>
+                <th style="padding: 10px;">Nível Res. 1</th>
+                <th style="padding: 10px;">Nível Res. 2</th>
+                <th style="padding: 10px;">Volume Total</th>
+                <th style="padding: 10px;">Status</th>
+              </tr>
+            </thead>
+            <tbody id="tabelaLogs">
+              <tr>
+                <td style="padding: 10px;" colspan="5">Carregando registros...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const idCaixa = urlParams.get('id') || '1';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('tituloHistorico').textContent = `Histórico - Caixa d'Água ${idCaixa}`;
+    });
+  </script>
+</body>
+</html>
