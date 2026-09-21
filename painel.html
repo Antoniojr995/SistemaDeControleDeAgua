@@ -11,27 +11,31 @@
 <body class="dashboard-body">
 
   <!-- Sidebar Lateral -->
-  <aside class="sidebar">
-    <div>
-      <div class="sidebar-logo">
-        <span class="drop-icon-header">💧</span>
-      </div>
-      <nav class="sidebar-nav">
-        <a href="#" class="nav-item active"><span>🏠</span> Início</a>
-        <a href="#" class="nav-item"><span>📦</span> Reservatórios</a>
-        <a href="#" class="nav-item"><span>📊</span> Histórico</a>
-        <a href="#" class="nav-item"><span>⚙️</span> Configurações</a>
-        <a href="#" class="nav-item"><span>❓</span> Ajuda</a>
-      </nav>
-    </div>
+  <!-- Sidebar / Menu Lateral -->
+<aside class="sidebar">
+  <div class="logo">
+    <h2>🛢️ ControlÁgua</h2>
+  </div>
+  <nav class="nav-menu">
+    <!-- Link para a Dashboard / Início -->
+    <a href="painel.html" class="nav-item">
+      <span>🏠</span> Início
+    </a>
     
-    <div class="sidebar-footer">
-      <div class="drop-icon-large">💧</div>
-      <h4>Água é vida!</h4>
-      <p>Monitore hoje, evite problemas amanhã.</p>
-    </div>
-  </aside>
+    <!-- Link configurado para a nova página de Reservatórios -->
+    <a href="reservatorios.html" class="nav-item">
+      <span>🛢️</span> Reservatórios
+    </a>
 
+    <a href="#" id="btnHistorico" class="nav-item">
+      <span>📊</span> Histórico
+    </a>
+
+    <a href="#" id="btnAbrirChamado" class="nav-item">
+      <span>❓</span> Suporte / Ajuda
+    </a>
+  </nav>
+</aside>
   <!-- Conteúdo Principal -->
   <main class="main-content">
     
