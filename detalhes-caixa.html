@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalhes da Caixa d'Água - ControlÁgua</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="script-detalhes.js" defer></script>
+</head>
+<body class="dashboard-body">
+
+  <div class="app-layout">
+
+    <!-- Sidebar / Menu Lateral -->
+    <aside class="sidebar">
+      <div>
+        <div class="sidebar-logo">
+          <span class="drop-icon-header">💧</span>
+        </div>
+        <nav class="sidebar-nav">
+          <a href="painel.html" class="nav-item"><span>🏠</span> Início</a>
+          <a href="reservatorios.html" class="nav-item active"><span>📦</span> Reservatórios</a>
+          <a href="#" class="nav-item"><span>📊</span> Histórico</a>
+          <a href="#" class="nav-item"><span>⚙️</span> Configurações</a>
+          <a href="#" class="nav-item"><span>❓</span> Ajuda</a>
+        </nav>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="drop-icon-large">💧</div>
+        <h4>Água é vida!</h4>
+        <p>Monitore hoje, evite problemas amanhã.</p>
+      </div>
+    </aside>
+
+    <!-- Conteúdo Principal da Caixa -->
+    <main class="main-content">
+      
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <div class="header-title">
+          <a href="reservatorios.html" style="color: #38bdf8; text-decoration: none; font-size: 1.2rem; margin-right: 10px;">← Voltar</a>
+          <div>
+            <h1 id="tituloCaixa">Caixa d'Água 01</h1>
+            <p>Monitoramento detalhado e dados em tempo real</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button id="btnVoltar" onclick="location.href='reservatorios.html'" class="btn-chamado">⬅️ Reservatórios</button>
+          <button id="btnLogout" class="btn-sair">🚪 Sair</button>
+        </div>
+      </header>
+
+      <!-- Grid com os Dados Específicos da Caixa -->
+      <section class="grid-caixas" style="grid-template-columns: 1fr 1fr; margin-top: 20px;">
+        
+        <!-- Status Geral e Nível -->
+        <div class="card-caixa">
+          <div class="caixa-header">
+            <span class="icon-caixa">🛢️</span>
+            <h3>Nível Atual e Leitura</h3>
+          </div>
+          <div class="caixa-body">
+            <div class="caixa-img-box">
+              <svg class="caixa-3d-svg" viewBox="0 0 100 120">
+                <ellipse cx="50" cy="20" rx="40" ry="12" fill="#0284c7" />
+                <path d="M10,20 L15,95 Q50,110 85,95 L90,20 Z" fill="#0f172a" stroke="#0284c7" stroke-width="2" />
+                <path id="svgNivelCaixa" d="M13,90 Q50,105 87,90 L88,90 Q50,105 12,90 Z" fill="#38bdf8" opacity="0.85" />
+                <ellipse cx="50" cy="20" rx="40" ry="12" fill="none" stroke="#38bdf8" stroke-width="2" />
+              </svg>
+            </div>
+            <div class="ring-progress">
+              <div class="ring-circle">
+                <div class="ring-inner">
+                  <span class="porcentagem" id="percCaixa">0%</span>
+                  <small>Capacidade</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ficha Técnica e Especificações da Caixa -->
+        <div class="card-bomba" style="text-align: left;">
+          <div class="bomba-header">
+            <span class="bomba-icon">📋</span>
+            <h3>Especificações Técnicas</h3>
+          </div>
+          <ul style="list-style: none; padding: 0; line-height: 2; color: #cbd5e1; font-size: 0.95rem;">
+            <li>🆔 <strong>ID do Dispositivo:</strong> <span id="infoId">RES-01</span></li>
+            <li>📏 <strong>Capacidade Total:</strong> <span id="infoCapacidade">1.000 Litros</span></li>
+            <li>💧 <strong>Volume Actual:</strong> <span id="infoVolume">0 Litros</span></li>
+            <li>🛠️ <strong>Material:</strong> Polietileno Tripla Camada</li>
+            <li>📡 <strong>Status Sensor:</strong> <span style="color: #10b981;">Conectado (ESP32)</span></li>
+            <li>⏱️ <strong>Última Leitura:</strong> <span id="infoData">--/--/---- --:--</span></li>
+          </ul>
+        </div>
+
+      </section>
+
+      <!-- Gráfico Exclusivo dessa Caixa -->
+      <section class="grid-historico" style="margin-top: 20px;">
+        <div class="card-grafico" style="width: 100%;">
+          <div class="grafico-header">
+            <h3>📈 Histórico de Nível de Água (Esta Caixa)</h3>
+          </div>
+          <div class="chart-container">
+            <canvas id="graficoDetalhadoCaixa"></canvas>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+</body>
+</html>
