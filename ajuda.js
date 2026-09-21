@@ -8,14 +8,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const assunto = document.getElementById('assuntoChamado').value;
         const mensagem = document.getElementById('mensagemChamado').value;
   
-        if (!assunto || !mensagem) {
-          alert('Por favor, preencha todos os campos.');
-          return;
-        }
+        // Seu número do WhatsApp com DDD (apenas números)
+        const meuNumero = '5584999481693'; // <-- Coloque seu número aqui
   
-        // Aqui podes adicionar uma chamada API (fetch) para gravar o chamado na base de dados
-        alert('Sua mensagem foi enviada ao administrador com sucesso! Responderemos em breve.');
-        
+        // Formata o texto para abrir no WhatsApp
+        const textoFormatado = `*Novo Chamado de Suporte*%0A%0A*Assunto:* ${assunto}%0A*Mensagem:* ${mensagem}`;
+  
+        // Redireciona para o WhatsApp do Administrador
+        const urlWhatsapp = `https://wa.me/${meuNumero}?text=${textoFormatado}`;
+        window.open(urlWhatsapp, '_blank');
+  
         formSuporte.reset();
       });
     }
