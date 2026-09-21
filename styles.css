@@ -587,3 +587,8 @@ canvas {
     fill: none !important;              /* Impede o preenchimento retangular */
 }
 
+.app-layout {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+}

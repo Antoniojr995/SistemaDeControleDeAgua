@@ -10,263 +10,263 @@
 </head>
 <body class="dashboard-body">
 
-  <!-- Sidebar Lateral -->
-  <!-- Sidebar / Menu Lateral -->
-<aside class="sidebar">
-  <div class="logo">
-    <h2>🛢️ ControlÁgua</h2>
-  </div>
-  <nav class="nav-menu">
-    <!-- Link para a Dashboard / Início -->
-    <a href="painel.html" class="nav-item">
-      <span>🏠</span> Início
-    </a>
-    
-    <!-- Link configurado para a nova página de Reservatórios -->
-    <a href="reservatorios.html" class="nav-item">
-      <span>🛢️</span> Reservatórios
-    </a>
+  <!-- WRAPPER PARA MANTER SIDEBAR E MAIN LADO A LADO -->
+  <div class="app-layout">
 
-    <a href="#" id="btnHistorico" class="nav-item">
-      <span>📊</span> Histórico
-    </a>
-
-    <a href="#" id="btnAbrirChamado" class="nav-item">
-      <span>❓</span> Suporte / Ajuda
-    </a>
-  </nav>
-</aside>
-  <!-- Conteúdo Principal -->
-  <main class="main-content">
-    
-    <!-- Topbar Header -->
-    <header class="topbar">
-      <div class="header-title">
-        <span class="header-logo-icon">💧</span>
-        <div>
-          <h1>Monitoramento do Nível de Água</h1>
-          <p>Sistema de Controle de Reservatórios</p>
+    <!-- Sidebar Lateral (Versão Anterior) -->
+    <aside class="sidebar">
+      <div>
+        <div class="sidebar-logo">
+          <span class="drop-icon-header">💧</span>
         </div>
+        <nav class="sidebar-nav">
+          <a href="#" class="nav-item active"><span>🏠</span> Início</a>
+          <a href="#" class="nav-item"><span>📦</span> Reservatórios</a>
+          <a href="#" class="nav-item"><span>📊</span> Histórico</a>
+          <a href="#" class="nav-item"><span>⚙️</span> Configurações</a>
+          <a href="#" class="nav-item"><span>❓</span> Ajuda</a>
+        </nav>
       </div>
-      <div class="header-actions">
-        <select id="selectIdReservatorio" class="select-id">
-          <option value="01">ID: 01</option>
-        </select>
-        <button id="btnAbrirChamado" class="btn-chamado">⚠️ Abrir Chamado / Suporte</button>
-        <button id="btnPerfil" class="btn-perfil">👤 Meu Perfil</button>
-        <button id="btnLogout" class="btn-sair">🚪 Sair</button>
-      </div>
-    </header>
-
-    <!-- Banner Info Reservatório -->
-    <section class="banner-info">
-      <div class="info-details">
-        <div class="icon-box-res">🛢️</div>
-        <div>
-          <h2>Seu Reservatório</h2>
-          <p>Modelo: <strong>1.000L</strong> (Polietileno) &nbsp;|&nbsp; Capacidade Máxima: <strong>1000L</strong></p>
-        </div>
-      </div>
-      <div class="status-online">
-        <span class="wifi-icon">📶</span>
-        <div>
-          <strong style="color: #10b981; display: block; font-size: 13px;">Sistema Online</strong>
-          <small style="color: #94a3b8; font-size: 11px;">Última atualização: <span id="dataAtualizacao">17/09/2026 - 14:55</span></small>
-        </div>
-      </div>
-    </section>
-
-    <!-- Grid de Caixas e Controle da Bomba -->
-<!-- Grid de Caixas e Controle da Bomba -->
-<section class="grid-caixas">
-  
-  <!-- Caixa 1 -->
-  <div class="card-caixa">
-    <div class="caixa-header">
-      <span class="icon-caixa">🛢️</span>
-      <h3>Caixa 1</h3>
-    </div>
-    <div class="caixa-body">
-      <div class="caixa-img-box">
-        <svg class="caixa-3d-svg" viewBox="0 0 100 120">
-          <!-- Estrutura do Reservatório -->
-          <ellipse cx="50" cy="20" rx="40" ry="12" fill="#0284c7" />
-          <path d="M10,20 L15,95 Q50,110 85,95 L90,20 Z" fill="#0f172a" stroke="#0284c7" stroke-width="2" />
-          
-          <!-- Camada de Água Dinâmica -->
-          <path id="svgNivelCaixa1" d="M13,90 Q50,105 87,90 L88,90 Q50,105 12,90 Z" fill="#38bdf8" opacity="0.85" style="transition: d 0.5s ease-in-out;" />
-          
-          <!-- Borda Superior -->
-          <ellipse cx="50" cy="20" rx="40" ry="12" fill="none" stroke="#38bdf8" stroke-width="2" />
-        </svg>
-      </div>
-      <div class="ring-progress">
-        <div class="ring-circle">
-          <div class="ring-inner">
-            <span class="porcentagem" id="percCaixa1">0%</span>
-            <small>Nível de Água</small>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="caixa-stats">
-      <div class="stat-row">
-        <span>💧 Volume Atual</span>
-        <strong id="volCaixa1">0 L</strong>
-      </div>
-      <div class="stat-row">
-        <span>🛢️ Capacidade Máxima</span>
-        <strong>1.000 L</strong>
-      </div>
-      <div class="progress-bar-bg">
-        <div class="progress-bar-fill" id="barCaixa1" style="width: 0%;"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Caixa 2 -->
-  <div class="card-caixa">
-    <div class="caixa-header">
-      <span class="icon-caixa">🛢️</span>
-      <h3>Caixa 2</h3>
-    </div>
-    <div class="caixa-body">
-      <div class="caixa-img-box">
-        <svg class="caixa-3d-svg" viewBox="0 0 100 120">
-          <!-- Estrutura do Reservatório -->
-          <ellipse cx="50" cy="20" rx="40" ry="12" fill="#0284c7" />
-          <path d="M10,20 L15,95 Q50,110 85,95 L90,20 Z" fill="#0f172a" stroke="#0284c7" stroke-width="2" />
-          
-          <!-- Camada de Água Dinâmica -->
-          <path id="svgNivelCaixa2" d="M13,90 Q50,105 87,90 L88,90 Q50,105 12,90 Z" fill="#38bdf8" opacity="0.85" style="transition: d 0.5s ease-in-out;" />
-          
-          <!-- Borda Superior -->
-          <ellipse cx="50" cy="20" rx="40" ry="12" fill="none" stroke="#38bdf8" stroke-width="2" />
-        </svg>
-      </div>
-      <div class="ring-progress">
-        <div class="ring-circle">
-          <div class="ring-inner">
-            <span class="porcentagem" id="percCaixa2">0%</span>
-            <small>Nível de Água</small>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="caixa-stats">
-      <div class="stat-row">
-        <span>💧 Volume Atual</span>
-        <strong id="volCaixa2">0 L</strong>
-      </div>
-      <div class="stat-row">
-        <span>🛢️ Capacidade Máxima</span>
-        <strong>1.000 L</strong>
-      </div>
-      <div class="progress-bar-bg">
-        <div class="progress-bar-fill" id="barCaixa2" style="width: 0%;"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Controle da Bomba -->
-  <div class="card-bomba">
-    <div class="bomba-header">
-      <span class="bomba-icon">💧</span>
-      <h3>Controle da Bomba</h3>
-    </div>
-    
-    <div class="bomba-status-badge desligada" id="statusBombaBadge">
-      <span class="dot-led"></span>
-      <span id="textoStatusBomba">Bomba Desligada</span>
-    </div>
-
-    <div class="bomba-switch-row">
-      <label class="switch">
-        <input type="checkbox" id="switchBomba">
-        <span class="slider round"></span>
-      </label>
-      <span class="switch-label">Ligar Bomba</span>
-    </div>
-
-    <button id="btnAtualizarAgora" class="btn-atualizar">🔄 Atualizar Agora</button>
-  </div>
-
-</section>
-
-    <!-- Grid Inferior: Gráfico e Tabela -->
-    <section class="grid-historico">
       
-      <!-- Gráfico -->
-      <div class="card-grafico">
-        <div class="grafico-header">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <span>📈</span>
-            <h3>Histórico e Gráfico dos Últimos 30 Dias</h3>
-          </div>
-          <div class="legendas">
-            <span class="leg-c1">● Caixa 1</span>
-            <span class="leg-c2">● Caixa 2</span>
-          </div>
-        </div>
-        <div class="chart-container">
-          <canvas id="graficoHistorico"></canvas>
-        </div>
+      <div class="sidebar-footer">
+        <div class="drop-icon-large">💧</div>
+        <h4>Água é vida!</h4>
+        <p>Monitore hoje, evite problemas amanhã.</p>
       </div>
+    </aside>
 
-      <!-- Tabela Últimas Leituras -->
-      <div class="card-tabela">
-        <div style="display:flex; align-items:center; gap:8px; margin-bottom: 15px;">
-          <span>📄</span>
-          <h3>Últimas Leituras</h3>
+    <!-- Conteúdo Principal -->
+    <main class="main-content">
+      
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <div class="header-title">
+          <span class="header-logo-icon">💧</span>
+          <div>
+            <h1>Monitoramento do Nível de Água</h1>
+            <p>Sistema de Controle de Reservatórios</p>
+          </div>
         </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Data</th>
-              <th>Caixa 1 (%)</th>
-              <th>Caixa 2 (%)</th>
-              <th>Leituras</th>
-            </tr>
-          </thead>
-          <tbody id="tabelaLeiturasBody">
-            <tr>
-              <td>17/09/2026 14:55</td>
-              <td>68%</td>
-              <td>42%</td>
-              <td><span class="badge-ok">OK</span></td>
-            </tr>
-            <tr>
-              <td>17/09/2026 14:50</td>
-              <td>67%</td>
-              <td>41%</td>
-              <td><span class="badge-ok">OK</span></td>
-            </tr>
-            <tr>
-              <td>17/09/2026 14:45</td>
-              <td>66%</td>
-              <td>40%</td>
-              <td><span class="badge-ok">OK</span></td>
-            </tr>
-            <tr>
-              <td>17/09/2026 14:40</td>
-              <td>65%</td>
-              <td>39%</td>
-              <td><span class="badge-ok">OK</span></td>
-            </tr>
-            <tr>
-              <td>17/09/2026 14:35</td>
-              <td>63%</td>
-              <td>37%</td>
-              <td><span class="badge-ok">OK</span></td>
-            </tr>
-          </tbody>
-        </table>
-        <a href="#" class="ver-todas">Ver todas as leituras →</a>
-      </div>
+        <div class="header-actions">
+          <select id="selectIdReservatorio" class="select-id">
+            <option value="01">ID: 01</option>
+          </select>
+          <button id="btnAbrirChamado" class="btn-chamado">⚠️ Abrir Chamado / Suporte</button>
+          <button id="btnPerfil" class="btn-perfil">👤 Meu Perfil</button>
+          <button id="btnLogout" class="btn-sair">🚪 Sair</button>
+        </div>
+      </header>
 
-    </section>
+      <!-- Banner Info Reservatório -->
+      <section class="banner-info">
+        <div class="info-details">
+          <div class="icon-box-res">🛢️</div>
+          <div>
+            <h2>Seu Reservatório</h2>
+            <p>Modelo: <strong>1.000L</strong> (Polietileno) &nbsp;|&nbsp; Capacidade Máxima: <strong>1000L</strong></p>
+          </div>
+        </div>
+        <div class="status-online">
+          <span class="wifi-icon">📶</span>
+          <div>
+            <strong style="color: #10b981; display: block; font-size: 13px;">Sistema Online</strong>
+            <small style="color: #94a3b8; font-size: 11px;">Última atualização: <span id="dataAtualizacao">17/09/2026 - 14:55</span></small>
+          </div>
+        </div>
+      </section>
 
-  </main>
+      <!-- Grid de Caixas e Controle da Bomba -->
+      <section class="grid-caixas">
+        
+        <!-- Caixa 1 -->
+        <div class="card-caixa">
+          <div class="caixa-header">
+            <span class="icon-caixa">🛢️</span>
+            <h3>Caixa 1</h3>
+          </div>
+          <div class="caixa-body">
+            <div class="caixa-img-box">
+              <svg class="caixa-3d-svg" viewBox="0 0 100 120">
+                <!-- Estrutura do Reservatório -->
+                <ellipse cx="50" cy="20" rx="40" ry="12" fill="#0284c7" />
+                <path d="M10,20 L15,95 Q50,110 85,95 L90,20 Z" fill="#0f172a" stroke="#0284c7" stroke-width="2" />
+                
+                <!-- Camada de Água Dinâmica -->
+                <path id="svgNivelCaixa1" d="M13,90 Q50,105 87,90 L88,90 Q50,105 12,90 Z" fill="#38bdf8" opacity="0.85" style="transition: d 0.5s ease-in-out;" />
+                
+                <!-- Borda Superior -->
+                <ellipse cx="50" cy="20" rx="40" ry="12" fill="none" stroke="#38bdf8" stroke-width="2" />
+              </svg>
+            </div>
+            <div class="ring-progress">
+              <div class="ring-circle">
+                <div class="ring-inner">
+                  <span class="porcentagem" id="percCaixa1">0%</span>
+                  <small>Nível de Água</small>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="caixa-stats">
+            <div class="stat-row">
+              <span>💧 Volume Atual</span>
+              <strong id="volCaixa1">0 L</strong>
+            </div>
+            <div class="stat-row">
+              <span>🛢️ Capacidade Máxima</span>
+              <strong>1.000 L</strong>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" id="barCaixa1" style="width: 0%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Caixa 2 -->
+        <div class="card-caixa">
+          <div class="caixa-header">
+            <span class="icon-caixa">🛢️</span>
+            <h3>Caixa 2</h3>
+          </div>
+          <div class="caixa-body">
+            <div class="caixa-img-box">
+              <svg class="caixa-3d-svg" viewBox="0 0 100 120">
+                <!-- Estrutura do Reservatório -->
+                <ellipse cx="50" cy="20" rx="40" ry="12" fill="#0284c7" />
+                <path d="M10,20 L15,95 Q50,110 85,95 L90,20 Z" fill="#0f172a" stroke="#0284c7" stroke-width="2" />
+                
+                <!-- Camada de Água Dinâmica -->
+                <path id="svgNivelCaixa2" d="M13,90 Q50,105 87,90 L88,90 Q50,105 12,90 Z" fill="#38bdf8" opacity="0.85" style="transition: d 0.5s ease-in-out;" />
+                
+                <!-- Borda Superior -->
+                <ellipse cx="50" cy="20" rx="40" ry="12" fill="none" stroke="#38bdf8" stroke-width="2" />
+              </svg>
+            </div>
+            <div class="ring-progress">
+              <div class="ring-circle">
+                <div class="ring-inner">
+                  <span class="porcentagem" id="percCaixa2">0%</span>
+                  <small>Nível de Água</small>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="caixa-stats">
+            <div class="stat-row">
+              <span>💧 Volume Atual</span>
+              <strong id="volCaixa2">0 L</strong>
+            </div>
+            <div class="stat-row">
+              <span>🛢️ Capacidade Máxima</span>
+              <strong>1.000 L</strong>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" id="barCaixa2" style="width: 0%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Controle da Bomba -->
+        <div class="card-bomba">
+          <div class="bomba-header">
+            <span class="bomba-icon">💧</span>
+            <h3>Controle da Bomba</h3>
+          </div>
+          
+          <div class="bomba-status-badge desligada" id="statusBombaBadge">
+            <span class="dot-led"></span>
+            <span id="textoStatusBomba">Bomba Desligada</span>
+          </div>
+
+          <div class="bomba-switch-row">
+            <label class="switch">
+              <input type="checkbox" id="switchBomba">
+              <span class="slider round"></span>
+            </label>
+            <span class="switch-label">Ligar Bomba</span>
+          </div>
+
+          <button id="btnAtualizarAgora" class="btn-atualizar">🔄 Atualizar Agora</button>
+        </div>
+
+      </section>
+
+      <!-- Grid Inferior: Gráfico e Tabela -->
+      <section class="grid-historico">
+        
+        <!-- Gráfico -->
+        <div class="card-grafico">
+          <div class="grafico-header">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span>📈</span>
+              <h3>Histórico e Gráfico dos Últimos 30 Dias</h3>
+            </div>
+            <div class="legendas">
+              <span class="leg-c1">● Caixa 1</span>
+              <span class="leg-c2">● Caixa 2</span>
+            </div>
+          </div>
+          <div class="chart-container">
+            <canvas id="graficoHistorico"></canvas>
+          </div>
+        </div>
+
+        <!-- Tabela Últimas Leituras -->
+        <div class="card-tabela">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom: 15px;">
+            <span>📄</span>
+            <h3>Últimas Leituras</h3>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Caixa 1 (%)</th>
+                <th>Caixa 2 (%)</th>
+                <th>Leituras</th>
+              </tr>
+            </thead>
+            <tbody id="tabelaLeiturasBody">
+              <tr>
+                <td>17/09/2026 14:55</td>
+                <td>68%</td>
+                <td>42%</td>
+                <td><span class="badge-ok">OK</span></td>
+              </tr>
+              <tr>
+                <td>17/09/2026 14:50</td>
+                <td>67%</td>
+                <td>41%</td>
+                <td><span class="badge-ok">OK</span></td>
+              </tr>
+              <tr>
+                <td>17/09/2026 14:45</td>
+                <td>66%</td>
+                <td>40%</td>
+                <td><span class="badge-ok">OK</span></td>
+              </tr>
+              <tr>
+                <td>17/09/2026 14:40</td>
+                <td>65%</td>
+                <td>39%</td>
+                <td><span class="badge-ok">OK</span></td>
+              </tr>
+              <tr>
+                <td>17/09/2026 14:35</td>
+                <td>63%</td>
+                <td>37%</td>
+                <td><span class="badge-ok">OK</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <a href="#" class="ver-todas">Ver todas as leituras →</a>
+        </div>
+
+      </section>
+
+    </main>
+
+  </div> <!-- FIM DO APP-LAYOUT -->
 
   <!-- MODAL DE CHAMADO / SUPORTE -->
   <div id="modalChamado" class="modal" style="display: none;">
@@ -298,8 +298,6 @@
     </div>
   </div>
 
-  <!--<button id="btnPerfil" onclick="abrirModalPerfil()">👤 <span id="nomeUsuarioHeader">Meu Perfil</span></button>
-   MODAL DE MEU PERFIL -->
   <!-- MODAL DE MEU PERFIL -->
   <div id="modalPerfil" class="modal" style="display: none;">
     <div class="modal-content">
