@@ -305,3 +305,137 @@
       flex-direction: column;
     }
   }
+
+  /* ====================================================
+   ESTILOS ADICIONAIS PARA MUDANÇA DE TELAS (PC / MOBILE)
+   ==================================================== */
+
+/* Por padrão (PC), esconde os elementos criados para celular */
+.mobile-header,
+.card-header-mobile,
+.mobile-footer {
+  display: none;
+}
+
+/* ====================================================
+   REGRAS EXCLUSIVAS PARA CELULAR (Telas até 768px)
+   ==================================================== */
+@media (max-width: 768px) {
+
+  /* 1. Oculta tudo que é exclusivo do PC */
+  .info-section, 
+  .footer.pc-only, 
+  .pc-only {
+    display: none !important;
+  }
+
+  /* 2. Centraliza o container principal na tela */
+  .main-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px 10px;
+  }
+
+  .login-section {
+    width: 100%;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* 3. Ativa e estiliza o topo com a Gota Neon */
+  .mobile-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 22px;
+  }
+
+  .mobile-logo {
+    width: 60px;
+    height: 60px;
+    background: radial-gradient(circle, rgba(0, 163, 255, 0.2) 0%, rgba(0, 0, 0, 0) 70%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+
+  .mobile-logo i {
+    font-size: 3rem;
+    color: #00a3ff;
+    filter: drop-shadow(0 0 12px rgba(0, 163, 255, 0.9));
+  }
+
+  .mobile-header h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #ffffff;
+  }
+
+  .mobile-header p {
+    font-size: 0.85rem;
+    color: #38bdf8;
+    margin-top: 2px;
+  }
+
+  /* 4. Estilização interna do Card de Login no Celular */
+  .login-card {
+    width: 100%;
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    border-radius: 18px;
+    padding: 24px 20px;
+    text-align: left;
+    backdrop-filter: blur(10px);
+  }
+
+  .card-header-mobile {
+    display: block;
+    margin-bottom: 20px;
+  }
+
+  .card-header-mobile h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 4px;
+  }
+
+  .card-header-mobile p {
+    font-size: 0.82rem;
+    color: #94a3b8;
+  }
+
+  /* 5. Ativa o Rodapé de Segurança do Celular */
+  .mobile-footer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 28px;
+  }
+
+  .mobile-footer i {
+    font-size: 1.6rem;
+    color: #38bdf8;
+  }
+
+  .mobile-footer div {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .mobile-footer strong {
+    font-size: 0.8rem;
+    color: #cbd5e1;
+  }
+
+  .mobile-footer span {
+    font-size: 0.72rem;
+    color: #64748b;
+  }
+}
