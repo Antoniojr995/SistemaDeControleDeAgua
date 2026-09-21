@@ -107,7 +107,7 @@
             </div>
 
             <button class="btn-acessar" onclick="verCaixaEspecfica('${caixa.id}')">
-                🛢️ Ver Caixa
+              🛢️ Ver Caixa
             </button>
           `;
 
@@ -120,9 +120,9 @@
       }
     }
 
-    function selecionarEIrParaPainel(caixaId) {
+    function verCaixaEspecfica(caixaId) {
       sessionStorage.setItem("caixaSelecionada", caixaId);
-      window.location.href = "painel.html";
+      window.location.href = `detalhes-caixa.html?id=${caixaId}`;
     }
   </script>
 </body>
