@@ -79,6 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btnRelatorio")?.addEventListener("click", gerarRelatorio);
 
   // 4. Inicialização de Dados
+  carregarDadosUsuario();
   fetchLatest();
   carregarMinhasCaixas();
   carregarHistorico();
@@ -126,6 +127,23 @@ async function carregarMinhasCaixas() {
 }
 
 // =======================
+// 💧 Auxiliar SVG 3D da Água
+// =======================
+function atualizarSvgAgua(elementId, porcentagem) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+
+  // Garante limite entre 0% e 100%
+  const pct = Math.min(Math.max(porcentagem, 0), 100);
+
+  // Mapeia 0% para a altura Y=90 (fundo) e 100% para Y=30 (topo)
+  const yTop = 90 - ((90 - 30) * (pct / 100));
+
+  // Modifica a curva/preenchimento do reservatório SVG
+  el.setAttribute("d", `M13,${yTop} Q50,${yTop + 12} 87,${yTop} L88,90 Q50,105 12,90 Z`);
+}
+
+// =======================
 // 💧 Leitura em Tempo Real e Atualização da UI
 // =======================
 async function fetchLatest() {
@@ -146,7 +164,7 @@ async function fetchLatest() {
     if (perc1) perc1.innerText = `${valC1}%`;
     if (perc2) perc2.innerText = `${valC2}%`;
 
-    // 2. ATUALIZAR OS CÍRCULOS REDONDOS (conic-gradient)
+    // 2. Atualizar Círculos Redondos (conic-gradient)
     const ring1 = document.querySelector(".card-caixa:nth-child(1) .ring-circle");
     const ring2 = document.querySelector(".card-caixa:nth-child(2) .ring-circle");
 
@@ -157,19 +175,23 @@ async function fetchLatest() {
       ring2.style.background = `conic-gradient(#38bdf8 0% ${valC2}%, #082247 ${valC2}% 100%)`;
     }
 
-    // 3. Atualizar Volumes em Litros
+    // 3. Atualizar Animação de Água nos Ícones SVG 3D
+    atualizarSvgAgua("svgNivelCaixa1", valC1);
+    atualizarSvgAgua("svgNivelCaixa2", valC2);
+
+    // 4. Atualizar Volumes em Litros
     const vol1Text = document.getElementById("volCaixa1");
     const vol2Text = document.getElementById("volCaixa2");
     if (vol1Text) vol1Text.innerText = `${Math.round((valC1 / 100) * 1000)} L`;
     if (vol2Text) vol2Text.innerText = `${Math.round((valC2 / 100) * 1000)} L`;
 
-    // 4. Atualizar Barras Retas de Progresso
+    // 5. Atualizar Barras Retas de Progresso
     const bar1 = document.getElementById("barCaixa1");
     const bar2 = document.getElementById("barCaixa2");
     if (bar1) bar1.style.width = `${valC1}%`;
     if (bar2) bar2.style.width = `${valC2}%`;
 
-    // 5. Data de Atualização
+    // 6. Data de Atualização
     const elData = document.getElementById("dataAtualizacao");
     if (elData) {
       const agora = new Date();
@@ -370,7 +392,9 @@ window.enviarAlertaTecnico = async function(event) {
   }
 };
 
-// Função para carregar e exibir os dados fixos do usuário no topo
+// =======================
+// 👤 Usuário e Perfil
+// =======================
 async function carregarDadosUsuario() {
   try {
     const res = await fetch(API_BASE + "/api/usuario-atual", {
@@ -381,7 +405,6 @@ async function carregarDadosUsuario() {
     if (res.ok && dados.logado) {
       const elNomeHeader = document.getElementById("nomeUsuarioHeader");
       if (elNomeHeader) {
-        // Exibe o nome retornado do banco de dados no botão superior
         elNomeHeader.innerText = dados.nome || dados.usuario || "Perfil";
       }
     }
@@ -390,56 +413,9 @@ async function carregarDadosUsuario() {
   }
 }
 
-// Chame a função dentro do DOMContentLoaded para carregar assim que a página abrir:
-document.addEventListener("DOMContentLoaded", () => {
-  // ... seus outros códigos ...
-  carregarDadosUsuario();
-});
-
-// =======================
-// 📁 Relatórios
-// =======================
-window.gerarRelatorio = async function() {
-  const caixaId = sessionStorage.getItem("caixaSelecionada") || 1;
-  const elInicio = document.getElementById("dataInicio");
-  const elFim = document.getElementById("dataFim");
-
-  if (!elInicio || !elFim) return;
-
-  try {
-    const res = await fetch(API_BASE + "/api/relatorio", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token,
-      },
-      body: JSON.stringify({ caixa_id: caixaId, dataInicio: elInicio.value, dataFim: elFim.value }),
-    });
-
-    const dados = await res.json();
-    ultimosDadosRelatorio = dados;
-    alert("Relatório gerado com sucesso! Utilize as opções de exportar.");
-  } catch (err) {
-    console.error("Erro no relatório:", err);
-  }
-};
-
-// =======================
-// 🚪 Fechar Modal
-// =======================
-window.fecharModal = function(idModal) {
-  const modal = document.getElementById(idModal);
-  if (modal) modal.style.display = "none";
-};
-
-// =======================
-// 👤 Perfil do Usuário
-// =======================
 window.abrirModalPerfil = async function() {
   const modal = document.getElementById("modalPerfil");
-  if (modal) {
-    modal.style.display = "flex";
-  }
+  if (modal) modal.style.display = "flex";
 
   try {
     const res = await fetch(API_BASE + "/api/usuario-atual", {
@@ -502,44 +478,38 @@ window.salvarPerfil = async function(event) {
   }
 };
 
-// Exemplo de função ao receber os dados do backend
-function atualizarPainel(dadosCaixa1, dadosCaixa2) {
-  // 1. Converter explicitamente para Número
-  const pct1 = Number(dadosCaixa1.porcentagem) || 0;
-  const vol1 = Number(dadosCaixa1.volumeAtual) || 0;
-  const cap1 = Number(dadosCaixa1.capacidadeMaxima) || 1000;
+// =======================
+// 📁 Relatórios
+// =======================
+window.gerarRelatorio = async function() {
+  const caixaId = sessionStorage.getItem("caixaSelecionada") || 1;
+  const elInicio = document.getElementById("dataInicio");
+  const elFim = document.getElementById("dataFim");
 
-  const pct2 = Number(dadosCaixa2.porcentagem) || 0;
-  const vol2 = Number(dadosCaixa2.volumeAtual) || 0;
-  const cap2 = Number(dadosCaixa2.capacidadeMaxima) || 1000;
+  if (!elInicio || !elFim) return;
 
-  // 2. Atualizar os textos do HTML
-  document.querySelector('#caixa1 .percent-text').innerText = `${pct1}%`;
-  document.querySelector('#caixa1 .vol-atual').innerText = `${vol1} L`;
+  try {
+    const res = await fetch(API_BASE + "/api/relatorio", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token,
+      },
+      body: JSON.stringify({ caixa_id: caixaId, dataInicio: elInicio.value, dataFim: elFim.value }),
+    });
 
-  document.querySelector('#caixa2 .percent-text').innerText = `${pct2}%`;
-  document.querySelector('#caixa2 .vol-atual').innerText = `${vol2} L`;
-
-  // 3. Atualizar o gráfico (Exemplo usando Chart.js)
-  graficoCaixa1.data.datasets[0].data = [pct1, 100 - pct1];
-  graficoCaixa1.update();
-
-  graficoCaixa2.data.datasets[0].data = [pct2, 100 - pct2];
-  graficoCaixa2.update();
-}
-
-// Função para abrir o modal de perfil
-function abrirPerfil() {
-  const modal = document.getElementById('modalPerfil');
-  if (modal) {
-    modal.style.display = 'flex';
+    const dados = await res.json();
+    ultimosDadosRelatorio = dados;
+    alert("Relatório gerado com sucesso! Utilize as opções de exportar.");
+  } catch (err) {
+    console.error("Erro no relatório:", err);
   }
-}
+};
 
-// Função para fechar qualquer modal pelo ID
-function fecharModal(idModal) {
+// =======================
+// 🚪 Fechar Modal
+// =======================
+window.fecharModal = function(idModal) {
   const modal = document.getElementById(idModal);
-  if (modal) {
-    modal.style.display = 'none';
-  }
-}
+  if (modal) modal.style.display = "none";
+};
