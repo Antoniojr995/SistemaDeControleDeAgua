@@ -513,3 +513,27 @@ window.fecharModal = function(idModal) {
   const modal = document.getElementById(idModal);
   if (modal) modal.style.display = "none";
 };
+
+// Função para fechar o modal do perfil
+function fecharModalPerfil() {
+  const modal = document.getElementById('modalPerfil');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+}
+
+// Função para abrir o modal do perfil
+function abrirModalPerfil() {
+  const modal = document.getElementById('modalPerfil');
+  if (modal) {
+    modal.style.display = 'flex'; // Usamos flex para centralizar na tela
+  }
+}
+
+// Evento para fechar ao clicar no fundo escuro (fora da caixa)
+window.addEventListener('click', (event) => {
+  const modal = document.getElementById('modalPerfil');
+  if (event.target === modal) {
+    fecharModalPerfil();
+  }
+});
