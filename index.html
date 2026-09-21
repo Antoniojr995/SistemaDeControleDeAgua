@@ -6,13 +6,14 @@
   <title>Login - Sistema de Controle de Nível de Água</title>
   <link rel="stylesheet" href="login.css">
   <link rel="stylesheet" href="global.css">
+  <!-- Ícones do Lucide / FontAwesome para os detalhes do formulário e destaques -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
   <div class="page-wrapper">
     <main class="main-container">
       
-      <!-- Lado Esquerdo: Informações do Sistema (SÓ APARECE NO PC) -->
+      <!-- Lado Esquerdo: Informações do Sistema -->
       <section class="info-section">
         <div class="brand-header">
           <div class="brand-icon">
@@ -23,13 +24,35 @@
             <p>Monitore e gerencie seus reservatórios com segurança e praticidade.</p>
           </div>
         </div>
-
         <div class="illustration-area">
           <div class="tank-wrapper">
             <div class="illustration-area">
               <img src="caixa-dagua.png" alt="Sistema de Reservatório de Água" class="full-illustration-img">
             </div>
           </div>
+        <!-- <div class="features-card">
+            <div class="feature-item">
+              <i class="fa-solid fa-box-archive"></i>
+              <div>
+                <strong>2 Caixas d'Água</strong>
+                <p>Monitoradas</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <i class="fa-solid fa-shield-halved"></i>
+              <div>
+                <strong>Bomba Controlada</strong>
+                <p>Automaticamente</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <i class="fa-solid fa-wifi"></i>
+              <div>
+                <strong>Acesso Online</strong>
+                <p>Em tempo real</p>
+              </div>
+            </div>
+          </div> -->
         </div>
 
         <div class="highlights-row">
@@ -57,23 +80,10 @@
         </div>
       </section>
 
-      <!-- Lado Direito: Card de Login (SE ADAPTA NO CELULAR) -->
+      <!-- Lado Direito: Card de Login -->
       <section class="login-section">
-        
-        <!-- Cabeçalho Exclusivo para CELULAR -->
-        <div class="mobile-header">
-          <div class="mobile-logo">
-            <i class="fa-solid fa-droplet"></i>
-          </div>
-          <h2>Painel do Administrador</h2>
-          <p>Sistema de Controle de Reservatórios</p>
-        </div>
-
-        <!-- Card de Login -->
         <div class="login-card">
-          
-          <!-- Cabeçalho do Card para PC -->
-          <div class="login-header pc-only">
+          <div class="login-header">
             <div class="lock-circle">
               <i class="fa-solid fa-lock"></i>
             </div>
@@ -81,22 +91,16 @@
             <p>Acesse sua conta para continuar</p>
           </div>
 
-          <!-- Cabeçalho do Card para CELULAR -->
-          <div class="card-header-mobile">
-            <h3>Bem-vindo!</h3>
-            <p>Faça login para acessar o painel do administrador.</p>
-          </div>
-
           <form id="formLogin" onsubmit="return false;">
             <div class="input-group">
-              <i class="fa-solid fa-user input-icon"></i>
-              <input id="usuario" type="text" placeholder="Usuário" required>
+              <i class="fa-regular fa-envelope input-icon"></i>
+              <input id="email" type="email" placeholder="E-mail" required>
             </div>
 
             <div class="input-group">
               <i class="fa-solid fa-lock input-icon"></i>
               <input id="senha" type="password" placeholder="Senha" required>
-              <i class="fa-regular fa-eye-slash toggle-password" id="togglePassword"></i>
+              <i class="fa-regular fa-eye-slash toggle-password"></i>
             </div>
 
             <button id="btnLogin" type="submit">
@@ -105,24 +109,14 @@
           </form>
 
           <a href="esqueci-senha.html" class="forgot-password">Esqueceu sua senha?</a>
+
           <p id="mensagem"></p>
         </div>
-
-        <!-- Rodapé de Segurança Exclusivo para CELULAR -->
-        <div class="mobile-footer">
-          <i class="fa-solid fa-shield-halved"></i>
-          <div>
-            <strong>Sistema seguro</strong>
-            <span>Acesso restrito ao administrador</span>
-          </div>
-        </div>
-
       </section>
 
     </main>
 
-    <!-- Rodapé Padrão (PC) -->
-    <footer class="footer pc-only">
+    <footer class="footer">
       <i class="fa-solid fa-droplet"></i>
       <span>Sistema de Controle de Nível de Água</span>
       <span class="divider">|</span>
