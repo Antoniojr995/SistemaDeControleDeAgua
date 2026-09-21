@@ -299,35 +299,39 @@
   </div>
 
   <!-- MODAL DE MEU PERFIL -->
- <!-- Modal Perfil Simplificado -->
 <div id="modalPerfil" class="modal" style="display: none;">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>👤 Perfil do Usuário</h2>
-      <p>Informações da conta vinculada</p>
+  <div class="modal-content perfil-modal-box">
+    
+    <div class="modal-header-custom">
+      <div class="avatar-icon">👤</div>
+      <div>
+        <h2>Perfil do Usuário</h2>
+        <p>Informações da conta vinculada</p>
+      </div>
     </div>
     
-    <div class="modal-body">
-      <div class="form-group">
-        <label>Nome / Usuário:</label>
-        <input type="text" id="perfilNome" value="Antonio Bezerra" readonly style="opacity: 0.8; cursor: not-allowed;">
+    <div class="modal-body-custom">
+      <div class="info-card-item">
+        <span class="info-label">👤 Nome / Usuário</span>
+        <strong class="info-value" id="perfilNome">Antonio Bezerra</strong>
       </div>
 
-      <div class="form-group">
-        <label>E-mail:</label>
-        <input type="email" id="perfilEmail" value="elaine@teste.com" readonly style="opacity: 0.8; cursor: not-allowed;">
+      <div class="info-card-item">
+        <span class="info-label">✉️ E-mail</span>
+        <strong class="info-value" id="perfilEmail">elaine@teste.com</strong>
       </div>
 
-      <div class="form-group">
-        <label>ID do Reservatório:</label>
-        <input type="text" id="perfilCaixaId" value="ID: 1 (Caixa Principal)" readonly style="opacity: 0.8; cursor: not-allowed;">
+      <div class="info-card-item">
+        <span class="info-label">🛢️ Reservatório Vinculado</span>
+        <strong class="info-value highlight" id="perfilCaixaId">ID: 1 (Caixa Principal)</strong>
       </div>
     </div>
 
-    <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
-      <a href="configuracoes.html" style="color: #38bdf8; text-decoration: none; font-size: 0.9rem;">⚙️ Ir para Configurações</a>
-      <button type="button" class="btn-fechar" onclick="fecharModalPerfil()">Fechar</button>
+    <div class="modal-footer-custom">
+      <a href="configuracoes.html" class="btn-config-link">⚙️ Ir para Configurações</a>
+      <button type="button" class="btn-fechar-modal" onclick="fecharModalPerfil()">Fechar</button>
     </div>
+
   </div>
 </div>
 
