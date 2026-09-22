@@ -4,18 +4,19 @@
 
    @media (max-width: 768px) {
 
-    /* --- 1. Ajustes Gerais da Tela --- */
+    /* --- 1. Ajustes Gerais do Fundo e Layout --- */
     body {
       background-color: #020916 !important;
-      padding: 0 !important;
+      padding: 10px !important;
       margin: 0 !important;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+      box-sizing: border-box !important;
     }
   
     .layout-app {
       display: flex !important;
       flex-direction: column !important;
-      padding: 12px !important;
+      padding: 0 !important;
       gap: 12px !important;
     }
   
@@ -29,37 +30,30 @@
       display: none !important;
     }
   
-    /* --- 2. Cabeçalho Superior Fiel ao Protótipo --- */
+    /* --- 2. Barra Superior (Header Topo) --- */
     .topbar-header {
       display: flex !important;
       justify-content: space-between !important;
       align-items: center !important;
-      padding: 6px 2px 12px 2px !important;
+      padding: 4px 2px 8px 2px !important;
       background: transparent !important;
       border: none !important;
     }
   
-    /* Lado Esquerdo: Ícone de Menu + Título */
     .admin-badge {
       display: flex !important;
       align-items: center !important;
       gap: 12px !important;
     }
   
-    /* Troca visualmente o ícone do utilizador pelo Menu Hambúrguer ☰ */
     .admin-badge > i::before {
-      content: "\f0c9" !important; /* fa-bars / menu hambúrguer */
+      content: "\f0c9" !important; /* Ícone de três barras (Hambúrguer) */
       font-size: 1.3rem !important;
       color: #ffffff !important;
     }
   
-    /* Oculta o email original e insere o texto do protótipo */
     .admin-badge div span {
-      font-size: 1.05rem !important;
-      font-weight: 700 !important;
-      color: #ffffff !important;
-      display: block !important;
-      font-size: 0 !important; /* Esconde o email do JS */
+      font-size: 0 !important; /* Oculta o email do JS */
     }
   
     .admin-badge div span::after {
@@ -67,12 +61,10 @@
       font-size: 1.05rem !important;
       color: #ffffff !important;
       font-weight: 700 !important;
+      display: block !important;
     }
   
     .admin-badge div small {
-      font-size: 0.75rem !important;
-      color: #8fa0b8 !important;
-      display: block !important;
       font-size: 0 !important;
     }
   
@@ -80,9 +72,10 @@
       content: "Sistema de Controle de Reservatórios" !important;
       font-size: 0.75rem !important;
       color: #8fa0b8 !important;
+      display: block !important;
     }
   
-    /* Lado Direito: Botão em formato de Sineta 🔔 */
+    /* Botão da Sineta com Alerta Vermelho */
     .btn-logout-red {
       background: rgba(15, 23, 42, 0.6) !important;
       border: 1px solid rgba(0, 119, 255, 0.2) !important;
@@ -98,12 +91,11 @@
     }
   
     .btn-logout-red i::before {
-      content: "\f0f3" !important; /* fa-bell / sineta */
+      content: "\f0f3" !important; /* Ícone de Sineta */
       font-size: 1.1rem !important;
       color: #ffffff !important;
     }
   
-    /* Ponto vermelho de alerta na sineta */
     .btn-logout-red::after {
       content: '' !important;
       position: absolute !important;
@@ -115,41 +107,45 @@
       border-radius: 50% !important;
     }
   
-    /* --- 3. Separação dos Cards (Hero vs Status) --- */
+    /* --- 3. Separação Estrita dos Cards Superiores --- */
+    /* Remove a caixa envolvente exterior */
     .hero-card {
       background: transparent !important;
       border: none !important;
       padding: 0 !important;
-      margin-bottom: 8px !important;
+      margin: 0 !important;
       display: flex !important;
       flex-direction: column !important;
-      gap: 12px !important;
+      gap: 10px !important;
       box-shadow: none !important;
     }
   
-    /* Card 1: Boas-vindas */
+    /* Card 1: Boas-vindas com gradiente e borda brilhante */
     .hero-left {
       background: linear-gradient(135deg, #071c3d 0%, #030e24 100%) !important;
-      border: 1px solid rgba(0, 119, 255, 0.25) !important;
+      border: 1px solid rgba(0, 119, 255, 0.3) !important;
       border-radius: 16px !important;
       padding: 16px !important;
       display: flex !important;
       align-items: center !important;
       gap: 14px !important;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
     }
   
+    /* Ícone da Engrenagem com Círculo Azul Neon */
     .hero-icon {
-      width: 48px !important;
-      height: 48px !important;
+      width: 46px !important;
+      height: 46px !important;
       background: #0077ff !important;
       border-radius: 50% !important;
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
-      font-size: 1.3rem !important;
+      font-size: 1.25rem !important;
       color: #ffffff !important;
-      box-shadow: 0 0 15px rgba(0, 119, 255, 0.5) !important;
+      box-shadow: 0 0 16px rgba(0, 119, 255, 0.6) !important;
       flex-shrink: 0 !important;
     }
   
@@ -164,13 +160,13 @@
       font-size: 0.78rem !important;
       color: #8fb0d8 !important;
       margin: 0 !important;
-      line-height: 1.3 !important;
+      line-height: 1.35 !important;
     }
   
-    /* Card 2: Sistema Online (Verde Separado) */
+    /* Card 2: Sistema Online (Verde Solto) */
     .hero-status {
-      background: rgba(3, 38, 26, 0.75) !important;
-      border: 1px solid rgba(16, 185, 129, 0.35) !important;
+      background: rgba(3, 38, 26, 0.8) !important;
+      border: 1px solid rgba(16, 185, 129, 0.4) !important;
       border-radius: 14px !important;
       padding: 12px 16px !important;
       display: flex !important;
@@ -182,7 +178,7 @@
     }
   
     .hero-status i {
-      font-size: 1.2rem !important;
+      font-size: 1.15rem !important;
     }
   
     .hero-status div {
@@ -207,17 +203,16 @@
       color: #10b981 !important;
     }
   
-    /* --- 4. Abas em Grade (2x2) --- */
+    /* --- 4. Abas de Navegação (Grade 2x2 Perfeita) --- */
     .menu-abas-top {
       display: grid !important;
       grid-template-columns: 1fr 1fr !important;
       gap: 10px !important;
-      margin-bottom: 12px !important;
     }
   
     .aba-btn {
       background: #051329 !important;
-      border: 1px solid rgba(0, 119, 255, 0.15) !important;
+      border: 1px solid rgba(0, 119, 255, 0.18) !important;
       border-radius: 14px !important;
       padding: 14px 8px !important;
       color: #7b93b8 !important;
@@ -235,9 +230,8 @@
       font-size: 1.3rem !important;
     }
   
-    /* Troca o ícone da 1ª aba para o formato do reservatório */
     .aba-btn:nth-child(1) i::before {
-      content: "\f1b2" !important; /* ícone estilizado de cubo/reservatório */
+      content: "\f1b2" !important; /* Ícone de reservatório estilizado */
     }
   
     .aba-btn.active {
@@ -247,41 +241,12 @@
       box-shadow: 0 4px 18px rgba(0, 136, 255, 0.4) !important;
     }
   
-    /* --- 5. Formulário Cadastrar / Vincular --- */
+    /* --- 5. Estilização dos Formulários e Selects --- */
     .card-form-dark {
       background: #041024 !important;
       border: 1px solid rgba(0, 119, 255, 0.2) !important;
       border-radius: 16px !important;
       padding: 16px !important;
-    }
-  
-    .form-header-title {
-      display: flex !important;
-      align-items: center !important;
-      gap: 10px !important;
-    }
-  
-    .form-header-title i {
-      color: #0088ff !important;
-      font-size: 1.1rem !important;
-    }
-  
-    .form-header-title h3 {
-      font-size: 1.05rem !important;
-      font-weight: 700 !important;
-      color: #ffffff !important;
-      margin: 0 !important;
-    }
-  
-    .subtitle-dark {
-      font-size: 0.78rem !important;
-      color: #64748b !important;
-      margin: 2px 0 16px 0 !important;
-    }
-  
-    /* --- 6. Inputs / Selects com Ícones Internos --- */
-    .field-box {
-      margin-bottom: 14px !important;
     }
   
     .field-box label {
@@ -305,14 +270,6 @@
       box-sizing: border-box !important;
     }
   
-    .grid-2-col,
-    .grid-3-cards {
-      display: flex !important;
-      flex-direction: column !important;
-      gap: 12px !important;
-    }
-  
-    /* --- 7. Botão Cadastrar Caixa --- */
     .btn-cyan-glow {
       width: 100% !important;
       background: linear-gradient(90deg, #0088ff 0%, #0055e6 100%) !important;
