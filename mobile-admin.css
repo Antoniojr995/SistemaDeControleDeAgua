@@ -204,41 +204,46 @@
     }
   
     /* --- 4. Abas de Navegação (Grade 2x2 Perfeita) --- */
+    /* --- 4. Abas de Navegação (4 Itens em 1 Única Linha) --- */
     .menu-abas-top {
-      display: grid !important;
-      grid-template-columns: 1fr 1fr !important;
-      gap: 10px !important;
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important; /* 4 colunas na mesma linha */
+        gap: 6px !important; /* Espaçamento reduzido para caber lado a lado */
+        margin-bottom: 12px !important;
     }
-  
+
     .aba-btn {
-      background: #051329 !important;
-      border: 1px solid rgba(0, 119, 255, 0.18) !important;
-      border-radius: 14px !important;
-      padding: 14px 8px !important;
-      color: #7b93b8 !important;
-      font-size: 0.82rem !important;
-      font-weight: 600 !important;
-      display: flex !important;
-      flex-direction: column !important;
-      align-items: center !important;
-      justify-content: center !important;
-      gap: 8px !important;
-      height: 72px !important;
+        background: #051329 !important;
+        border: 1px solid rgba(0, 119, 255, 0.18) !important;
+        border-radius: 12px !important;
+        padding: 8px 2px !important; /* Reduz o padding para não estourar a largura */
+        color: #7b93b8 !important;
+        font-size: 0.70rem !important; /* Fonte ajustada para caber nomes longos */
+        font-weight: 600 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 6px !important;
+        height: 64px !important;
+        text-align: center !important;
+        white-space: nowrap !important; /* Evita quebra de linha indesejada */
     }
-  
+
     .aba-btn i {
-      font-size: 1.3rem !important;
+        font-size: 1.1rem !important; /* Reduz ligeiramente o ícone */
     }
-  
+
+    /* Troca o ícone da 1ª aba para o reservatório estilizado */
     .aba-btn:nth-child(1) i::before {
-      content: "\f1b2" !important; /* Ícone de reservatório estilizado */
+        content: "\f1b2" !important;
     }
-  
+
     .aba-btn.active {
-      background: linear-gradient(135deg, #0088ff 0%, #0052cc 100%) !important;
-      border-color: #00a2ff !important;
-      color: #ffffff !important;
-      box-shadow: 0 4px 18px rgba(0, 136, 255, 0.4) !important;
+        background: linear-gradient(135deg, #0088ff 0%, #0052cc 100%) !important;
+        border-color: #00a2ff !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 14px rgba(0, 136, 255, 0.4) !important;
     }
   
     /* --- 5. Estilização dos Formulários e Selects --- */
