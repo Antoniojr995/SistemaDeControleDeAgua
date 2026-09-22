@@ -576,6 +576,7 @@ app.get('/api/usuario-atual', (req, res) => {
       id: req.session.usuarioId,
       nome: req.session.usuario,
       email: req.session.usuario,
+      usuario: req.session.usuario,
       tipo: req.session.tipo 
     });
   } else {
