@@ -48,9 +48,14 @@ async function initDb() {
       CREATE TABLE IF NOT EXISTS caixas (
         id SERIAL PRIMARY KEY,
         nome VARCHAR(100) NOT NULL,
+        capacidade INTEGER DEFAULT 1000,
+        altura_sensor INTEGER DEFAULT 100,
         usuario_id INTEGER REFERENCES usuarios(id) ON DELETE SET NULL
       )
     `);
+
+    await pool.query(`ALTER TABLE caixas ADD COLUMN IF NOT EXISTS capacidade INTEGER DEFAULT 1000;`);
+    await pool.query(`ALTER TABLE caixas ADD COLUMN IF NOT EXISTS altura_sensor INTEGER DEFAULT 100;`);
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS leituras (
@@ -217,7 +222,14 @@ app.post('/api/caixas', requererAutenticacao, async (req, res) => {
 app.get('/api/caixas', requererAutenticacao, async (req, res) => {
   try {
     const queryText = `
-      SELECT c.id, c.nome, c.usuario_id, u.usuario AS cliente_nome 
+      SELECT 
+        c.id, 
+        c.nome, 
+        c.capacidade, 
+        c.altura_sensor, 
+        c.usuario_id, 
+        u.usuario AS cliente_nome,
+        COALESCE((SELECT nivel FROM leituras ORDER BY id DESC LIMIT 1), 0) AS nivel_atual
       FROM caixas c 
       LEFT JOIN usuarios u ON c.usuario_id = u.id 
       ORDER BY c.id DESC
@@ -225,6 +237,7 @@ app.get('/api/caixas', requererAutenticacao, async (req, res) => {
     const result = await pool.query(queryText);
     res.json(result.rows || []);
   } catch (err) {
+    console.error('Erro ao buscar caixas:', err);
     res.json([]);
   }
 });
