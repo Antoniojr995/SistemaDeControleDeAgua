@@ -1,5 +1,6 @@
 /* ============================================================
    REGRAS RESPONSIVAS PARA CELULAR (PAINEL DO ADMINISTRADOR)
+   Afeta apenas telas de até 768px (não altera a versão de PC)
    ============================================================ */
 
    @media (max-width: 768px) {
@@ -26,6 +27,7 @@
       width: 100% !important;
     }
   
+    /* Oculta a sidebar do PC no celular */
     .sidebar-container {
       display: none !important;
     }
@@ -46,14 +48,16 @@
       gap: 12px !important;
     }
   
+    /* Ícone Hambúrguer */
     .admin-badge > i::before {
-      content: "\f0c9" !important; /* Ícone de três barras (Hambúrguer) */
+      content: "\f0c9" !important;
       font-size: 1.3rem !important;
       color: #ffffff !important;
     }
   
+    /* Substituição de Texto */
     .admin-badge div span {
-      font-size: 0 !important; /* Oculta o email do JS */
+      font-size: 0 !important;
     }
   
     .admin-badge div span::after {
@@ -91,7 +95,7 @@
     }
   
     .btn-logout-red i::before {
-      content: "\f0f3" !important; /* Ícone de Sineta */
+      content: "\f0f3" !important;
       font-size: 1.1rem !important;
       color: #ffffff !important;
     }
@@ -107,8 +111,7 @@
       border-radius: 50% !important;
     }
   
-    /* --- 3. Separação Estrita dos Cards Superiores --- */
-    /* Remove a caixa envolvente exterior */
+    /* --- 3. Cards Superiores (Hero Section) --- */
     .hero-card {
       background: transparent !important;
       border: none !important;
@@ -120,7 +123,7 @@
       box-shadow: none !important;
     }
   
-    /* Card 1: Boas-vindas com gradiente e borda brilhante */
+    /* Card 1: Boas-vindas */
     .hero-left {
       background: linear-gradient(135deg, #071c3d 0%, #030e24 100%) !important;
       border: 1px solid rgba(0, 119, 255, 0.3) !important;
@@ -134,7 +137,6 @@
       box-sizing: border-box !important;
     }
   
-    /* Ícone da Engrenagem com Círculo Azul Neon */
     .hero-icon {
       width: 46px !important;
       height: 46px !important;
@@ -163,7 +165,7 @@
       line-height: 1.35 !important;
     }
   
-    /* Card 2: Sistema Online (Verde Solto) */
+    /* Card 2: Sistema Online */
     .hero-status {
       background: rgba(3, 38, 26, 0.8) !important;
       border: 1px solid rgba(16, 185, 129, 0.4) !important;
@@ -203,50 +205,49 @@
       color: #10b981 !important;
     }
   
-    /* --- 4. Abas de Navegação (Grade 2x2 Perfeita) --- */
     /* --- 4. Abas de Navegação (4 Itens em 1 Única Linha) --- */
     .menu-abas-top {
-        display: grid !important;
-        grid-template-columns: repeat(4, 1fr) !important; /* 4 colunas na mesma linha */
-        gap: 6px !important; /* Espaçamento reduzido para caber lado a lado */
-        margin-bottom: 12px !important;
-    }
-
-    .aba-btn {
-        background: #051329 !important;
-        border: 1px solid rgba(0, 119, 255, 0.18) !important;
-        border-radius: 12px !important;
-        padding: 8px 2px !important; /* Reduz o padding para não estourar a largura */
-        color: #7b93b8 !important;
-        font-size: 0.70rem !important; /* Fonte ajustada para caber nomes longos */
-        font-weight: 600 !important;
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        justify-content: center !important;
-        gap: 6px !important;
-        height: 64px !important;
-        text-align: center !important;
-        white-space: nowrap !important; /* Evita quebra de linha indesejada */
-    }
-
-    .aba-btn i {
-        font-size: 1.1rem !important; /* Reduz ligeiramente o ícone */
-    }
-
-    /* Troca o ícone da 1ª aba para o reservatório estilizado */
-    .aba-btn:nth-child(1) i::before {
-        content: "\f1b2" !important;
-    }
-
-    .aba-btn.active {
-        background: linear-gradient(135deg, #0088ff 0%, #0052cc 100%) !important;
-        border-color: #00a2ff !important;
-        color: #ffffff !important;
-        box-shadow: 0 4px 14px rgba(0, 136, 255, 0.4) !important;
+      display: grid !important;
+      grid-template-columns: repeat(4, 1fr) !important;
+      gap: 6px !important;
+      margin-bottom: 12px !important;
     }
   
-    /* --- 5. Estilização dos Formulários e Selects --- */
+    .aba-btn {
+      background: #051329 !important;
+      border: 1px solid rgba(0, 119, 255, 0.18) !important;
+      border-radius: 12px !important;
+      padding: 8px 2px !important;
+      color: #7b93b8 !important;
+      font-size: 0.70rem !important;
+      font-weight: 600 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 6px !important;
+      height: 64px !important;
+      text-align: center !important;
+      white-space: nowrap !important;
+    }
+  
+    .aba-btn i {
+      font-size: 1.1rem !important;
+    }
+  
+    /* Troca o ícone da 1ª aba para o reservatório estilizado */
+    .aba-btn:nth-child(1) i::before {
+      content: "\f1b2" !important;
+    }
+  
+    .aba-btn.active {
+      background: linear-gradient(135deg, #0088ff 0%, #0052cc 100%) !important;
+      border-color: #00a2ff !important;
+      color: #ffffff !important;
+      box-shadow: 0 4px 14px rgba(0, 136, 255, 0.4) !important;
+    }
+  
+    /* --- 5. Formulários, Inputs e Selects --- */
     .card-form-dark {
       background: #041024 !important;
       border: 1px solid rgba(0, 119, 255, 0.2) !important;
