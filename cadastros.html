@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastros Gerais - Painel Admin</title>
+
+  <!-- FontAwesome e CSS do Projeto -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="layout-app">
+
+    <!-- MENU LATERAL (SIDEBAR - PC) -->
+    <aside class="sidebar-container">
+      <div class="brand">
+        <i class="fas fa-tint brand-icon"></i>
+        <div>
+          <h2>Painel Admin</h2>
+          <small>Controle de Reservatórios</small>
+        </div>
+      </div>
+
+      <nav class="sidebar-menu">
+        <a href="painel-admin.html" class="nav-item">
+          <i class="fas fa-home"></i> Início
+        </a>
+        <a href="caixas.html" class="nav-item">
+          <i class="fas fa-database"></i> Caixas d'Água
+        </a>
+        <a href="clientes.html" class="nav-item">
+          <i class="fas fa-users"></i> Clientes
+        </a>
+        <a href="cadastros.html" class="nav-item active">
+          <i class="fas fa-clipboard-list"></i> Cadastros
+        </a>
+        <a href="chamados.html" class="nav-item">
+          <i class="fas fa-bell"></i> Chamados
+        </a>
+      </nav>
+    </aside>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="main-container">
+
+      <!-- TOPO (HEADER) -->
+      <header class="topbar-header">
+        <div class="admin-badge">
+          <i class="fas fa-user-circle"></i>
+          <div>
+            <span>admin@teste.com</span>
+            <small>Administrador</small>
+          </div>
+        </div>
+        <button class="btn-logout-red" id="btnLogout">
+          <i class="fas fa-sign-out-alt"></i> Sair
+        </button>
+      </header>
+
+      <!-- BARRA DE ABAS RÁPIDAS (MOBILE & PC) -->
+      <div class="menu-abas-top">
+        <a href="painel-admin.html" class="aba-btn">
+          <i class="fas fa-home"></i> Início
+        </a>
+        <a href="caixas.html" class="aba-btn">
+          <i class="fas fa-database"></i> Caixas
+        </a>
+        <a href="clientes.html" class="aba-btn">
+          <i class="fas fa-users"></i> Clientes
+        </a>
+        <a href="chamados.html" class="aba-btn">
+          <i class="fas fa-bell"></i> Chamados
+        </a>
+      </div>
+
+      <!-- PAINEL DA PÁGINA: FORMULÁRIO DE CADASTROS -->
+      <section class="card-form-dark">
+        <div class="section-header">
+          <h3><i class="fas fa-clipboard-list text-cyan"></i> Cadastros & Configurações do Sistema</h3>
+        </div>
+
+        <form id="formCadastroGeral" class="form-grid">
+          
+          <div class="field-box">
+            <label for="tipoCadastro"><i class="fas fa-list"></i> Tipo de Registo</label>
+            <select id="tipoCadastro" class="select-glow">
+              <option value="modelo">Modelo de Reservatório</option>
+              <option value="sensor">Tipo de Sensor Ultrassónico</option>
+              <option value="alerta">Parâmetro de Alerta de Nível</option>
+            </select>
+          </div>
+
+          <div class="field-box">
+            <label for="nomeItem"><i class="fas fa-tag"></i> Nome / Descrição</label>
+            <input type="text" id="nomeItem" placeholder="Ex: Reservatório 5000L Reforçado" required>
+          </div>
+
+          <div class="field-box">
+            <label for="valorPadrao"><i class="fas fa-sliders-h"></i> Valor / Capacidade Padrão</label>
+            <input type="text" id="valorPadrao" placeholder="Ex: 5000 Litros ou Sensor JSN-SR04T">
+          </div>
+
+          <div class="field-box full-width">
+            <label for="observacoes"><i class="fas fa-align-left"></i> Observações Técnicas</label>
+            <textarea id="observacoes" rows="3" class="input-textarea" placeholder="Detalhes adicionais de instalação ou especificação..."></textarea>
+          </div>
+
+          <div class="full-width">
+            <button type="submit" class="btn-cyan-glow">
+              <i class="fas fa-save"></i> Guardar Registo
+            </button>
+          </div>
+
+        </form>
+      </section>
+
+      <!-- LISTA DE ITENS CADASTRADOS -->
+      <section class="card-form-dark" style="margin-top: 20px;">
+        <div class="section-header">
+          <h3><i class="fas fa-cubes text-cyan"></i> Registo de Parâmetros Activos</h3>
+        </div>
+
+        <div class="table-responsive">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Categoria</th>
+                <th>Descrição</th>
+                <th>Valor Padrão</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="listaCadastros">
+              <!-- Preenchido via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="cadastros.js"></script>
+</body>
+</html>

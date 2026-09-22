@@ -1,0 +1,167 @@
+/* --- CABEÇALHO DA SEÇÃO E BOTAO --- */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+  }
+  
+  .section-header h3 {
+    font-size: 1.1rem;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .text-cyan {
+    color: #00a2ff;
+  }
+  
+  /* --- TABELAS PERSONALIZADAS (DARK NEON) --- */
+  .table-responsive {
+    width: 100%;
+    overflow-x: auto;
+  }
+  
+  .custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.88rem;
+  }
+  
+  .custom-table th {
+    background-color: #020814;
+    color: #8fa0b8;
+    padding: 12px 14px;
+    font-weight: 600;
+    border-bottom: 1px solid rgba(0, 119, 255, 0.2);
+  }
+  
+  .custom-table td {
+    padding: 12px 14px;
+    color: #e2e8f0;
+    border-bottom: 1px solid rgba(0, 119, 255, 0.1);
+  }
+  
+  .custom-table tbody tr:hover {
+    background: rgba(0, 119, 255, 0.05);
+  }
+  
+  /* Indicadores de Nível na Tabela */
+  .badge-status {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+  
+  .badge-ok {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+  }
+  
+  .badge-warning {
+    background: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.4);
+  }
+  
+  /* Botões de Ação na Tabela */
+  .btn-action {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #cbd5e1;
+    padding: 6px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .btn-action:hover {
+    background: #0077ff;
+    color: #ffffff;
+    border-color: #00a2ff;
+  }
+  
+  .btn-danger:hover {
+    background: #ef4444;
+    border-color: #f87171;
+  }
+
+  /* --- CAMPO DE BUSCA DE CLIENTES --- */
+.search-box-container {
+    position: relative;
+    margin-bottom: 16px;
+    width: 100%;
+  }
+  
+  .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #7b93b8;
+    font-size: 0.9rem;
+  }
+  
+  .input-search {
+    width: 100%;
+    background: #020814 !important;
+    border: 1px solid rgba(0, 119, 255, 0.25) !important;
+    border-radius: 12px !important;
+    padding: 12px 14px 12px 40px !important;
+    color: #ffffff !important;
+    font-size: 0.88rem !important;
+    box-sizing: border-box !important;
+    outline: none;
+  }
+  
+  .input-search:focus {
+    border-color: #0088ff !important;
+    box-shadow: 0 0 10px rgba(0, 136, 255, 0.3);
+  }
+  
+  /* Badge para status do cliente */
+  .badge-active {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+  }
+  
+  .badge-inactive {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+  }
+
+  /* --- GRELHA DE FORMULÁRIO (GRID) --- */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+  
+  .full-width {
+    grid-column: 1 / -1;
+  }
+  
+  .input-textarea {
+    width: 100%;
+    background: #020814 !important;
+    border: 1px solid rgba(0, 119, 255, 0.25) !important;
+    border-radius: 12px !important;
+    padding: 12px 14px !important;
+    color: #ffffff !important;
+    font-size: 0.88rem !important;
+    box-sizing: border-box !important;
+    outline: none;
+    resize: vertical;
+  }
+  
+  .input-textarea:focus {
+    border-color: #0088ff !important;
+    box-shadow: 0 0 10px rgba(0, 136, 255, 0.3);
+  }

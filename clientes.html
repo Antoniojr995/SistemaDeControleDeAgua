@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestão de Clientes - Painel Admin</title>
+
+  <!-- FontAwesome e CSS do Projeto -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="layout-app">
+
+    <!-- MENU LATERAL (SIDEBAR - PC) -->
+    <aside class="sidebar-container">
+      <div class="brand">
+        <i class="fas fa-tint brand-icon"></i>
+        <div>
+          <h2>Painel Admin</h2>
+          <small>Controle de Reservatórios</small>
+        </div>
+      </div>
+
+      <nav class="sidebar-menu">
+        <a href="painel-admin.html" class="nav-item">
+          <i class="fas fa-home"></i> Início
+        </a>
+        <a href="caixas.html" class="nav-item">
+          <i class="fas fa-database"></i> Caixas d'Água
+        </a>
+        <a href="clientes.html" class="nav-item active">
+          <i class="fas fa-users"></i> Clientes
+        </a>
+        <a href="cadastros.html" class="nav-item">
+          <i class="fas fa-clipboard-list"></i> Cadastros
+        </a>
+        <a href="chamados.html" class="nav-item">
+          <i class="fas fa-bell"></i> Chamados
+        </a>
+      </nav>
+    </aside>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="main-container">
+
+      <!-- TOPO (HEADER) -->
+      <header class="topbar-header">
+        <div class="admin-badge">
+          <i class="fas fa-user-circle"></i>
+          <div>
+            <span>admin@teste.com</span>
+            <small>Administrador</small>
+          </div>
+        </div>
+        <button class="btn-logout-red" id="btnLogout">
+          <i class="fas fa-sign-out-alt"></i> Sair
+        </button>
+      </header>
+
+      <!-- BARRA DE ABAS RÁPIDAS (MOBILE & PC) -->
+      <div class="menu-abas-top">
+        <a href="painel-admin.html" class="aba-btn">
+          <i class="fas fa-home"></i> Início
+        </a>
+        <a href="caixas.html" class="aba-btn">
+          <i class="fas fa-database"></i> Caixas
+        </a>
+        <a href="clientes.html" class="aba-btn active">
+          <i class="fas fa-users"></i> Clientes
+        </a>
+        <a href="chamados.html" class="aba-btn">
+          <i class="fas fa-bell"></i> Chamados
+        </a>
+      </div>
+
+      <!-- PAINEL DA PÁGINA: CLIENTES -->
+      <section class="card-form-dark">
+        <div class="section-header">
+          <h3><i class="fas fa-user-friends text-cyan"></i> Clientes Cadastrados</h3>
+          <button class="btn-cyan-glow" id="btnNovoCliente">
+            <i class="fas fa-user-plus"></i> Novo Cliente
+          </button>
+        </div>
+
+        <!-- BARRA DE PESQUISA DE CLIENTES -->
+        <div class="search-box-container">
+          <i class="fas fa-search search-icon"></i>
+          <input type="text" id="inputBuscaCliente" placeholder="Buscar por nome, e-mail ou telefone..." class="input-search">
+        </div>
+
+        <!-- TABELA DE CLIENTES -->
+        <div class="table-responsive">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>E-mail</th>
+                <th>Telefone</th>
+                <th>Caixas Vinculadas</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="listaClientes">
+              <!-- Preenchido dinamicamente pelo JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="clientes.js"></script>
+</body>
+</html>
