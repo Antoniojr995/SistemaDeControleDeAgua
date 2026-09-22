@@ -1,0 +1,260 @@
+/* ============================================================
+   REGRAS RESPONSIVAS PARA CELULAR (PAINEL DO ADMINISTRADOR)
+   Isolado em @media para NÃO interferir na visualização de PC
+   ============================================================ */
+
+   @media (max-width: 768px) {
+
+    /* --- 1. Ajustes Gerais da Tela --- */
+    body {
+      background-color: #030a16 !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+  
+    .layout-app {
+      display: flex !important;
+      flex-direction: column !important;
+      padding: 12px !important;
+      gap: 15px !important;
+    }
+  
+    .main-container {
+      padding: 0 !important;
+      margin: 0 !important;
+      width: 100% !important;
+    }
+  
+    /* --- 2. Oculta Sidebar e Topbar Padrão no Celular --- */
+    .sidebar-container,
+    .topbar-header {
+      display: none !important;
+    }
+  
+    /* --- 3. Header estilo Mobile (Painel do Administrador + Notificação) --- */
+    .hero-card {
+      background: linear-gradient(135deg, #092248 0%, #03132b 100%) !important;
+      border: 1px solid rgba(0, 140, 255, 0.3) !important;
+      border-radius: 16px !important;
+      padding: 16px !important;
+      margin-bottom: 12px !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 12px !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+    }
+  
+    .hero-left {
+      display: flex !important;
+      align-items: center !important;
+      gap: 12px !important;
+    }
+  
+    .hero-icon {
+      width: 45px !important;
+      height: 45px !important;
+      background: #0077ff !important;
+      border-radius: 50% !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-size: 1.2rem !important;
+      box-shadow: 0 0 12px rgba(0, 119, 255, 0.6) !important;
+      flex-shrink: 0 !important;
+    }
+  
+    .hero-left h1 {
+      font-size: 1.1rem !important;
+      font-weight: 700 !important;
+      color: #ffffff !important;
+      margin: 0 !important;
+    }
+  
+    .hero-left p {
+      font-size: 0.78rem !important;
+      color: #94a3b8 !important;
+      margin-top: 2px !important;
+      line-height: 1.2 !important;
+    }
+  
+    /* Status Online em Card Verde Estilo App */
+    .hero-status {
+      background: rgba(4, 47, 31, 0.8) !important;
+      border: 1px solid rgba(16, 185, 129, 0.4) !important;
+      border-radius: 12px !important;
+      padding: 10px 14px !important;
+      margin-bottom: 15px !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 10px !important;
+      color: #10b981 !important;
+    }
+  
+    .hero-status i {
+      font-size: 1.1rem !important;
+    }
+  
+    .hero-status strong {
+      display: block !important;
+      font-size: 0.85rem !important;
+      color: #ffffff !important;
+    }
+  
+    .hero-status small {
+      font-size: 0.72rem !important;
+      color: #a7f3d0 !important;
+    }
+  
+    /* --- 4. Abas de Navegação (Menu de Grade no Celular) --- */
+    .menu-abas-top {
+      display: grid !important;
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 10px !important;
+      margin-bottom: 15px !important;
+    }
+  
+    .aba-btn {
+      background: #081a36 !important;
+      border: 1px solid rgba(0, 119, 255, 0.2) !important;
+      border-radius: 12px !important;
+      padding: 14px 10px !important;
+      color: #94a3b8 !important;
+      font-size: 0.82rem !important;
+      font-weight: 600 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 6px !important;
+    }
+  
+    .aba-btn i {
+      font-size: 1.3rem !important;
+    }
+  
+    .aba-btn.active {
+      background: linear-gradient(135deg, #0088ff 0%, #0055e6 100%) !important;
+      border-color: #0099ff !important;
+      color: #ffffff !important;
+      box-shadow: 0 4px 15px rgba(0, 136, 255, 0.4) !important;
+    }
+  
+    /* --- 5. Formulation e Cards Internos --- */
+    .card-form-dark {
+      background: #06152d !important;
+      border: 1px solid rgba(0, 140, 255, 0.25) !important;
+      border-radius: 16px !important;
+      padding: 16px !important;
+      margin-bottom: 15px !important;
+    }
+  
+    .form-header-title {
+      display: flex !important;
+      align-items: center !important;
+      gap: 10px !important;
+      margin-bottom: 4px !important;
+    }
+  
+    .form-header-title i {
+      color: #0088ff !important;
+      font-size: 1.1rem !important;
+    }
+  
+    .form-header-title h3 {
+      font-size: 1rem !important;
+      font-weight: 700 !important;
+      color: #ffffff !important;
+    }
+  
+    .subtitle-dark {
+      font-size: 0.78rem !important;
+      color: #64748b !important;
+      margin-bottom: 14px !important;
+    }
+  
+    /* --- 6. Campos de Formutário (Inputs e Selects) --- */
+    .field-box {
+      margin-bottom: 12px !important;
+    }
+  
+    .field-box label {
+      display: flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      font-size: 0.8rem !important;
+      color: #cbd5e1 !important;
+      margin-bottom: 6px !important;
+    }
+  
+    .select-glow,
+    .field-box input {
+      width: 100% !important;
+      background: #020c1b !important;
+      border: 1px solid #1e293b !important;
+      border-radius: 10px !important;
+      padding: 12px !important;
+      color: #ffffff !important;
+      font-size: 0.88rem !important;
+      outline: none !important;
+    }
+  
+    .select-glow:focus,
+    .field-box input:focus {
+      border-color: #0088ff !important;
+    }
+  
+    .grid-2-col,
+    .grid-3-cards {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 10px !important;
+    }
+  
+    /* --- 7. Botão Botão Ação Cyan Glow --- */
+    .btn-cyan-glow {
+      width: 100% !important;
+      background: linear-gradient(90deg, #0088ff, #0055e6) !important;
+      border: none !important;
+      border-radius: 10px !important;
+      padding: 12px !important;
+      color: #ffffff !important;
+      font-size: 0.95rem !important;
+      font-weight: 600 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 8px !important;
+      box-shadow: 0 4px 15px rgba(0, 119, 255, 0.3) !important;
+      margin-top: 10px !important;
+    }
+  
+    /* --- 8. Tabelas Responsivas --- */
+    .table-container-dark {
+      overflow-x: auto !important;
+      -webkit-overflow-scrolling: touch !important;
+    }
+  
+    .table-dark-custom {
+      width: 100% !important;
+      font-size: 0.78rem !important;
+    }
+  
+    .table-dark-custom th,
+    .table-dark-custom td {
+      padding: 8px 6px !important;
+      white-space: nowrap !important;
+    }
+  
+    .row-actions {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 6px !important;
+      margin-bottom: 12px !important;
+    }
+  
+    .row-actions button {
+      flex: 1 !important;
+      padding: 8px !important;
+      font-size: 0.75rem !important;
+    }
+  }
