@@ -573,7 +573,9 @@ app.get('/api/usuario-atual', (req, res) => {
   if (req.session && req.session.logado) {
     res.json({ 
       logado: true, 
-      usuario: req.session.usuario,
+      id: req.session.usuarioId,
+      nome: req.session.usuario,
+      email: req.session.usuario,
       tipo: req.session.tipo 
     });
   } else {
@@ -677,9 +679,35 @@ app.get('/api/minhas-caixas', requererAutenticacao, async (req, res) => {
     `;
 
     const result = await pool.query(queryText, [req.session.usuarioId]);
-    
-    // Retorna a estrutura das duas caixas do cliente logado
-    res.json(result.rows[0] || null);
+
+    // Transforma o registro em uma lista de cartões para o frontend ler sem quebrar
+    const caixasParaFrontend = [];
+
+    result.rows.forEach(row => {
+      // Caixa 1
+      if (row.nome_caixa1) {
+        caixasParaFrontend.push({
+          id: `${row.id}_1`,
+          nome: row.nome_caixa1,
+          capacidade: row.capacidade_caixa1,
+          nivel: row.nivel_caixa1,
+          ultima_leitura: row.ultima_leitura
+        });
+      }
+      // Caixa 2
+      if (row.nome_caixa2) {
+        caixasParaFrontend.push({
+          id: `${row.id}_2`,
+          nome: row.nome_caixa2,
+          capacidade: row.capacidade_caixa2,
+          nivel: row.nivel_caixa2,
+          ultima_leitura: row.ultima_leitura
+        });
+      }
+    });
+
+    // RETORNA UM ARRAY (LISTA)
+    res.json(caixasParaFrontend);
   } catch (err) {
     console.error('Erro ao buscar minhas caixas:', err);
     res.status(500).json({ error: 'Erro ao carregar suas caixas.' });
