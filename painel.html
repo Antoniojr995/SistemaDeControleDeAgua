@@ -8,14 +8,12 @@
   <link rel="stylesheet" href="global.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="script-painel.js" defer></script>
-  
 </head>
 <body class="dashboard-body">
 
-  <!-- WRAPPER PARA MANTER SIDEBAR E MAIN LADO A LADO -->
   <div class="app-layout">
 
-    <!-- Sidebar Lateral (Versão Anterior) -->
+    <!-- SIDEBAR -->
     <aside class="sidebar">
       <div>
         <div class="sidebar-logo">
@@ -37,10 +35,10 @@
       </div>
     </aside>
 
-    <!-- Conteúdo Principal -->
+    <!-- CONTEÚDO PRINCIPAL -->
     <main class="main-content">
       
-      <!-- Topbar Header -->
+      <!-- TOPBAR -->
       <header class="topbar">
         <div class="header-title">
           <span class="header-logo-icon">💧</span>
@@ -53,50 +51,45 @@
           <select id="selectIdReservatorio" class="select-id">
             <option value="01">ID: 01</option>
           </select>
-          <button id="btnAbrirChamado" class="btn-chamado">⚠️ Abrir Chamado / Suporte</button>
-          <button id="btnPerfil" class="btn-perfil">👤 Meu Perfil</button>
+          <button id="btnAbrirChamado" class="btn-chamado" onclick="abrirModal('modalChamado')">⚠️ Abrir Chamado / Suporte</button>
+          <button id="btnPerfil" class="btn-perfil" onclick="abrirModalPerfil()">👤 Meu Perfil</button>
           <button id="btnLogout" class="btn-sair">🚪 Sair</button>
         </div>
       </header>
 
-      <!-- Banner Info Reservatório -->
+      <!-- BANNER DE INFORMAÇÕES -->
       <section class="banner-info">
         <div class="info-details">
           <div class="icon-box-res">🛢️</div>
           <div>
-            <h2>Seu Reservatório</h2>
-            <p>Modelo: <strong>1.000L</strong> (Polietileno) &nbsp;|&nbsp; Capacidade Máxima: <strong>1000L</strong></p>
+            <h2>Seus Reservatórios</h2>
+            <p>Capacidade Total Instalada: <strong id="bannerCapacidadeTotal">-- L</strong></p>
           </div>
         </div>
         <div class="status-online">
           <span class="wifi-icon">📶</span>
           <div>
             <strong style="color: #10b981; display: block; font-size: 13px;">Sistema Online</strong>
-            <small style="color: #94a3b8; font-size: 11px;">Última atualização: <span id="dataAtualizacao">17/09/2026 - 14:55</span></small>
+            <small style="color: #94a3b8; font-size: 11px;">Última atualização: <span id="dataAtualizacao">Carregando...</span></small>
           </div>
         </div>
       </section>
 
-      <!-- Grid de Caixas e Controle da Bomba -->
+      <!-- GRID DE CAIXAS E BOMBA -->
       <section class="grid-caixas">
         
-        <!-- Caixa 1 -->
+        <!-- CAIXA 1 -->
         <div class="card-caixa">
           <div class="caixa-header">
             <span class="icon-caixa">🛢️</span>
-            <h3>Caixa 1</h3>
+            <h3 id="tituloCaixa1">Caixa 1</h3>
           </div>
           <div class="caixa-body">
             <div class="caixa-img-box">
               <svg class="caixa-3d-svg" viewBox="0 0 100 120">
-                <!-- Estrutura do Reservatório -->
                 <ellipse cx="50" cy="20" rx="40" ry="12" fill="#0284c7" />
                 <path d="M10,20 L15,95 Q50,110 85,95 L90,20 Z" fill="#0f172a" stroke="#0284c7" stroke-width="2" />
-                
-                <!-- Camada de Água Dinâmica -->
                 <path id="svgNivelCaixa1" d="M13,90 Q50,105 87,90 L88,90 Q50,105 12,90 Z" fill="#38bdf8" opacity="0.85" style="transition: d 0.5s ease-in-out;" />
-                
-                <!-- Borda Superior -->
                 <ellipse cx="50" cy="20" rx="40" ry="12" fill="none" stroke="#38bdf8" stroke-width="2" />
               </svg>
             </div>
@@ -116,7 +109,7 @@
             </div>
             <div class="stat-row">
               <span>🛢️ Capacidade Máxima</span>
-              <strong>1.000 L</strong>
+              <strong id="capCaixa1">1.000 L</strong>
             </div>
             <div class="progress-bar-bg">
               <div class="progress-bar-fill" id="barCaixa1" style="width: 0%;"></div>
@@ -124,23 +117,18 @@
           </div>
         </div>
 
-        <!-- Caixa 2 -->
+        <!-- CAIXA 2 -->
         <div class="card-caixa">
           <div class="caixa-header">
             <span class="icon-caixa">🛢️</span>
-            <h3>Caixa 2</h3>
+            <h3 id="tituloCaixa2">Caixa 2</h3>
           </div>
           <div class="caixa-body">
             <div class="caixa-img-box">
               <svg class="caixa-3d-svg" viewBox="0 0 100 120">
-                <!-- Estrutura do Reservatório -->
                 <ellipse cx="50" cy="20" rx="40" ry="12" fill="#0284c7" />
                 <path d="M10,20 L15,95 Q50,110 85,95 L90,20 Z" fill="#0f172a" stroke="#0284c7" stroke-width="2" />
-                
-                <!-- Camada de Água Dinâmica -->
                 <path id="svgNivelCaixa2" d="M13,90 Q50,105 87,90 L88,90 Q50,105 12,90 Z" fill="#38bdf8" opacity="0.85" style="transition: d 0.5s ease-in-out;" />
-                
-                <!-- Borda Superior -->
                 <ellipse cx="50" cy="20" rx="40" ry="12" fill="none" stroke="#38bdf8" stroke-width="2" />
               </svg>
             </div>
@@ -160,7 +148,7 @@
             </div>
             <div class="stat-row">
               <span>🛢️ Capacidade Máxima</span>
-              <strong>1.000 L</strong>
+              <strong id="capCaixa2">1.000 L</strong>
             </div>
             <div class="progress-bar-bg">
               <div class="progress-bar-fill" id="barCaixa2" style="width: 0%;"></div>
@@ -168,10 +156,10 @@
           </div>
         </div>
 
-        <!-- Controle da Bomba -->
+        <!-- CONTROLE DA BOMBA -->
         <div class="card-bomba">
           <div class="bomba-header">
-            <span class="bomba-icon">💧</span>
+            <span class="bomba-icon">⚡</span>
             <h3>Controle da Bomba</h3>
           </div>
           
@@ -188,20 +176,19 @@
             <span class="switch-label">Ligar Bomba</span>
           </div>
 
-          <button id="btnAtualizarAgora" class="btn-atualizar">🔄 Atualizar Agora</button>
+          <button id="btnAtualizarAgora" class="btn-atualizar" onclick="carregarDadosPainel()">🔄 Atualizar Agora</button>
         </div>
 
       </section>
 
-      <!-- Grid Inferior: Gráfico e Tabela -->
+      <!-- HISTÓRICO E GRÁFICO -->
       <section class="grid-historico">
         
-        <!-- Gráfico -->
         <div class="card-grafico">
           <div class="grafico-header">
             <div style="display:flex; align-items:center; gap:8px;">
               <span>📈</span>
-              <h3>Histórico e Gráfico dos Últimos 30 Dias</h3>
+              <h3>Histórico e Gráfico (Níveis em %)</h3>
             </div>
             <div class="legendas">
               <span class="leg-c1">● Caixa 1</span>
@@ -213,7 +200,6 @@
           </div>
         </div>
 
-        <!-- Tabela Últimas Leituras -->
         <div class="card-tabela">
           <div style="display:flex; align-items:center; gap:8px; margin-bottom: 15px;">
             <span>📄</span>
@@ -222,58 +208,31 @@
           <table>
             <thead>
               <tr>
-                <th>Data</th>
-                <th>Caixa 1 (%)</th>
-                <th>Caixa 2 (%)</th>
-                <th>Leituras</th>
+                <th>Data / Hora</th>
+                <th>Caixa 1</th>
+                <th>Caixa 2</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody id="tabelaLeiturasBody">
               <tr>
-                <td>17/09/2026 14:55</td>
-                <td>68%</td>
-                <td>42%</td>
-                <td><span class="badge-ok">OK</span></td>
-              </tr>
-              <tr>
-                <td>17/09/2026 14:50</td>
-                <td>67%</td>
-                <td>41%</td>
-                <td><span class="badge-ok">OK</span></td>
-              </tr>
-              <tr>
-                <td>17/09/2026 14:45</td>
-                <td>66%</td>
-                <td>40%</td>
-                <td><span class="badge-ok">OK</span></td>
-              </tr>
-              <tr>
-                <td>17/09/2026 14:40</td>
-                <td>65%</td>
-                <td>39%</td>
-                <td><span class="badge-ok">OK</span></td>
-              </tr>
-              <tr>
-                <td>17/09/2026 14:35</td>
-                <td>63%</td>
-                <td>37%</td>
-                <td><span class="badge-ok">OK</span></td>
+                <td colspan="4" style="text-align: center;">Carregando dados...</td>
               </tr>
             </tbody>
           </table>
-          <a href="reservatorios.html" class="ver-todas">Ver todas as leituras →</a>
+          <a href="historico.html" class="ver-todas">Ver histórico completo →</a>
         </div>
 
       </section>
 
     </main>
 
-  </div> <!-- FIM DO APP-LAYOUT -->
+  </div>
 
-  <!-- MODAL DE CHAMADO / SUPORTE -->
+  <!-- MODAL CHAMADO -->
   <div id="modalChamado" class="modal" style="display: none;">
     <div class="modal-content">
-      <h3>⚠️ Abrir Chamado</h3>
+      <h3>⚠️ Abrir Chamado / Suporte</h3>
       <p>Descreva seu problema com o sistema de água</p>
       
       <form onsubmit="enviarAlertaTecnico(event)">
@@ -300,42 +259,42 @@
     </div>
   </div>
 
-  <!-- MODAL DE MEU PERFIL -->
-<div id="modalPerfil" class="modal" style="display: none;">
-  <div class="modal-content perfil-modal-box">
-    
-    <div class="modal-header-custom">
-      <div class="avatar-icon">👤</div>
-      <div>
-        <h2>Perfil do Usuário</h2>
-        <p>Informações da conta vinculada</p>
+  <!-- MODAL PERFIL -->
+  <div id="modalPerfil" class="modal" style="display: none;">
+    <div class="modal-content perfil-modal-box">
+      
+      <div class="modal-header-custom">
+        <div class="avatar-icon">👤</div>
+        <div>
+          <h2>Perfil do Usuário</h2>
+          <p>Informações da conta vinculada</p>
+        </div>
       </div>
+      
+      <div class="modal-body-custom">
+        <div class="info-card-item">
+          <span class="info-label">👤 Nome / Usuário</span>
+          <strong class="info-value" id="perfilNome">Carregando...</strong>
+        </div>
+
+        <div class="info-card-item">
+          <span class="info-label">✉️ E-mail</span>
+          <strong class="info-value" id="perfilEmail">Carregando...</strong>
+        </div>
+
+        <div class="info-card-item">
+          <span class="info-label">🛢️ Reservatórios Vinculados</span>
+          <strong class="info-value highlight" id="perfilCaixaId">2 Caixas Ativas</strong>
+        </div>
+      </div>
+
+      <div class="modal-footer-custom">
+        <a href="configuracoes.html" class="btn-config-link">⚙️ Ir para Configurações</a>
+        <button type="button" class="btn-fechar-modal" onclick="fecharModal('modalPerfil')">Fechar</button>
+      </div>
+
     </div>
-    
-    <div class="modal-body-custom">
-      <div class="info-card-item">
-        <span class="info-label">👤 Nome / Usuário</span>
-        <strong class="info-value" id="perfilNome">Antonio Bezerra</strong>
-      </div>
-
-      <div class="info-card-item">
-        <span class="info-label">✉️ E-mail</span>
-        <strong class="info-value" id="perfilEmail">elaine@teste.com</strong>
-      </div>
-
-      <div class="info-card-item">
-        <span class="info-label">🛢️ Reservatório Vinculado</span>
-        <strong class="info-value highlight" id="perfilCaixaId">ID: 1 (Caixa Principal)</strong>
-      </div>
-    </div>
-
-    <div class="modal-footer-custom">
-      <a href="configuracoes.html" class="btn-config-link">⚙️ Ir para Configurações</a>
-      <button type="button" class="btn-fechar-modal" onclick="fecharModalPerfil()">Fechar</button>
-    </div>
-
   </div>
-</div>
 
 </body>
 </html>

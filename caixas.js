@@ -1,107 +1,57 @@
 document.addEventListener('DOMContentLoaded', () => {
   carregarCaixas();
-});
+  carregarClientesSelect();
 
-async function carregarCaixas() {
-  const tbody = document.getElementById('listaCaixas');
-  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Carregando dados...</td></tr>';
-
-  try {
-    // Altere a URL abaixo caso sua rota no Node/Express seja diferente (ex: /api/caixas)
-    const resposta = await fetch('/api/caixas'); 
-    
-    if (!resposta.ok) {
-      throw new Error('Erro ao buscar dados do servidor');
-    }
-
-    const caixas = await resposta.json();
-
-    // Se o banco retornar vazio
-    if (caixas.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhuma caixa cadastrada no banco.</td></tr>';
-      return;
-    }
-
-    // Limpa a tabela para renderizar os dados reais
-    tbody.innerHTML = '';
-
-    caixas.forEach(caixa => {
-      // Ajuste os nomes das propriedades (caixa.id, caixa.cliente, etc) de acordo com a resposta da sua API
-      const tr = document.createElement('tr');
-      
-      tr.innerHTML = `
-        <td>CX-${caixa.id}</td>
-        <td>${caixa.cliente_nome || caixa.cliente || 'Sem Dono (Livre)'}</td>
-        <td>${caixa.capacidade} L</td>
-        <td>${caixa.altura_sensor || '--'} cm</td>
-        <td>
-          <span class="badge-status ${getBadgeClass(caixa.nivel_atual)}">
-            ${caixa.nivel_atual}%
-          </span>
-        </td>
-        <td>
-          <button class="btn-action" onclick="editarCaixa(${caixa.id})"><i class="fas fa-edit"></i></button>
-          <button class="btn-action" onclick="deletarCaixa(${caixa.id})"><i class="fas fa-trash"></i></button>
-        </td>
-      `;
-
-      tbody.appendChild(tr);
-    });
-
-  } catch (erro) {
-    console.error('Erro:', erro);
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color: #f87171;">Erro ao carregar dados do banco de dados.</td></tr>';
+  const formCaixa = document.getElementById('formCaixa');
+  if (formCaixa) {
+    formCaixa.addEventListener('submit', salvarCaixas);
   }
-}
-
-// Função auxiliar para definir a cor da badge do nível da água
-function getBadgeClass(nivel) {
-  if (nivel <= 20) return 'badge-warning'; // Amarelo/Vermelho para nível baixo
-  return 'badge-ok'; // Verde para nível bom
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  carregarCaixas();
 });
+
+// CARREGAR LISTA DE CAIXAS (2 CAIXAS POR CLIENTE)
+// Exemplo de inclusão do token nas requisições do caixas.js
+const token = sessionStorage.getItem("token");
 
 async function carregarCaixas() {
   const tbody = document.getElementById('listaCaixas');
-  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Carregando reservatórios...</td></tr>';
+  if (!tbody) return;
+
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Carregando reservatórios...</td></tr>';
 
   try {
-    const resposta = await fetch('/api/caixas');
+    const resposta = await fetch('/api/caixas', {
+      headers: { Authorization: "Bearer " + token } // Adicionado o token
+    });
     
     if (resposta.status === 401) {
-      window.location.href = 'index.html'; // Redireciona se a sessão expirar
+      window.location.href = 'index.html';
       return;
     }
-
+    
     const caixas = await resposta.json();
 
     if (!caixas || caixas.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhuma caixa d\'água cadastrada.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Nenhum par de caixas cadastrado.</td></tr>';
       return;
     }
 
     tbody.innerHTML = '';
 
-    caixas.forEach(caixa => {
+    caixas.forEach(item => {
       const tr = document.createElement('tr');
-      const nivel = caixa.nivel_atual ?? 0;
       
+      const nivel1 = item.nivel_caixa1 ?? 0;
+      const nivel2 = item.nivel_caixa2 ?? 0;
+
       tr.innerHTML = `
-        <td>CX-${caixa.id}</td>
-        <td>${caixa.cliente_nome || 'Sem Dono (Livre)'}</td>
-        <td>${caixa.capacidade || 1000} L</td>
-        <td>${caixa.altura_sensor || 100} cm</td>
+        <td>CX-${item.id}</td>
+        <td>${item.cliente_nome || 'Sem Dono (Livre)'}</td>
+        <td>${item.nome_caixa1 || 'Caixa 1'} (${item.capacidade_caixa1 || 1000}L)</td>
+        <td><span class="badge-status ${getBadgeClass(nivel1)}">${nivel1}%</span></td>
+        <td>${item.nome_caixa2 || 'Caixa 2'} (${item.capacidade_caixa2 || 1000}L)</td>
+        <td><span class="badge-status ${getBadgeClass(nivel2)}">${nivel2}%</span></td>
         <td>
-          <span class="badge-status ${getBadgeClass(nivel)}">
-            ${nivel}%
-          </span>
-        </td>
-        <td>
-          <button class="btn-action" title="Editar" onclick="editarCaixa(${caixa.id})"><i class="fas fa-edit"></i></button>
-          <button class="btn-action" title="Excluir" onclick="deletarCaixa(${caixa.id})"><i class="fas fa-trash"></i></button>
+          <button class="btn-action" title="Excluir" onclick="deletarCaixa(${item.id})"><i class="fas fa-trash"></i></button>
         </td>
       `;
 
@@ -110,27 +60,92 @@ async function carregarCaixas() {
 
   } catch (erro) {
     console.error('Erro ao carregar caixas:', erro);
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color: #f87171;">Erro ao carregar dados do banco.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: #f87171;">Erro ao carregar dados do banco de dados.</td></tr>';
   }
 }
 
-function getBadgeClass(nivel) {
-  if (nivel <= 20) return 'badge-warning';
-  return 'badge-ok';
+// SALVAR CAIXAS (CADASTRAR PAR DE CAIXAS)
+async function salvarCaixas(e) {
+  e.preventDefault();
+
+  const dados = {
+    usuario_id: document.getElementById('selectCliente').value,
+    nome_caixa1: document.getElementById('nomeCaixa1').value,
+    capacidade_caixa1: document.getElementById('capacidadeCaixa1').value,
+    altura_sensor1: document.getElementById('alturaSensor1').value,
+    nome_caixa2: document.getElementById('nomeCaixa2').value,
+    capacidade_caixa2: document.getElementById('capacidadeCaixa2').value,
+    altura_sensor2: document.getElementById('alturaSensor2').value
+  };
+
+  try {
+    const res = await fetch('/api/caixas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dados)
+    });
+
+    if (res.ok) {
+      fecharModalCaixa();
+      carregarCaixas();
+    } else {
+      const errData = await res.json();
+      alert(errData.error || 'Erro ao salvar conjunto de caixas.');
+    }
+  } catch (err) {
+    console.error('Erro ao salvar:', err);
+    alert('Erro de conexão ao salvar caixas.');
+  }
 }
 
+// CARREGAR CLIENTES NO DROPDOWN DO MODAL
+async function carregarClientesSelect() {
+  try {
+    const res = await fetch('/api/clientes');
+    const clientes = await res.json();
+    const select = document.getElementById('selectCliente');
+
+    if (!select) return;
+
+    select.innerHTML = '<option value="">Selecione um cliente...</option>';
+    clientes.forEach(c => {
+      select.innerHTML += `<option value="${c.id}">${c.usuario}</option>`;
+    });
+  } catch (err) {
+    console.error('Erro ao carregar lista de clientes:', err);
+  }
+}
+
+// EXCLUIR REGISTRO
 async function deletarCaixa(id) {
-  if (!confirm(`Deseja realmente remover a caixa CX-${id}?`)) return;
+  if (!confirm(`Deseja realmente remover o par de caixas CX-${id}?`)) return;
 
   try {
     const res = await fetch(`/api/caixas/${id}`, { method: 'DELETE' });
-    const data = await res.json();
-    if (data.success) {
+    if (res.ok) {
       carregarCaixas();
     } else {
+      const data = await res.json();
       alert(data.error || 'Erro ao deletar caixa.');
     }
   } catch (err) {
     alert('Erro de conexão ao deletar caixa.');
   }
+}
+
+// CORES DAS BADGES DE NÍVEL
+function getBadgeClass(nivel) {
+  if (nivel <= 20) return 'badge-warning';
+  return 'badge-ok';
+}
+
+// CONTROLE DO MODAL
+function abrirModalCaixa() {
+  const modal = document.getElementById('modalCaixa');
+  if (modal) modal.style.display = 'flex';
+}
+
+function fecharModalCaixa() {
+  const modal = document.getElementById('modalCaixa');
+  if (modal) modal.style.display = 'none';
 }

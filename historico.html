@@ -40,40 +40,50 @@
 
   <script>
     const API_BASE = window.location.origin;
-    const token = sessionStorage.getItem("token");
-
-    document.addEventListener("DOMContentLoaded", () => {
-      if (!token) {
+  
+    document.addEventListener("DOMContentLoaded", async () => {
+      // 1. Verifica no servidor se o usuário está logado via cookie/sessão
+      try {
+        const res = await fetch(API_BASE + "/api/usuario-atual", { credentials: "same-origin" });
+        const user = await res.json();
+  
+        if (!user.logado) {
+          window.location.href = "index.html";
+          return;
+        }
+      } catch (err) {
         window.location.href = "index.html";
         return;
       }
-
-      document.getElementById("btnLogout")?.addEventListener("click", () => {
+  
+      // 2. Configura o botão de Logout chamando o backend
+      document.getElementById("btnLogout")?.addEventListener("click", async () => {
+        await fetch(API_BASE + "/api/logout", { method: "POST", credentials: "same-origin" });
         sessionStorage.clear();
         window.location.href = "index.html";
       });
-
+  
+      // 3. Se estiver tudo OK, carrega os dados
       carregarHistoricos();
     });
-
+  
     async function carregarHistoricos() {
       const container = document.getElementById("containerHistoricos");
       
       try {
-        const res = await fetch(API_BASE + "/api/minhas-caixas", {
-          headers: { Authorization: "Bearer " + token }
-        });
-
+        // Faz a requisição usando sessão do servidor (sem depender do token)
+        const res = await fetch(API_BASE + "/api/minhas-caixas", { credentials: "same-origin" });
+  
         if (!res.ok) throw new Error("Status " + res.status);
         const caixas = await res.json();
-
+  
         if (!Array.isArray(caixas) || caixas.length === 0) {
           container.innerHTML = `<p class="msg-feedback">Nenhum reservatório encontrado.</p>`;
           return;
         }
-
+  
         container.innerHTML = "";
-
+  
         caixas.forEach(caixa => {
           const card = document.createElement("div");
           card.className = "card-reservatorio";
@@ -88,21 +98,23 @@
                 <div>Reservatórios vinculados: <strong>2 Caixas</strong></div>
               </div>
             </div>
-
+  
             <button class="btn-acessar" onclick="verHistoricoEspecifico('${caixa.id}')">
               📈 Ver Histórico
             </button>
           `;
-
+  
           container.appendChild(card);
         });
-
+  
       } catch (err) {
         console.error("Erro ao carregar histórico:", err);
-        container.innerHTML = `<p class="msg-feedback" style="color: #ef4444;">❌ Erro ao carregar histórico.</p>`;
+        if (container) {
+          container.innerHTML = `<p class="msg-feedback" style="color: #ef4444;">❌ Erro ao carregar histórico.</p>`;
+        }
       }
     }
-
+  
     function verHistoricoEspecifico(caixaId) {
       sessionStorage.setItem("caixaSelecionada", caixaId);
       window.location.href = `historico-caixa.html?id=${caixaId}`;

@@ -81,21 +81,22 @@
       <section class="card-form-dark">
         <div class="section-header">
           <h3><i class="fas fa-box-open text-cyan"></i> Caixas d'Água Cadastradas</h3>
-          <button class="btn-cyan-glow" id="btnNovaCaixa">
+          <button class="btn-cyan-glow" id="btnNovaCaixa" onclick="abrirModalCaixa()">
             <i class="fas fa-plus"></i> Nova Caixa
           </button>
         </div>
 
-        <!-- TABELA DE CAIXAS -->
+        <!-- TABELA DE CAIXAS (2 CAIXAS POR CLIENTE) -->
         <div class="table-responsive">
           <table class="custom-table">
             <thead>
               <tr>
                 <th>ID</th>
                 <th>Cliente Vinculado</th>
-                <th>Capacidade (L)</th>
-                <th>Altura Sensor</th>
-                <th>Nível Atual</th>
+                <th>Caixa 1 (Nome / Cap.)</th>
+                <th>Nível CX 1</th>
+                <th>Caixa 2 (Nome / Cap.)</th>
+                <th>Nível CX 2</th>
                 <th>Ações</th>
               </tr>
             </thead>
@@ -107,6 +108,62 @@
       </section>
 
     </main>
+  </div>
+
+  <!-- MODAL DE CADASTRO / EDIÇÃO DAS 2 CAIXAS -->
+  <div id="modalCaixa" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
+    <div class="modal-content card-form-dark" style="max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; padding: 20px;">
+      <h3 id="modalTitulo" style="margin-bottom: 15px;"><i class="fas fa-boxes text-cyan"></i> Cadastrar Par de Caixas</h3>
+      <form id="formCaixa">
+        <input type="hidden" id="caixaId">
+
+        <div style="margin-bottom: 15px;">
+          <label style="display: block; margin-bottom: 5px;">Cliente:</label>
+          <select id="selectCliente" class="input-dark" style="width: 100%; padding: 8px;" required>
+            <!-- Preenchido via caixas.js -->
+          </select>
+        </div>
+
+        <hr style="margin: 15px 0; border: 0; border-top: 1px solid rgba(0, 242, 254, 0.2);">
+
+        <!-- DADOS DA CAIXA 1 -->
+        <h4 style="color: #00f2fe; margin-bottom: 10px;"><i class="fas fa-water"></i> Caixa 1 (Superior / Principal)</h4>
+        <div style="margin-bottom: 10px;">
+          <label style="display: block; margin-bottom: 5px;">Nome:</label>
+          <input type="text" id="nomeCaixa1" class="input-dark" value="Caixa Superior" style="width: 100%; padding: 8px;" required>
+        </div>
+        <div style="margin-bottom: 10px;">
+          <label style="display: block; margin-bottom: 5px;">Capacidade (L):</label>
+          <input type="number" id="capacidadeCaixa1" class="input-dark" value="1000" style="width: 100%; padding: 8px;" required>
+        </div>
+        <div style="margin-bottom: 10px;">
+          <label style="display: block; margin-bottom: 5px;">Altura Sensor (cm):</label>
+          <input type="number" id="alturaSensor1" class="input-dark" value="100" style="width: 100%; padding: 8px;" required>
+        </div>
+
+        <hr style="margin: 15px 0; border: 0; border-top: 1px solid rgba(0, 242, 254, 0.2);">
+
+        <!-- DADOS DA CAIXA 2 -->
+        <h4 style="color: #00f2fe; margin-bottom: 10px;"><i class="fas fa-water"></i> Caixa 2 (Inferior / Cisterna)</h4>
+        <div style="margin-bottom: 10px;">
+          <label style="display: block; margin-bottom: 5px;">Nome:</label>
+          <input type="text" id="nomeCaixa2" class="input-dark" value="Cisterna" style="width: 100%; padding: 8px;" required>
+        </div>
+        <div style="margin-bottom: 10px;">
+          <label style="display: block; margin-bottom: 5px;">Capacidade (L):</label>
+          <input type="number" id="capacidadeCaixa2" class="input-dark" value="1000" style="width: 100%; padding: 8px;" required>
+        </div>
+        <div style="margin-bottom: 10px;">
+          <label style="display: block; margin-bottom: 5px;">Altura Sensor (cm):</label>
+          <input type="number" id="alturaSensor2" class="input-dark" value="100" style="width: 100%; padding: 8px;" required>
+        </div>
+
+        <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+          <button type="submit" class="btn-cyan-glow">Salvar</button>
+          <button type="button" class="btn-logout-red" onclick="fecharModalCaixa()">Cancelar</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <script src="caixas.js"></script>

@@ -33,10 +33,12 @@ const itensCadastrados = [
     }
   
     // Logout
+    // Ajuste no cadastros.js (Bloco do Logout):
     const btnLogout = document.getElementById("btnLogout");
     if (btnLogout) {
       btnLogout.addEventListener("click", () => {
-        window.location.href = "login.html";
+        sessionStorage.clear(); // Limpa tokens de sessão
+        window.location.href = "index.html"; // Redireciona para a home/login padrão
       });
     }
   });

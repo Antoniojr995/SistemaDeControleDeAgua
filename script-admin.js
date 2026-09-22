@@ -637,3 +637,27 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 });
+
+// Continuação e encerramento da função atualizarStatus no script-admin.js
+window.atualizarStatus = async function(id) {
+  const solucaoText = prompt("Descreva o que foi feito para resolver este problema:");
+  if (solucaoText === null) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/chamados/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "Concluído", solucao: solucaoText }),
+      credentials: "same-origin"
+    });
+
+    if (res.ok) {
+      alert("✅ Chamado resolvido com sucesso!");
+      carregarChamados();
+    } else {
+      alert("❌ Erro ao atualizar o status do chamado.");
+    }
+  } catch (err) {
+    alert("❌ Erro na conexão com o servidor.");
+  }
+};

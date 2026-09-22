@@ -58,6 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
   selectCaixa?.addEventListener("change", (e) => {
     sessionStorage.setItem("caixaSelecionada", e.target.value);
     carregarHistorico();
+    fetchLatest();
   });
 
   // Modais de Chamado e Perfil
@@ -78,12 +79,23 @@ document.addEventListener("DOMContentLoaded", () => {
   // Botão de Relatório
   document.getElementById("btnRelatorio")?.addEventListener("click", gerarRelatorio);
 
+  // Evento para fechar modal ao clicar no fundo escuro
+  window.addEventListener('click', (event) => {
+    const modalPerfil = document.getElementById('modalPerfil');
+    if (event.target === modalPerfil) {
+      fecharModalPerfil();
+    }
+  });
+
   // 4. Inicialização de Dados
   carregarDadosUsuario();
-  fetchLatest();
-  carregarMinhasCaixas();
-  carregarHistorico();
-  setInterval(fetchLatest, 3000); // Polling a cada 3 segundos
+  carregarMinhasCaixas().then(() => {
+    fetchLatest();
+    carregarHistorico();
+  });
+  
+  // Polling a cada 5 segundos para manter atualizado em tempo real
+  setInterval(fetchLatest, 5000); 
 });
 
 // =======================
@@ -95,11 +107,19 @@ async function carregarMinhasCaixas() {
       headers: { Authorization: "Bearer " + token }
     });
 
+    if (res.status === 401) {
+      window.location.href = "index.html";
+      return;
+    }
+
     if (!res.ok) return;
 
-    const caixas = await res.json();
+    const data = await res.json();
     const selectCaixa = document.getElementById("selectIdReservatorio") || document.getElementById("selectCaixa");
     
+    // Suporte caso a API retorne um objeto único com propriedades de caixas ou um array
+    const caixas = Array.isArray(data) ? data : (data.caixas || [data]);
+
     if (selectCaixa) {
       selectCaixa.innerHTML = "";
       if (caixas.length === 0) {
@@ -109,8 +129,8 @@ async function carregarMinhasCaixas() {
 
       caixas.forEach(caixa => {
         const option = document.createElement("option");
-        option.value = caixa.id;
-        option.textContent = `ID: ${caixa.id} (${caixa.nome || 'Reservatório'})`;
+        option.value = caixa.id || 1;
+        option.textContent = `ID: ${caixa.id || 1} (${caixa.nome || caixa.nome_caixa1 || 'Reservatório'})`;
         selectCaixa.appendChild(option);
       });
 
@@ -118,7 +138,7 @@ async function carregarMinhasCaixas() {
       if (caixaSalva) {
         selectCaixa.value = caixaSalva;
       } else if (caixas.length > 0) {
-        sessionStorage.setItem("caixaSelecionada", caixas[0].id);
+        sessionStorage.setItem("caixaSelecionada", caixas[0].id || 1);
       }
     }
   } catch (err) {
@@ -133,13 +153,8 @@ function atualizarSvgAgua(elementId, porcentagem) {
   const el = document.getElementById(elementId);
   if (!el) return;
 
-  // Garante limite entre 0% e 100%
   const pct = Math.min(Math.max(porcentagem, 0), 100);
-
-  // Mapeia 0% para a altura Y=90 (fundo) e 100% para Y=30 (topo)
   const yTop = 90 - ((90 - 30) * (pct / 100));
-
-  // Modifica a curva/preenchimento do reservatório SVG
   el.setAttribute("d", `M13,${yTop} Q50,${yTop + 12} 87,${yTop} L88,90 Q50,105 12,90 Z`);
 }
 
@@ -151,12 +166,36 @@ async function fetchLatest() {
     const res = await fetch(API_BASE + "/api/dados/latest", {
       headers: { Authorization: "Bearer " + token }
     });
+    
+    if (res.status === 401) {
+      window.location.href = "index.html";
+      return;
+    }
+    
     if (!res.ok) throw new Error("Erro na resposta da API");
 
     const d = await res.json();
 
-    const valC1 = Number(d.caixa1 ?? d.nivel ?? 0);
-    const valC2 = Number(d.caixa2 ?? 0);
+    const valC1 = Number(d.caixa1 ?? d.nivel_caixa1 ?? d.nivel ?? 0);
+    const valC2 = Number(d.caixa2 ?? d.nivel_caixa2 ?? 0);
+
+    // Capacidades (Integração com o segundo código para cálculo dinâmico em Litros)
+    const cap1 = Number(d.capacidade_caixa1 || 1000);
+    const cap2 = Number(d.capacidade_caixa2 || 1000);
+
+    const cap1El = document.getElementById("capCaixa1");
+    const cap2El = document.getElementById("capCaixa2");
+    const bannerTotal = document.getElementById("bannerCapacidadeTotal");
+
+    if (cap1El) cap1El.innerText = `${cap1.toLocaleString('pt-BR')} L`;
+    if (cap2El) cap2El.innerText = `${cap2.toLocaleString('pt-BR')} L`;
+    if (bannerTotal) bannerTotal.innerText = `${(cap1 + cap2).toLocaleString('pt-BR')} L`;
+
+    // Títulos personalizados
+    const titulo1 = document.getElementById("tituloCaixa1");
+    const titulo2 = document.getElementById("tituloCaixa2");
+    if (titulo1 && d.nome_caixa1) titulo1.innerText = d.nome_caixa1;
+    if (titulo2 && d.nome_caixa2) titulo2.innerText = d.nome_caixa2;
 
     // 1. Atualizar Textos da Porcentagem
     const perc1 = document.getElementById("percCaixa1");
@@ -168,22 +207,21 @@ async function fetchLatest() {
     const ring1 = document.querySelector(".card-caixa:nth-child(1) .ring-circle");
     const ring2 = document.querySelector(".card-caixa:nth-child(2) .ring-circle");
 
-    if (ring1) {
-      ring1.style.background = `conic-gradient(#38bdf8 0% ${valC1}%, #082247 ${valC1}% 100%)`;
-    }
-    if (ring2) {
-      ring2.style.background = `conic-gradient(#38bdf8 0% ${valC2}%, #082247 ${valC2}% 100%)`;
-    }
+    if (ring1) ring1.style.background = `conic-gradient(#38bdf8 0% ${valC1}%, #082247 ${valC1}% 100%)`;
+    if (ring2) ring2.style.background = `conic-gradient(#38bdf8 0% ${valC2}%, #082247 ${valC2}% 100%)`;
 
     // 3. Atualizar Animação de Água nos Ícones SVG 3D
     atualizarSvgAgua("svgNivelCaixa1", valC1);
     atualizarSvgAgua("svgNivelCaixa2", valC2);
 
-    // 4. Atualizar Volumes em Litros
+    // 4. Atualizar Volumes em Litros Baseados na Capacidade Real
     const vol1Text = document.getElementById("volCaixa1");
     const vol2Text = document.getElementById("volCaixa2");
-    if (vol1Text) vol1Text.innerText = `${Math.round((valC1 / 100) * 1000)} L`;
-    if (vol2Text) vol2Text.innerText = `${Math.round((valC2 / 100) * 1000)} L`;
+    const vol1 = Math.round((cap1 * valC1) / 100);
+    const vol2 = Math.round((cap2 * valC2) / 100);
+
+    if (vol1Text) vol1Text.innerText = `${vol1.toLocaleString('pt-BR')} L`;
+    if (vol2Text) vol2Text.innerText = `${vol2.toLocaleString('pt-BR')} L`;
 
     // 5. Atualizar Barras Retas de Progresso
     const bar1 = document.getElementById("barCaixa1");
@@ -198,7 +236,18 @@ async function fetchLatest() {
       elData.innerText = agora.toLocaleDateString("pt-BR") + " - " + agora.toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' });
     }
 
-    atualizarEstadoBombaUI(d.bomba === 1);
+    const bombaStatus = d.bomba === 1 || d.bomba === true || d.status_bomba === 'LIGADA';
+    atualizarEstadoBombaUI(bombaStatus);
+
+    // Atualiza histórico se vier embutido nos dados em tempo real
+    if (d.historico && Array.isArray(d.historico)) {
+      atualizarTabela(d.historico);
+      renderizarGrafico(
+        d.historico.map(h => h.hora || h.data),
+        d.historico.map(h => h.nivel1 ?? h.media_caixa1),
+        d.historico.map(h => h.nivel2 ?? h.media_caixa2)
+      );
+    }
 
   } catch (err) {
     console.error("Erro ao carregar dados em tempo real:", err);
@@ -232,6 +281,7 @@ function atualizarEstadoBombaUI(ligada) {
 async function enviarComandoBomba(ligar) {
   try {
     atualizarEstadoBombaUI(ligar);
+    const statusStr = ligar ? 'LIGADA' : 'DESLIGADA';
 
     await fetch(API_BASE + "/api/bomba", {
       method: "POST",
@@ -239,7 +289,7 @@ async function enviarComandoBomba(ligar) {
         "Content-Type": "application/json",
         Authorization: "Bearer " + token
       },
-      body: JSON.stringify({ ligar })
+      body: JSON.stringify({ ligar, status: statusStr })
     });
   } catch (err) {
     console.error("Erro ao enviar comando da bomba:", err);
@@ -259,31 +309,14 @@ async function carregarHistorico() {
     if (!res.ok) return;
 
     const data = await res.json();
-    const tbody = document.getElementById("tabelaLeiturasBody") || document.querySelector("#tabelaHistorico tbody");
+    if (!Array.isArray(data) || data.length === 0) return;
 
-    if (!Array.isArray(data) || data.length === 0) {
-      if (tbody) tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum registro encontrado.</td></tr>';
-      return;
-    }
-
-    if (tbody) {
-      tbody.innerHTML = "";
-      data.slice(0, 5).forEach((d) => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${d.dia || d.data || d.created_at}</td>
-          <td>${d.media_caixa1 ?? d.caixa1}%</td>
-          <td>${d.media_caixa2 ?? d.caixa2}%</td>
-          <td><span class="badge-ok">OK</span></td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
+    atualizarTabela(data);
 
     const historicoOrdenado = [...data].reverse();
-    const rotulos = historicoOrdenado.map(d => d.dia || d.data);
-    const dadosCaixa1 = historicoOrdenado.map(d => d.media_caixa1 ?? d.caixa1);
-    const dadosCaixa2 = historicoOrdenado.map(d => d.media_caixa2 ?? d.caixa2);
+    const rotulos = historicoOrdenado.map(d => d.hora || d.dia || d.data);
+    const dadosCaixa1 = historicoOrdenado.map(d => d.nivel1 ?? d.media_caixa1 ?? d.caixa1);
+    const dadosCaixa2 = historicoOrdenado.map(d => d.nivel2 ?? d.media_caixa2 ?? d.caixa2);
 
     renderizarGrafico(rotulos, dadosCaixa1, dadosCaixa2);
 
@@ -292,15 +325,32 @@ async function carregarHistorico() {
   }
 }
 
+function atualizarTabela(historico) {
+  const tbody = document.getElementById("tabelaLeiturasBody") || document.querySelector("#tabelaHistorico tbody");
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
+  historico.slice(0, 5).forEach((d) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${d.data_hora || d.hora || d.dia || d.data}</td>
+      <td>${d.nivel1 ?? d.media_caixa1 ?? d.caixa1}%</td>
+      <td>${d.nivel2 ?? d.media_caixa2 ?? d.caixa2}%</td>
+      <td><span class="status-ok badge-ok">Normal</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
 function renderizarGrafico(labels, caixa1, caixa2) {
-  const ctx = document.getElementById("graficoHistorico") || document.getElementById("graficoNivelAgua");
-  if (!ctx) return;
+  const canvas = document.getElementById("graficoHistorico") || document.getElementById("graficoNivelAgua");
+  if (!canvas) return;
 
   if (meuGrafico) {
     meuGrafico.destroy();
   }
 
-  meuGrafico = new Chart(ctx.getContext("2d"), {
+  meuGrafico = new Chart(canvas.getContext("2d"), {
     type: "line",
     data: {
       labels: labels,
@@ -373,13 +423,13 @@ window.enviarAlertaTecnico = async function(event) {
         "Content-Type": "application/json",
         Authorization: "Bearer " + token
       },
-      body: JSON.stringify({ assunto, mensagem })
+      body: JSON.stringify({ assunto, tipo: assunto, mensagem })
     });
 
-    const data = await res.json();
+    const data = await res.json().catch(() => ({ success: res.ok }));
 
-    if (res.ok && data.success) {
-      alert("✅ Chamado enviado com sucesso!");
+    if (res.ok) {
+      alert("✅ Chamado enviado com sucesso! Nossa equipe entrará em contato.");
       if (mensagemElemento) mensagemElemento.value = "";
       window.fecharModal("modalChamado");
       window.fecharModal("modalAlertaTecnico");
@@ -402,7 +452,7 @@ async function carregarDadosUsuario() {
     });
     const dados = await res.json();
 
-    if (res.ok && dados.logado) {
+    if (res.ok && (dados.logado || dados.nome || dados.usuario)) {
       const elNomeHeader = document.getElementById("nomeUsuarioHeader");
       if (elNomeHeader) {
         elNomeHeader.innerText = dados.nome || dados.usuario || "Perfil";
@@ -423,7 +473,7 @@ window.abrirModalPerfil = async function() {
     });
     const dados = await res.json();
 
-    if (res.ok && dados.logado) {
+    if (res.ok) {
       const userEl = document.getElementById("perfilNome") || document.getElementById("perfilUsuario");
       const emailEl = document.getElementById("perfilEmail");
       const passEl = document.getElementById("perfilSenha");
@@ -466,7 +516,7 @@ window.salvarPerfil = async function(event) {
 
     const result = await response.json();
 
-    if (response.ok && result.success) {
+    if (response.ok) {
       alert("✅ Perfil atualizado com sucesso!");
       window.fecharModal("modalPerfil");
     } else {
@@ -514,26 +564,11 @@ window.fecharModal = function(idModal) {
   if (modal) modal.style.display = "none";
 };
 
-// Função para fechar o modal do perfil
 function fecharModalPerfil() {
-  const modal = document.getElementById('modalPerfil');
-  if (modal) {
-    modal.style.display = 'none';
-  }
+  window.fecharModal('modalPerfil');
 }
 
-// Função para abrir o modal do perfil
-function abrirModalPerfil() {
-  const modal = document.getElementById('modalPerfil');
-  if (modal) {
-    modal.style.display = 'flex'; // Usamos flex para centralizar na tela
-  }
+function abrirModal(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'flex';
 }
-
-// Evento para fechar ao clicar no fundo escuro (fora da caixa)
-window.addEventListener('click', (event) => {
-  const modal = document.getElementById('modalPerfil');
-  if (event.target === modal) {
-    fecharModalPerfil();
-  }
-});

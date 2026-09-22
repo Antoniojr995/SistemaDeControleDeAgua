@@ -35,6 +35,7 @@ function requererAutenticacao(req, res, next) {
 
 async function initDb() {
   try {
+    // 1. Tabela de usuários
     await pool.query(`
       CREATE TABLE IF NOT EXISTS usuarios (
         id SERIAL PRIMARY KEY,
@@ -44,27 +45,45 @@ async function initDb() {
       )
     `);
 
+    // 2. Tabela de caixas (suporta Caixa 1 e Caixa 2 para cada cliente)
     await pool.query(`
       CREATE TABLE IF NOT EXISTS caixas (
         id SERIAL PRIMARY KEY,
-        nome VARCHAR(100) NOT NULL,
-        capacidade INTEGER DEFAULT 1000,
-        altura_sensor INTEGER DEFAULT 100,
-        usuario_id INTEGER REFERENCES usuarios(id) ON DELETE SET NULL
+        usuario_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
+        nome_caixa1 VARCHAR(100) DEFAULT 'Caixa 1',
+        capacidade_caixa1 INTEGER DEFAULT 1000,
+        altura_sensor1 INTEGER DEFAULT 100,
+        nome_caixa2 VARCHAR(100) DEFAULT 'Caixa 2',
+        capacidade_caixa2 INTEGER DEFAULT 1000,
+        altura_sensor2 INTEGER DEFAULT 100
       )
     `);
 
-    await pool.query(`ALTER TABLE caixas ADD COLUMN IF NOT EXISTS capacidade INTEGER DEFAULT 1000;`);
-    await pool.query(`ALTER TABLE caixas ADD COLUMN IF NOT EXISTS altura_sensor INTEGER DEFAULT 100;`);
+    // Adiciona colunas novas caso a tabela 'caixas' já tenha sido criada anteriormente
+    await pool.query(`ALTER TABLE caixas ADD COLUMN IF NOT EXISTS nome_caixa1 VARCHAR(100) DEFAULT 'Caixa 1';`);
+    await pool.query(`ALTER TABLE caixas ADD COLUMN IF NOT EXISTS capacidade_caixa1 INTEGER DEFAULT 1000;`);
+    await pool.query(`ALTER TABLE caixas ADD COLUMN IF NOT EXISTS altura_sensor1 INTEGER DEFAULT 100;`);
+    await pool.query(`ALTER TABLE caixas ADD COLUMN IF NOT EXISTS nome_caixa2 VARCHAR(100) DEFAULT 'Caixa 2';`);
+    await pool.query(`ALTER TABLE caixas ADD COLUMN IF NOT EXISTS capacidade_caixa2 INTEGER DEFAULT 1000;`);
+    await pool.query(`ALTER TABLE caixas ADD COLUMN IF NOT EXISTS altura_sensor2 INTEGER DEFAULT 100;`);
 
+    // 3. Tabela de leituras (registra os níveis das duas caixas no mesmo envio do ESP32)
     await pool.query(`
       CREATE TABLE IF NOT EXISTS leituras (
         id SERIAL PRIMARY KEY,
-        nivel INTEGER NOT NULL,
+        caixa_id INTEGER REFERENCES caixas(id) ON DELETE CASCADE,
+        nivel_caixa1 INTEGER DEFAULT 0,
+        nivel_caixa2 INTEGER DEFAULT 0,
         data_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
+    // Adiciona colunas novas caso a tabela 'leituras' já tenha sido criada antes
+    await pool.query(`ALTER TABLE leituras ADD COLUMN IF NOT EXISTS caixa_id INTEGER REFERENCES caixas(id) ON DELETE CASCADE;`);
+    await pool.query(`ALTER TABLE leituras ADD COLUMN IF NOT EXISTS nivel_caixa1 INTEGER DEFAULT 0;`);
+    await pool.query(`ALTER TABLE leituras ADD COLUMN IF NOT EXISTS nivel_caixa2 INTEGER DEFAULT 0;`);
+
+    // 4. Tabela de chamados
     await pool.query(`
       CREATE TABLE IF NOT EXISTS chamados (
         id SERIAL PRIMARY KEY,
@@ -79,6 +98,7 @@ async function initDb() {
     
     await pool.query(`ALTER TABLE chamados ADD COLUMN IF NOT EXISTS solucao TEXT;`);
 
+    // 5. Admins padrão
     await pool.query(`
       INSERT INTO usuarios (usuario, senha, tipo) 
       VALUES ($1, $2, $3) 
@@ -91,7 +111,7 @@ async function initDb() {
       ON CONFLICT (usuario) DO UPDATE SET tipo = 'admin'
     `, ['admin', '123456', 'admin']);
 
-    console.log('Banco de dados PostgreSQL verificado e pronto!');
+    console.log('Banco de dados PostgreSQL verificado e ajustado para 2 caixas por cliente!');
   } catch (err) {
     console.error('Erro ao inicializar tabelas:', err);
   }
@@ -204,34 +224,72 @@ app.post('/api/redefinir-senha', async (req, res) => {
 });
 
 // GERENCIAMENTO DE CAIXAS
+// CADASTRAR OU ATRIBUIR AS 2 CAIXAS A UM CLIENTE
 app.post('/api/caixas', requererAutenticacao, async (req, res) => {
-  const { nome, usuario_id } = req.body;
-  if (!nome) return res.status(400).json({ error: 'Nome da caixa é obrigatório.' });
+  // Extrai tanto os campos do formulário do Admin quanto os campos antigos de 2 caixas
+  const { 
+    usuario_id, 
+    nome, 
+    capacidade, 
+    altura_sensor, 
+    modelo,
+    nome_caixa1, 
+    capacidade_caixa1, 
+    nome_caixa2, 
+    capacidade_caixa2 
+  } = req.body;
 
   try {
+    // Trata os valores para garantir que nada vá como nulo/undefined
+    const c1_nome = nome_caixa1 || nome || 'Caixa 1';
+    const c1_cap = capacidade_caixa1 || capacidade || 1000;
+    const c1_altura = altura_sensor || 100;
+    const c2_nome = nome_caixa2 || 'Caixa 2';
+    const c2_cap = capacidade_caixa2 || 1000;
+
     await pool.query(
-      'INSERT INTO caixas (nome, usuario_id) VALUES ($1, $2)',
-      [nome, usuario_id || null]
+      `INSERT INTO caixas (usuario_id, nome_caixa1, capacidade_caixa1, altura_sensor1, nome_caixa2, capacidade_caixa2) 
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [
+        usuario_id || null, 
+        c1_nome, 
+        c1_cap, 
+        c1_altura,
+        c2_nome, 
+        c2_cap
+      ]
     );
-    res.status(201).json({ success: true, message: 'Caixa criada com sucesso!' });
+
+    res.status(201).json({ success: true, message: 'Caixa cadastrada com sucesso!' });
   } catch (err) {
-    res.status(500).json({ error: 'Erro ao criar caixa.' });
+    console.error('Erro ao cadastrar caixa:', err);
+    res.status(500).json({ error: 'Erro ao cadastrar caixas no banco de dados.' });
   }
 });
 
+// LISTAR CAIXAS E OS NÍVEIS ATUAIS DAS DUAS CAIXAS
 app.get('/api/caixas', requererAutenticacao, async (req, res) => {
   try {
     const queryText = `
       SELECT 
         c.id, 
-        c.nome, 
-        c.capacidade, 
-        c.altura_sensor, 
         c.usuario_id, 
         u.usuario AS cliente_nome,
-        COALESCE((SELECT nivel FROM leituras ORDER BY id DESC LIMIT 1), 0) AS nivel_atual
+        c.nome_caixa1,
+        c.capacidade_caixa1,
+        c.nome_caixa2,
+        c.capacidade_caixa2,
+        COALESCE(l.nivel_caixa1, 0) AS nivel_caixa1,
+        COALESCE(l.nivel_caixa2, 0) AS nivel_caixa2,
+        l.data_hora AS ultima_leitura
       FROM caixas c 
       LEFT JOIN usuarios u ON c.usuario_id = u.id 
+      LEFT JOIN LATERAL (
+        SELECT nivel_caixa1, nivel_caixa2, data_hora 
+        FROM leituras 
+        WHERE caixa_id = c.id 
+        ORDER BY id DESC LIMIT 1
+      ) l ON true
       ORDER BY c.id DESC
     `;
     const result = await pool.query(queryText);
@@ -576,30 +634,54 @@ app.get('/api/dados/latest', async (req, res) => {
 
 // LEITURAS ESP32
 app.post('/api/leitura', async (req, res) => {
-  const { nivel } = req.body;
-  if (nivel === undefined || nivel === null) {
-    return res.status(400).json({ error: 'Nível inválido.' });
+  const { caixa_id, nivel_caixa1, nivel_caixa2 } = req.body;
+
+  if (nivel_caixa1 === undefined || nivel_caixa2 === undefined) {
+    return res.status(400).json({ error: 'Níveis da Caixa 1 e Caixa 2 são obrigatórios.' });
   }
 
   try {
     const result = await pool.query(
-      'INSERT INTO leituras (nivel) VALUES ($1) RETURNING *',
-      [nivel]
+      'INSERT INTO leituras (caixa_id, nivel_caixa1, nivel_caixa2) VALUES ($1, $2, $3) RETURNING *',
+      [caixa_id || 1, nivel_caixa1, nivel_caixa2]
     );
     res.status(201).json({ success: true, dados: result.rows[0] });
   } catch (err) {
-    res.status(500).json({ error: 'Erro ao registrar leitura.' });
+    res.status(500).json({ error: 'Erro ao registrar leitura das caixas.' });
   }
 });
 
 app.get('/api/minhas-caixas', requererAutenticacao, async (req, res) => {
   try {
-    const result = await pool.query(
-      'SELECT id, nome FROM caixas WHERE usuario_id = $1 ORDER BY id ASC',
-      [req.session.usuarioId]
-    );
-    res.json(result.rows || []);
+    const queryText = `
+      SELECT 
+        c.id,
+        c.nome_caixa1,
+        c.capacidade_caixa1,
+        c.altura_sensor1,
+        c.nome_caixa2,
+        c.capacidade_caixa2,
+        c.altura_sensor2,
+        COALESCE(l.nivel_caixa1, 0) AS nivel_caixa1,
+        COALESCE(l.nivel_caixa2, 0) AS nivel_caixa2,
+        l.data_hora AS ultima_leitura
+      FROM caixas c
+      LEFT JOIN LATERAL (
+        SELECT nivel_caixa1, nivel_caixa2, data_hora 
+        FROM leituras 
+        WHERE caixa_id = c.id 
+        ORDER BY id DESC LIMIT 1
+      ) l ON true
+      WHERE c.usuario_id = $1
+      ORDER BY c.id ASC
+    `;
+
+    const result = await pool.query(queryText, [req.session.usuarioId]);
+    
+    // Retorna a estrutura das duas caixas do cliente logado
+    res.json(result.rows[0] || null);
   } catch (err) {
+    console.error('Erro ao buscar minhas caixas:', err);
     res.status(500).json({ error: 'Erro ao carregar suas caixas.' });
   }
 });
