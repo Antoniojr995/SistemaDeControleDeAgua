@@ -555,29 +555,44 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnAdicionar = document.getElementById("btnAdicionar");
   if (btnAdicionar) {
     btnAdicionar.onclick = async () => {
-      const nomeCaixa = document.getElementById("nomeCaixa").value.trim();
-      const usuarioId = document.getElementById("selectClienteCriar").value || null;
-
-      if (!nomeCaixa) return alert("⚠️ Digite o nome da caixa!");
-
+      const nomeInput = document.getElementById("nomeCaixa")?.value.trim();
+      const capacidadeInput = document.getElementById("capacidadeCaixa")?.value;
+      const alturaInput = document.getElementById("alturaCaixa")?.value;
+      const clienteSelect = document.getElementById("selectClienteCriar")?.value;
+  
+      if (!nomeInput) {
+        return alert("⚠️ Digite o nome da caixa!");
+      }
+  
+      // Se a opção for "Vincular a um cliente (Opcional)...", envia null
+      const usuario_id = (clienteSelect && clienteSelect !== "") ? clienteSelect : null;
+  
       try {
-        const res = await fetch(API_BASE + "/api/caixas", {
+        const res = await fetch("/api/caixas", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ nome: nomeCaixa, usuario_id: usuarioId || null }),
-          credentials: "same-origin"
+          credentials: "same-origin",
+          body: JSON.stringify({
+            usuario_id: usuario_id,
+            nome: nomeInput,
+            capacidade: Number(capacidadeInput) || 1000,
+            altura_sensor: Number(alturaInput) || 95
+          })
         });
-
+  
+        const data = await res.json();
+  
         if (res.ok) {
           alert("✅ Caixa criada com sucesso!");
           document.getElementById("nomeCaixa").value = "";
-          carregarSelectsFormularios();
-          carregarCaixas();
+          if (typeof carregarSelectsFormularios === "function") carregarSelectsFormularios();
+          if (typeof carregarCaixas === "function") carregarCaixas();
         } else {
-          alert("❌ Erro ao criar caixa.");
+          alert("❌ " + (data.error || "Erro ao criar caixa."));
         }
       } catch (err) {
-        alert("❌ Falha de conexão.");
+        console.error(err);
+        alert("❌ Falha de conexão com o servidor.");
       }
     };
   }
