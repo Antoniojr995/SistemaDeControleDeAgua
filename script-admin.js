@@ -555,40 +555,61 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnAdicionar = document.getElementById("btnAdicionar");
   if (btnAdicionar) {
     btnAdicionar.onclick = async () => {
-      const nomeInput = document.getElementById("nomeCaixa")?.value.trim();
-      const capacidadeInput = document.getElementById("capacidadeCaixa")?.value;
-      const alturaInput = document.getElementById("alturaCaixa")?.value;
+      // Dados do Cliente
       const clienteSelect = document.getElementById("selectClienteCriar")?.value;
+      const usuario_id = (clienteSelect && clienteSelect !== "") ? clienteSelect : null;
   
-      if (!nomeInput) {
-        return alert("⚠️ Digite o nome da caixa!");
+      // Dados da Caixa 1
+      const nome1 = document.getElementById("nomeCaixa1")?.value.trim();
+      const cap1 = document.getElementById("capCaixa1")?.value;
+      const alt1 = document.getElementById("altCaixa1")?.value;
+  
+      // Dados da Caixa 2
+      const nome2 = document.getElementById("nomeCaixa2")?.value.trim();
+      const cap2 = document.getElementById("capCaixa2")?.value;
+      const alt2 = document.getElementById("altCaixa2")?.value;
+  
+      // Validação da Caixa 1 (obrigatória)
+      if (!nome1) {
+        return alert("⚠️ Digite o nome da Caixa 1!");
       }
   
-      // Se a opção for "Vincular a um cliente (Opcional)...", envia null
-      const usuario_id = (clienteSelect && clienteSelect !== "") ? clienteSelect : null;
+      // Payload pronto para o backend
+      const payload = {
+        usuario_id: usuario_id,
+        nome_caixa1: nome1,
+        capacidade_caixa1: Number(cap1) || 1000,
+        altura_sensor1: Number(alt1) || 100,
+        nome_caixa2: nome2 || 'Caixa 2',
+        capacidade_caixa2: Number(cap2) || 500,
+        altura_sensor2: Number(alt2) || 100
+      };
   
       try {
         const res = await fetch("/api/caixas", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "same-origin",
-          body: JSON.stringify({
-            usuario_id: usuario_id,
-            nome: nomeInput,
-            capacidade: Number(capacidadeInput) || 1000,
-            altura_sensor: Number(alturaInput) || 95
-          })
+          body: JSON.stringify(payload)
         });
   
         const data = await res.json();
   
         if (res.ok) {
-          alert("✅ Caixa criada com sucesso!");
-          document.getElementById("nomeCaixa").value = "";
+          alert("✅ Caixas cadastradas com sucesso!");
+          
+          // Limpa os campos
+          document.getElementById("nomeCaixa1").value = "";
+          document.getElementById("capCaixa1").value = "";
+          document.getElementById("altCaixa1").value = "";
+          document.getElementById("nomeCaixa2").value = "";
+          document.getElementById("capCaixa2").value = "";
+          document.getElementById("altCaixa2").value = "";
+  
           if (typeof carregarSelectsFormularios === "function") carregarSelectsFormularios();
           if (typeof carregarCaixas === "function") carregarCaixas();
         } else {
-          alert("❌ " + (data.error || "Erro ao criar caixa."));
+          alert("❌ " + (data.error || "Erro ao cadastrar caixas."));
         }
       } catch (err) {
         console.error(err);

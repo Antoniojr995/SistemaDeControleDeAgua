@@ -242,13 +242,29 @@
           <div class="card-form-dark">
             <h3>📦 Criar Nova Caixa</h3>
             <div class="column-form">
-              <input id="nomeCaixa" placeholder="Ex: Caixa Bloco A" class="select-glow" required>
-              <input type="number" id="capacidadeCaixa" placeholder="Capacidade (L)" value="1000" class="select-glow" required>
-              <input type="number" id="alturaCaixa" placeholder="Altura Sensor (cm)" value="95" class="select-glow" required>
+              
+              <!-- Seleção de Cliente -->
               <select id="selectClienteCriar" class="select-glow">
                 <option value="">Vincular a um cliente (Opcional)...</option>
               </select>
-              <button id="btnAdicionar" class="btn-cyan-glow">Adicionar Caixa</button>
+          
+              <hr style="border-color: rgba(255, 255, 255, 0.1); margin: 10px 0;">
+          
+              <!-- CAIXA 1 -->
+              <h4 style="color: #00f2fe; margin-bottom: 5px;">Caixa 1</h4>
+              <input id="nomeCaixa1" placeholder="Ex: Caixa Superior" class="select-glow" required>
+              <input type="number" id="capCaixa1" placeholder="Capacidade (L) ex: 1000" class="select-glow" required>
+              <input type="number" id="altCaixa1" placeholder="Altura Sensor (cm) ex: 100" class="select-glow" required>
+          
+              <hr style="border-color: rgba(255, 255, 255, 0.1); margin: 10px 0;">
+          
+              <!-- CAIXA 2 -->
+              <h4 style="color: #00f2fe; margin-bottom: 5px;">Caixa 2</h4>
+              <input id="nomeCaixa2" placeholder="Ex: Caixa Inferior" class="select-glow">
+              <input type="number" id="capCaixa2" placeholder="Capacidade (L) ex: 500" class="select-glow">
+              <input type="number" id="altCaixa2" placeholder="Altura Sensor (cm) ex: 100" class="select-glow">
+          
+              <button id="btnAdicionar" class="btn-cyan-glow" style="margin-top: 15px;">Adicionar Caixas</button>
             </div>
           </div>
 
