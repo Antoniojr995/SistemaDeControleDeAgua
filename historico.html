@@ -85,12 +85,19 @@
         container.innerHTML = "";
   
         caixas.forEach(caixa => {
+          // 1. Cria a variável nomeExibicao com os nomes das caixas vindos do banco de dados
+          const nomeExibicao = (caixa.nome_caixa1 && caixa.nome_caixa2) 
+            ? `${caixa.nome_caixa1} / ${caixa.nome_caixa2}` 
+            : (caixa.nome_caixa1 || `Caixa ${caixa.id}`);
+
           const card = document.createElement("div");
           card.className = "card-reservatorio";
+          
+          // 2. Utiliza a variável nomeExibicao dentro do HTML
           card.innerHTML = `
             <div>
               <div class="res-header">
-                <span class="res-title">📊 Histórico - ${caixa.nome || 'Caixa ' + caixa.id}</span>
+                <span class="res-title">📊 Histórico - ${nomeExibicao}</span>
                 <span class="badge-status">Ativo</span>
               </div>
               <div class="res-details" style="margin: 15px 0;">
@@ -98,12 +105,12 @@
                 <div>Reservatórios vinculados: <strong>2 Caixas</strong></div>
               </div>
             </div>
-  
+
             <button class="btn-acessar" onclick="verHistoricoEspecifico('${caixa.id}')">
               📈 Ver Histórico
             </button>
           `;
-  
+
           container.appendChild(card);
         });
   

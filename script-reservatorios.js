@@ -1,47 +1,80 @@
 const API_BASE = window.location.origin;
-const token = sessionStorage.getItem("token");
 
-document.addEventListener("DOMContentLoaded", () => {
-  if (!token) {
-    window.location.href = "index.html";
-    return;
+document.addEventListener("DOMContentLoaded", async () => {
+  // 1. Validação de Sessão/Autenticação
+  try {
+    const res = await fetch(API_BASE + "/api/usuario-atual", { credentials: "same-origin" });
+    const user = await res.json();
+
+    if (!user.logado && !sessionStorage.getItem("token")) {
+      window.location.href = "index.html";
+      return;
+    }
+  } catch (err) {
+    if (!sessionStorage.getItem("token")) {
+      window.location.href = "index.html";
+      return;
+    }
   }
 
-  document.getElementById("btnLogout")?.addEventListener("click", () => {
+  // 2. Configura o botão de Sair (Logout)
+  document.getElementById("btnLogout")?.addEventListener("click", async () => {
+    try {
+      await fetch(API_BASE + "/api/logout", { method: "POST", credentials: "same-origin" });
+    } catch (e) {}
     sessionStorage.clear();
     window.location.href = "index.html";
   });
 
+  // 3. Carrega a lista de reservatórios
   carregarTodosReservatorios();
 });
 
-// Busca todas as caixas cadastradas para o usuário logado
 async function carregarTodosReservatorios() {
   const container = document.getElementById("containerReservatorios");
+  if (!container) return;
   
   try {
+    const token = sessionStorage.getItem("token");
+    const headers = token ? { Authorization: "Bearer " + token } : {};
+
     const res = await fetch(API_BASE + "/api/minhas-caixas", {
-      headers: { Authorization: "Bearer " + token }
+      headers,
+      credentials: "same-origin"
     });
 
-    if (!res.ok) throw new Error("Erro ao buscar reservatórios");
-
-    const caixas = await res.json();
-
-    if (!Array.isArray(caixas) || caixas.length === 0) {
-      container.innerHTML = `<p style="color: #94a3b8;">Nenhum reservatório encontrado para esta conta.</p>`;
+    if (res.status === 401) {
+      sessionStorage.clear();
+      window.location.href = "index.html";
       return;
     }
 
-    container.innerHTML = ""; // Limpa mensagem de carregamento
+    if (!res.ok) throw new Error("Erro ao carregar lista de reservatórios");
+
+    const data = await res.json();
+    // Suporte caso venha Array ou Objeto contendo caixas
+    const caixas = Array.isArray(data) ? data : (data.caixas || [data]);
+
+    if (!caixas || caixas.length === 0 || !caixas[0]?.id) {
+      container.innerHTML = `<p class="msg-feedback">Nenhum reservatório cadastrado para esta conta.</p>`;
+      return;
+    }
+
+    container.innerHTML = ""; // Limpa a mensagem de carregamento
 
     caixas.forEach(caixa => {
-      // Valor padrão de nível se não houver no objeto
-      const nivelPercent = Number(caixa.nivel ?? caixa.porcentagem ?? 0);
-      const capacidade = caixa.capacidade || 1000;
+      const caixaId = caixa.id || caixa.caixa_id || 1;
+
+      // Nome formatado para as caixas do utilizador
+      const nomeExibicao = (caixa.nome_caixa1 && caixa.nome_caixa2)
+        ? `${caixa.nome_caixa1} / ${caixa.nome_caixa2}`
+        : (caixa.nome || caixa.nome_caixa1 || `Reservatório ${caixaId}`);
+
+      const nivelPercent = Number(caixa.nivel_caixa1 ?? caixa.nivel ?? caixa.porcentagem ?? 0);
+      const capacidade = Number(caixa.capacidade_caixa1 || caixa.capacidade || 1000);
       const volumeAtual = Math.round((nivelPercent / 100) * capacidade);
 
-      // Mapeamento Y do SVG: 0% = Y 90 (fundo), 100% = Y 30 (topo)
+      // Desenho interativo do SVG da água
       const yTop = 90 - ((90 - 30) * (nivelPercent / 100));
       const pathD = `M13,${yTop} Q50,${yTop + 12} 87,${yTop} L88,90 Q50,105 12,90 Z`;
 
@@ -50,7 +83,7 @@ async function carregarTodosReservatorios() {
       card.innerHTML = `
         <div>
           <div class="res-header">
-            <span class="res-title">🛢️ ${caixa.nome || 'Reservatório ID: ' + caixa.id}</span>
+            <span class="res-title">🛢️ ${nomeExibicao}</span>
             <span class="badge-status badge-online">Ativo</span>
           </div>
 
@@ -65,12 +98,12 @@ async function carregarTodosReservatorios() {
             </div>
             <div class="res-details">
               <div>Nível Atual: <strong>${nivelPercent}%</strong></div>
-              <div>Volume: <strong>${volumeAtual} L</strong> / ${capacidade} L</div>
+              <div>Volume: <strong>${volumeAtual.toLocaleString('pt-BR')} L</strong> / ${capacidade.toLocaleString('pt-BR')} L</div>
             </div>
           </div>
         </div>
 
-        <button class="btn-acessar" onclick="selecionarEIrParaPainel('${caixa.id}')">
+        <button class="btn-acessar" onclick="selecionarEIrParaPainel('${caixaId}')">
           📊 Ver Painel
         </button>
       `;
@@ -79,12 +112,11 @@ async function carregarTodosReservatorios() {
     });
 
   } catch (err) {
-    console.error("Erro:", err);
-    container.innerHTML = `<p style="color: #ef4444;">Erro ao carregar a lista de reservatórios.</p>`;
+    console.error("Erro ao carregar reservatórios:", err);
+    container.innerHTML = `<p class="msg-feedback" style="color: #ef4444;">❌ Erro ao carregar a lista de reservatórios.</p>`;
   }
 }
 
-// Salva a escolha do usuário e redireciona para a tela de monitoramento detalhado
 function selecionarEIrParaPainel(caixaId) {
   sessionStorage.setItem("caixaSelecionada", caixaId);
   window.location.href = "painel.html";

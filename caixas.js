@@ -1,17 +1,48 @@
-document.addEventListener('DOMContentLoaded', () => {
+const API_BASE = window.location.origin;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  // 1. Valida se é admin logado antes de carregar os dados
+  await verificarSessaoAdmin();
+
+  // 2. Carrega lista e dropdowns
   carregarCaixas();
   carregarClientesSelect();
 
+  // 3. Evento do Formulário
   const formCaixa = document.getElementById('formCaixa');
   if (formCaixa) {
     formCaixa.addEventListener('submit', salvarCaixas);
   }
+
+  // 4. Evento do Botão Sair (Logout)
+  const btnLogout = document.getElementById("btnLogout");
+  if (btnLogout) {
+    btnLogout.addEventListener("click", async () => {
+      try {
+        await fetch(API_BASE + "/api/logout", { method: "POST", credentials: "same-origin" });
+      } catch (e) {
+        console.error("Erro no logout:", e);
+      }
+      sessionStorage.clear();
+      window.location.href = "index.html";
+    });
+  }
 });
 
-// CARREGAR LISTA DE CAIXAS (2 CAIXAS POR CLIENTE)
-// Exemplo de inclusão do token nas requisições do caixas.js
-const token = sessionStorage.getItem("token");
+// VERIFICAR SESSÃO ADMIN
+async function verificarSessaoAdmin() {
+  try {
+    const res = await fetch(API_BASE + "/api/usuario-atual", { credentials: "same-origin" });
+    const data = await res.json();
+    if (!data.logado || data.tipo !== "admin") {
+      window.location.href = "index.html";
+    }
+  } catch (err) {
+    window.location.href = "index.html";
+  }
+}
 
+// CARREGAR LISTA DE CAIXAS DE ÁGUA
 async function carregarCaixas() {
   const tbody = document.getElementById('listaCaixas');
   if (!tbody) return;
@@ -20,17 +51,17 @@ async function carregarCaixas() {
 
   try {
     const resposta = await fetch('/api/caixas', {
-      headers: { Authorization: "Bearer " + token } // Adicionado o token
+      credentials: 'same-origin'
     });
-    
-    if (resposta.status === 401) {
+
+    if (resposta.status === 401 || resposta.status === 403) {
       window.location.href = 'index.html';
       return;
     }
-    
+
     const caixas = await resposta.json();
 
-    if (!caixas || caixas.length === 0) {
+    if (!Array.isArray(caixas) || caixas.length === 0) {
       tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Nenhum par de caixas cadastrado.</td></tr>';
       return;
     }
@@ -51,7 +82,9 @@ async function carregarCaixas() {
         <td>${item.nome_caixa2 || 'Caixa 2'} (${item.capacidade_caixa2 || 1000}L)</td>
         <td><span class="badge-status ${getBadgeClass(nivel2)}">${nivel2}%</span></td>
         <td>
-          <button class="btn-action" title="Excluir" onclick="deletarCaixa(${item.id})"><i class="fas fa-trash"></i></button>
+          <button class="btn-action btn-danger" title="Excluir" onclick="deletarCaixa(${item.id})">
+            <i class="fas fa-trash"></i>
+          </button>
         </td>
       `;
 
@@ -64,16 +97,16 @@ async function carregarCaixas() {
   }
 }
 
-// SALVAR CAIXAS (CADASTRAR PAR DE CAIXAS)
+// SALVAR NOVO PAR DE CAIXAS
 async function salvarCaixas(e) {
   e.preventDefault();
 
   const dados = {
     usuario_id: document.getElementById('selectCliente').value,
-    nome_caixa1: document.getElementById('nomeCaixa1').value,
+    nome_caixa1: document.getElementById('nomeCaixa1').value.trim(),
     capacidade_caixa1: document.getElementById('capacidadeCaixa1').value,
     altura_sensor1: document.getElementById('alturaSensor1').value,
-    nome_caixa2: document.getElementById('nomeCaixa2').value,
+    nome_caixa2: document.getElementById('nomeCaixa2').value.trim(),
     capacidade_caixa2: document.getElementById('capacidadeCaixa2').value,
     altura_sensor2: document.getElementById('alturaSensor2').value
   };
@@ -82,11 +115,14 @@ async function salvarCaixas(e) {
     const res = await fetch('/api/caixas', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(dados)
+      body: JSON.stringify(dados),
+      credentials: 'same-origin'
     });
 
     if (res.ok) {
+      alert("✅ Par de caixas cadastrado com sucesso!");
       fecharModalCaixa();
+      document.getElementById('formCaixa').reset();
       carregarCaixas();
     } else {
       const errData = await res.json();
@@ -98,30 +134,36 @@ async function salvarCaixas(e) {
   }
 }
 
-// CARREGAR CLIENTES NO DROPDOWN DO MODAL
+// CARREGAR CLIENTES NO SELECT
 async function carregarClientesSelect() {
   try {
-    const res = await fetch('/api/clientes');
+    const res = await fetch('/api/clientes', { credentials: 'same-origin' });
     const clientes = await res.json();
     const select = document.getElementById('selectCliente');
 
     if (!select) return;
 
     select.innerHTML = '<option value="">Selecione um cliente...</option>';
-    clientes.forEach(c => {
-      select.innerHTML += `<option value="${c.id}">${c.usuario}</option>`;
-    });
+    if (Array.isArray(clientes)) {
+      clientes.forEach(c => {
+        select.innerHTML += `<option value="${c.id}">${c.usuario} (${c.email || 'Sem email'})</option>`;
+      });
+    }
   } catch (err) {
     console.error('Erro ao carregar lista de clientes:', err);
   }
 }
 
-// EXCLUIR REGISTRO
-async function deletarCaixa(id) {
+// DELETAR CAIXA
+window.deletarCaixa = async function(id) {
   if (!confirm(`Deseja realmente remover o par de caixas CX-${id}?`)) return;
 
   try {
-    const res = await fetch(`/api/caixas/${id}`, { method: 'DELETE' });
+    const res = await fetch(`/api/caixas/${id}`, { 
+      method: 'DELETE',
+      credentials: 'same-origin'
+    });
+
     if (res.ok) {
       carregarCaixas();
     } else {
@@ -131,21 +173,21 @@ async function deletarCaixa(id) {
   } catch (err) {
     alert('Erro de conexão ao deletar caixa.');
   }
-}
+};
 
-// CORES DAS BADGES DE NÍVEL
+// BADGES DE CORES
 function getBadgeClass(nivel) {
   if (nivel <= 20) return 'badge-warning';
   return 'badge-ok';
 }
 
 // CONTROLE DO MODAL
-function abrirModalCaixa() {
+window.abrirModalCaixa = function() {
   const modal = document.getElementById('modalCaixa');
   if (modal) modal.style.display = 'flex';
-}
+};
 
-function fecharModalCaixa() {
+window.fecharModalCaixa = function() {
   const modal = document.getElementById('modalCaixa');
   if (modal) modal.style.display = 'none';
-}
+};

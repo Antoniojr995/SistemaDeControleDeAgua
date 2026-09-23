@@ -1,57 +1,91 @@
-// Dados simulados de parâmetros registados
-const itensCadastrados = [
-    { id: 1, categoria: "Modelo de Reservatório", descricao: "Polietileno 1000L", valor: "1000 Litros" },
-    { id: 2, categoria: "Modelo de Reservatório", descricao: "Fibra de Vidro 5000L", valor: "5000 Litros" },
-    { id: 3, categoria: "Tipo de Sensor", descricao: "Sensor JSN-SR04T (À prova d'água)", valor: "Alcance 20cm - 600cm" },
-    { id: 4, categoria: "Parâmetro de Alerta", descricao: "Nível Crítico Mínimo", valor: "20%" }
-  ];
-  
-  document.addEventListener("DOMContentLoaded", () => {
-    renderTabelaCadastros();
-  
-    // Submissão do formulário
-    const form = document.getElementById("formCadastroGeral");
-    if (form) {
-      form.addEventListener("submit", (e) => {
-        e.preventDefault();
-  
-        const tipo = document.getElementById("tipoCadastro").options[document.getElementById("tipoCadastro").selectedIndex].text;
-        const nome = document.getElementById("nomeItem").value;
-        const valor = document.getElementById("valorPadrao").value;
-  
-        itensCadastrados.push({
-          id: Date.now(),
-          categoria: tipo,
-          descricao: nome,
-          valor: valor || "-"
+const API_BASE = window.location.origin;
+
+document.addEventListener("DOMContentLoaded", async () => {
+  // 1. Valida se o utilizador tem sessão ativa e se é administrador
+  await verificarSessaoAdmin();
+
+  // 2. Carrega a lista inicial vinda da base de dados PostgreSQL
+  carregarCadastros();
+
+  // 3. Submissão do formulário para gravar na base de dados
+  const form = document.getElementById("formCadastroGeral");
+  if (form) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const tipoSelect = document.getElementById("tipoCadastro");
+      const payload = {
+        categoria: tipoSelect.options[tipoSelect.selectedIndex].text,
+        descricao: document.getElementById("nomeItem").value.trim(),
+        valor: document.getElementById("valorPadrao").value.trim() || "-",
+        observacoes: document.getElementById("observacoes").value.trim()
+      };
+
+      try {
+        const res = await fetch(`${API_BASE}/api/parametros`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          credentials: "same-origin"
         });
-  
-        renderTabelaCadastros();
-        form.reset();
-        alert("Registo guardado com sucesso!");
-      });
+
+        if (res.ok) {
+          alert("✅ Registo guardado com sucesso na base de dados!");
+          form.reset();
+          carregarCadastros();
+        } else {
+          alert("❌ Erro ao guardar registo.");
+        }
+      } catch (err) {
+        alert("❌ Falha na ligação com o servidor.");
+      }
+    });
+  }
+
+  // 4. Terminar sessão (Logout)
+  const btnLogout = document.getElementById("btnLogout");
+  if (btnLogout) {
+    btnLogout.addEventListener("click", async () => {
+      try {
+        await fetch(API_BASE + "/api/logout", { method: "POST", credentials: "same-origin" });
+      } catch (e) {
+        console.error("Erro no logout:", e);
+      }
+      sessionStorage.clear();
+      window.location.href = "index.html";
+    });
+  }
+});
+
+// Função para verificar autorização
+async function verificarSessaoAdmin() {
+  try {
+    const res = await fetch(API_BASE + "/api/usuario-atual", { credentials: "same-origin" });
+    const data = await res.json();
+    if (!data.logado || data.tipo !== "admin") {
+      window.location.href = "index.html";
     }
-  
-    // Logout
-    // Ajuste no cadastros.js (Bloco do Logout):
-    const btnLogout = document.getElementById("btnLogout");
-    if (btnLogout) {
-      btnLogout.addEventListener("click", () => {
-        sessionStorage.clear(); // Limpa tokens de sessão
-        window.location.href = "index.html"; // Redireciona para a home/login padrão
-      });
+  } catch (err) {
+    window.location.href = "index.html";
+  }
+}
+
+// Função para carregar e renderizar os dados da API
+async function carregarCadastros() {
+  const tbody = document.getElementById("listaCadastros");
+  if (!tbody) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/parametros`, { credentials: "same-origin" });
+    const itens = await res.json();
+
+    if (!Array.isArray(itens) || itens.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 15px;">Nenhum parâmetro registado.</td></tr>`;
+      return;
     }
-  });
-  
-  function renderTabelaCadastros() {
-    const tbody = document.getElementById("listaCadastros");
-    if (!tbody) return;
-  
-    tbody.innerHTML = "";
-  
-    itensCadastrados.forEach(item => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
+
+    tbody.innerHTML = itens.map(item => `
+      <tr>
         <td><span class="badge-status badge-ok">${item.categoria}</span></td>
         <td><strong>${item.descricao}</strong></td>
         <td>${item.valor}</td>
@@ -60,17 +94,30 @@ const itensCadastrados = [
             <i class="fas fa-trash-alt"></i>
           </button>
         </td>
-      `;
-      tbody.appendChild(row);
-    });
+      </tr>
+    `).join("");
+
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:red; padding: 15px;">Erro ao carregar registos da base de dados.</td></tr>`;
   }
-  
-  function removerItem(id) {
-    if (confirm("Deseja remover este item de registo?")) {
-      const idx = itensCadastrados.findIndex(i => i.id === id);
-      if (idx !== -1) {
-        itensCadastrados.splice(idx, 1);
-        renderTabelaCadastros();
+}
+
+// Função global para remover itens do banco de dados
+window.removerItem = async function(id) {
+  if (confirm("Deseja remover este item de registo?")) {
+    try {
+      const res = await fetch(`${API_BASE}/api/parametros/${id}`, {
+        method: "DELETE",
+        credentials: "same-origin"
+      });
+
+      if (res.ok) {
+        carregarCadastros();
+      } else {
+        alert("❌ Erro ao apagar item.");
       }
+    } catch (err) {
+      alert("❌ Falha na ligação com o servidor.");
     }
   }
+};

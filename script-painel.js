@@ -161,17 +161,18 @@ function atualizarSvgAgua(elementId, porcentagem) {
 // =======================
 // 💧 Leitura em Tempo Real e Atualização da UI
 // =======================
+// Exemplo de atualização na busca de dados no script-painel.js:
 async function fetchLatest() {
   try {
     const res = await fetch(API_BASE + "/api/dados/latest", {
-      headers: { Authorization: "Bearer " + token }
+      credentials: "same-origin"
     });
     
     if (res.status === 401) {
       window.location.href = "index.html";
       return;
     }
-    
+
     if (!res.ok) throw new Error("Erro na resposta da API");
 
     const d = await res.json();
@@ -474,13 +475,11 @@ window.abrirModalPerfil = async function() {
     const dados = await res.json();
 
     if (res.ok) {
-      const userEl = document.getElementById("perfilNome") || document.getElementById("perfilUsuario");
+      const userEl = document.getElementById("perfilNome");
       const emailEl = document.getElementById("perfilEmail");
-      const passEl = document.getElementById("perfilSenha");
 
-      if (userEl) userEl.value = dados.nome || dados.usuario || "";
-      if (emailEl) emailEl.value = dados.email || "";
-      if (passEl) passEl.value = "";
+      if (userEl) userEl.innerText = dados.nome || dados.usuario || "N/D";
+      if (emailEl) emailEl.innerText = dados.email || "N/D";
     }
   } catch (err) {
     console.error("Erro ao carregar dados do perfil:", err);

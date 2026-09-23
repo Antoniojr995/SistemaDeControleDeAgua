@@ -81,33 +81,30 @@ async function salvarCaixaAdmin(event) {
   event.preventDefault();
 
   const usuarioId = document.getElementById("selectUsuarioDono")?.value || null;
-  const modelo = document.getElementById("selectModeloCaixa")?.value || "custom";
-  const capacidade = document.getElementById("caixaCapacidade")?.value;
-  const altura = document.getElementById("caixaAltura")?.value;
 
-  const nomeCaixa = modelo !== "custom" 
-    ? `Caixa d'Água ${modelo}L` 
-    : `Caixa Personalizada ${capacidade}L`;
+  const payload = {
+    usuario_id: usuarioId ? parseInt(usuarioId) : null,
+    nome_caixa1: document.getElementById("nomeCaixa1").value.trim(),
+    capacidade_caixa1: parseInt(document.getElementById("caixaCapacidade1").value) || 1000,
+    altura_sensor1: parseInt(document.getElementById("caixaAltura1").value) || 100,
+    nome_caixa2: document.getElementById("nomeCaixa2").value.trim(),
+    capacidade_caixa2: parseInt(document.getElementById("caixaCapacidade2").value) || 500,
+    altura_sensor2: parseInt(document.getElementById("caixaAltura2").value) || 100
+  };
 
   try {
     const res = await fetch(API_BASE + "/api/caixas", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        nome: nomeCaixa,
-        usuario_id: usuarioId || null,
-        capacidade: parseInt(capacidade),
-        altura_sensor: parseInt(altura),
-        modelo: modelo
-      }),
+      body: JSON.stringify(payload),
       credentials: "same-origin"
     });
 
     if (res.ok) {
-      alert("✅ Caixa d'água cadastrada com sucesso!");
+      alert("✅ Caixas cadastradas com sucesso!");
       carregarCaixas();
     } else {
-      alert("❌ Erro ao cadastrar caixa.");
+      alert("❌ Erro ao cadastrar caixas.");
     }
   } catch (err) {
     alert("❌ Falha na conexão com o servidor.");
@@ -115,55 +112,45 @@ async function salvarCaixaAdmin(event) {
 }
 
 // CAIXAS D'ÁGUA - LISTAGEM E TABELA
+// CAIXAS D'ÁGUA - LISTAGEM E TABELA
 async function carregarCaixas() {
-  const listaCaixas = document.getElementById("listaCaixas");
   const tabelaAdmin = document.getElementById("tabelaCaixasAdmin");
+  if (!tabelaAdmin) return;
 
   try {
     const res = await fetch(API_BASE + "/api/caixas", { credentials: "same-origin" });
     const caixas = await res.json();
 
-    // Se existir o select antigo de caixas
-    if (listaCaixas) {
-      listaCaixas.innerHTML = "";
-      if (!Array.isArray(caixas) || !caixas.length) {
-        listaCaixas.innerHTML = '<option value="">Nenhuma caixa cadastrada</option>';
-      } else {
-        caixas.forEach(c => {
-          const opt = document.createElement("option");
-          opt.value = c.id;
-          opt.textContent = `ID ${c.id} - ${c.nome} ${c.cliente_nome ? `(Cliente: ${c.cliente_nome})` : '(Sem Dono)'}`;
-          listaCaixas.appendChild(opt);
-        });
-      }
+    if (!Array.isArray(caixas) || caixas.length === 0) {
+      tabelaAdmin.innerHTML = `<tr><td colspan="5" style="padding: 10px; text-align:center;">Nenhuma caixa cadastrada.</td></tr>`;
+      return;
     }
 
-    // Se existir a tabela nova do Admin
-    if (tabelaAdmin) {
-      if (!Array.isArray(caixas) || caixas.length === 0) {
-        tabelaAdmin.innerHTML = `<tr><td colspan="6" style="padding: 10px;">Nenhuma caixa cadastrada.</td></tr>`;
-        return;
-      }
-
-      tabelaAdmin.innerHTML = caixas.map(c => `
-        <tr style="border-bottom: 1px solid #ddd;">
-          <td style="padding: 8px;">${c.id}</td>
-          <td style="padding: 8px;">${c.cliente_nome || '<i>Sem Dono</i>'}</td>
-          <td style="padding: 8px;">${c.modelo ? `${c.modelo}L` : 'Padrão'}</td>
-          <td style="padding: 8px;">${c.capacidade || 1000} L</td>
-          <td style="padding: 8px;">${c.altura_sensor || 95} cm</td>
-          <td style="padding: 8px;">
-            <button onclick="deletarCaixaDireto(${c.id})" style="background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">Excluir</button>
-          </td>
-        </tr>
-      `).join("");
-    }
+    tabelaAdmin.innerHTML = caixas.map(c => `
+      <tr style="border-bottom: 1px solid #333;">
+        <td style="padding: 8px;"><b>#${c.id}</b></td>
+        <td style="padding: 8px;">${c.cliente_nome || '<i>Sem Dono</i>'}</td>
+        <td style="padding: 8px;">
+          <div><b>${c.nome_caixa1 || 'Caixa 1'}</b></div>
+          <small style="color: #aaa;">Cap: ${c.capacidade_caixa1 || 1000}L | Altura: ${c.altura_sensor1 || 100}cm</small>
+        </td>
+        <td style="padding: 8px;">
+          <div><b>${c.nome_caixa2 || 'Caixa 2'}</b></div>
+          <small style="color: #aaa;">Cap: ${c.capacidade_caixa2 || 500}L | Altura: ${c.altura_sensor2 || 100}cm</small>
+        </td>
+        <td style="padding: 8px;">
+          <button onclick="deletarCaixaDireto(${c.id})" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+            <i class="fa-solid fa-trash"></i> Excluir
+          </button>
+        </td>
+      </tr>
+    `).join("");
 
   } catch (err) {
-    if (listaCaixas) listaCaixas.innerHTML = '<option value="">Erro ao carregar caixas</option>';
+    console.error("Erro ao carregar caixas:", err);
+    tabelaAdmin.innerHTML = `<tr><td colspan="5" style="padding: 10px; text-align:center; color:red;">Erro ao carregar dados do servidor.</td></tr>`;
   }
 }
-
 async function deletarCaixaDireto(id) {
   if (confirm(`Tem certeza que deseja apagar a caixa ID ${id}?`)) {
     try {

@@ -110,13 +110,14 @@
       </div>
 
       <!-- 📦 ABA 1: Caixas d'Água -->
+      <!-- 📦 ABA 1: Caixas d'Água -->
       <div id="abaCaixas" class="camada-conteudo">
         <div class="card-form-dark">
           <div class="form-header-title">
             <i class="fa-solid fa-gear"></i>
-            <h3>Cadastrar / Vincular Caixa d'Água</h3>
+            <h3>Cadastrar / Vincular Caixas d'Água</h3>
           </div>
-          <p class="subtitle-dark">Selecione o cliente e configure os dados da caixa d'água.</p>
+          <p class="subtitle-dark">Selecione o cliente e configure os dados de ambas as caixas d'água.</p>
 
           <form id="formCadastrarCaixa" onsubmit="salvarCaixaAdmin(event)">
             <div class="field-box">
@@ -126,23 +127,21 @@
               </select>
             </div>
 
+            <!-- CONFIGURAÇÃO DA CAIXA 1 -->
+            <h4 style="color: #00d2ff; margin-top: 15px; border-bottom: 1px solid #333; padding-bottom: 5px;">
+              <i class="fa-solid fa-box"></i> Configuração da Caixa 1
+            </h4>
+
             <div class="field-box">
-              <label><i class="fa-solid fa-box"></i> Modelo Comercial:</label>
-              <select id="selectModeloCaixa" onchange="selecionarModeloCaixa(this.value)" class="select-glow">
-                <option value="500">500 Litros (Polietileno)</option>
-                <option value="1000" selected>1.000 Litros (Polietileno - Padrão)</option>
-                <option value="1500">1.500 Litros (Polietileno)</option>
-                <option value="2000">2.000 Litros (Polietileno)</option>
-                <option value="5000">5.000 Litros (Fibra/Polietileno)</option>
-                <option value="custom">Outro / Personalizado...</option>
-              </select>
+              <label>Nome da Caixa 1:</label>
+              <input type="text" id="nomeCaixa1" value="Caixa Principal (Bloco A)" class="select-glow" required>
             </div>
 
             <div class="grid-2-col">
               <div class="field-box">
                 <label><i class="fa-solid fa-droplet"></i> Capacidade (L):</label>
                 <div class="input-with-suffix">
-                  <input type="number" id="caixaCapacidade" value="1000" required>
+                  <input type="number" id="caixaCapacidade1" value="1000" required>
                   <span>L</span>
                 </div>
               </div>
@@ -150,14 +149,42 @@
               <div class="field-box">
                 <label><i class="fa-solid fa-ruler-vertical"></i> Altura do Sensor (cm):</label>
                 <div class="input-with-suffix">
-                  <input type="number" id="caixaAltura" value="95" required>
+                  <input type="number" id="caixaAltura1" value="95" required>
                   <span>cm</span>
                 </div>
               </div>
             </div>
 
-            <button type="submit" class="btn-cyan-glow">
-              <i class="fa-solid fa-plus"></i> Cadastrar Caixa
+            <!-- CONFIGURAÇÃO DA CAIXA 2 -->
+            <h4 style="color: #00d2ff; margin-top: 15px; border-bottom: 1px solid #333; padding-bottom: 5px;">
+              <i class="fa-solid fa-box"></i> Configuração da Caixa 2
+            </h4>
+
+            <div class="field-box">
+              <label>Nome da Caixa 2:</label>
+              <input type="text" id="nomeCaixa2" value="Caixa Secundária (Bloco B)" class="select-glow" required>
+            </div>
+
+            <div class="grid-2-col">
+              <div class="field-box">
+                <label><i class="fa-solid fa-droplet"></i> Capacidade (L):</label>
+                <div class="input-with-suffix">
+                  <input type="number" id="caixaCapacidade2" value="500" required>
+                  <span>L</span>
+                </div>
+              </div>
+
+              <div class="field-box">
+                <label><i class="fa-solid fa-ruler-vertical"></i> Altura do Sensor (cm):</label>
+                <div class="input-with-suffix">
+                  <input type="number" id="caixaAltura2" value="95" required>
+                  <span>cm</span>
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-cyan-glow" style="margin-top: 15px;">
+              <i class="fa-solid fa-plus"></i> Cadastrar Registo de Caixas
             </button>
           </form>
         </div>
@@ -168,15 +195,7 @@
             <i class="fa-solid fa-list"></i>
             <h3>Caixas Cadastradas no Sistema</h3>
           </div>
-          <div class="row-actions">
-            <select id="listaCaixas" class="select-glow flex-grow"></select>
-            <button id="btnVer" class="btn-blue-action"><i class="fa-solid fa-eye"></i> Ver</button>
-            <button onclick="renomearCaixaSelecionada()" class="btn-orange-action"><i class="fa-solid fa-pen"></i> Renomear</button>
-            <button onclick="deletarCaixaSelecionada()" class="btn-red-action"><i class="fa-solid fa-trash"></i> Apagar</button>
-          </div>
-
-          <div id="dadosCaixaSelecionada"></div>
-
+          
           <h4 class="table-head-title">Tabela Resumo</h4>
           <div class="table-container-dark">
             <table class="table-dark-custom">
@@ -184,9 +203,8 @@
                 <tr>
                   <th>ID</th>
                   <th>Cliente</th>
-                  <th>Modelo</th>
-                  <th>Capacidade</th>
-                  <th>Altura Sensor</th>
+                  <th>Caixa 1 (Nome / Cap.)</th>
+                  <th>Caixa 2 (Nome / Cap.)</th>
                   <th>Ações</th>
                 </tr>
               </thead>
