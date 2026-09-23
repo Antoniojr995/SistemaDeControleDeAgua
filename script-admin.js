@@ -556,7 +556,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (btnAdicionar) {
     btnAdicionar.onclick = async () => {
       const nomeCaixa = document.getElementById("nomeCaixa").value.trim();
-      const usuarioId = document.getElementById("selectClienteCriar").value;
+      const usuarioId = document.getElementById("selectClienteCriar").value || null;
 
       if (!nomeCaixa) return alert("⚠️ Digite o nome da caixa!");
 

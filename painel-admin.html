@@ -242,7 +242,9 @@
           <div class="card-form-dark">
             <h3>📦 Criar Nova Caixa</h3>
             <div class="column-form">
-              <input id="nomeCaixa" placeholder="Ex: Caixa Bloco A" class="select-glow">
+              <input id="nomeCaixa" placeholder="Ex: Caixa Bloco A" class="select-glow" required>
+              <input type="number" id="capacidadeCaixa" placeholder="Capacidade (L)" value="1000" class="select-glow" required>
+              <input type="number" id="alturaCaixa" placeholder="Altura Sensor (cm)" value="95" class="select-glow" required>
               <select id="selectClienteCriar" class="select-glow">
                 <option value="">Vincular a um cliente (Opcional)...</option>
               </select>
