@@ -59,12 +59,13 @@ function renderizarGrafico(dados) {
   const canvas = document.getElementById('graficoHistoricoCompleto');
   const ctx = canvas.getContext('2d');
 
-  canvas.style.height = '380px';
+  // Garante altura estática adequada para o container não esmagar o gráfico
+  canvas.style.height = '350px';
   canvas.style.width = '100%';
 
   let labels, valoresCaixa1, valoresCaixa2;
 
-  // Se o banco estiver vazio (sensor desligado), os dados ficam rigorosamente ZERADOS no eixo 0
+  // Se o banco estiver vazio (sensor desligado), os dados ficam zerados
   if (!dados || dados.length === 0) {
     labels = ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00'];
     valoresCaixa1 = [0, 0, 0, 0, 0, 0, 0];
@@ -114,15 +115,16 @@ function renderizarGrafico(dados) {
       maintainAspectRatio: false,
       layout: {
         padding: {
-          left: 15, // Dá margem à esquerda para o "0" aparecer por completo sem cortes
-          right: 20,
-          top: 15,
+          left: 20,  // Folga generosa à esquerda para ver o 0 perfeitamente
+          right: 25,
+          top: 25,   // Folga em cima para o pico da linha não cortar
           bottom: 10
         }
       },
       scales: {
         y: {
           beginAtZero: true,
+          grace: '15%', // Cria um espaço extra automático acima e abaixo para evitar cortes nas pontas
           grid: { 
             color: 'rgba(51, 65, 85, 0.6)',
             drawBorder: false
