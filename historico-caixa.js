@@ -59,13 +59,12 @@ function renderizarGrafico(dados) {
   const canvas = document.getElementById('graficoHistoricoCompleto');
   const ctx = canvas.getContext('2d');
 
-  // Garante altura estática explícita no elemento canvas para evitar que ele achate
   canvas.style.height = '380px';
   canvas.style.width = '100%';
 
-  // Se não houver dados reais do banco ainda, criamos dados fictícios estáticos para o gráfico aparecer perfeitamente
   let labels, valoresCaixa1, valoresCaixa2;
 
+  // Se o banco estiver vazio (sensor desligado), usa dados simulados para validação visual
   if (!dados || dados.length === 0) {
     labels = ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00'];
     valoresCaixa1 = [200, 450, 800, 600, 950, 400, 750];
@@ -84,11 +83,11 @@ function renderizarGrafico(dados) {
   meuGrafico = new Chart(ctx, {
     type: 'line',
     data: {
-      labels: labels, // Eixo X: Tempo
+      labels: labels,
       datasets: [
         {
           label: 'Reservatório 1 (L)',
-          data: valoresCaixa1, // Eixo Y: Volume
+          data: valoresCaixa1,
           borderColor: '#38bdf8',
           backgroundColor: 'rgba(56, 189, 248, 0.15)',
           borderWidth: 3,
@@ -99,7 +98,7 @@ function renderizarGrafico(dados) {
         },
         {
           label: 'Reservatório 2 (L)',
-          data: valoresCaixa2, // Eixo Y: Volume
+          data: valoresCaixa2,
           borderColor: '#34d399',
           backgroundColor: 'rgba(52, 211, 153, 0.15)',
           borderWidth: 3,
@@ -113,6 +112,14 @@ function renderizarGrafico(dados) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      layout: {
+        padding: {
+          left: 10,
+          right: 20,
+          top: 15,
+          bottom: 10
+        }
+      },
       scales: {
         y: {
           beginAtZero: true,
@@ -128,7 +135,7 @@ function renderizarGrafico(dados) {
             display: true,
             text: 'Volume (Litros)',
             color: '#38bdf8',
-            font: { size: 14, weight: 'bold' }
+            font: { size: 13, weight: 'bold' }
           }
         },
         x: {
@@ -143,7 +150,7 @@ function renderizarGrafico(dados) {
             display: true,
             text: 'Tempo / Data',
             color: '#38bdf8',
-            font: { size: 14, weight: 'bold' }
+            font: { size: 13, weight: 'bold' }
           }
         }
       },
