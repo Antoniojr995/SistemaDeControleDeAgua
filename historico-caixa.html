@@ -4,8 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Histórico Detalhado - ControlÁgua</title>
+  
+  <!-- Estilos Globais e do Sistema -->
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="global.css">
+  
+  <!-- 🎯 CSS EXCLUSIVO DO HISTÓRICO (Corrige camadas, z-index e o layout do gráfico) -->
+  <link rel="stylesheet" href="estilo-historico.css">
+  
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="dashboard-body">
@@ -47,7 +53,7 @@
               <option value="30d">Últimos 30 Dias</option>
             </select>
           </div>
-          <div class="chart-container" style="position: relative; height: 350px; width: 100%; margin-top: 15px;">
+          <div class="chart-container">
             <canvas id="graficoHistoricoCompleto"></canvas>
           </div>
         </div>
