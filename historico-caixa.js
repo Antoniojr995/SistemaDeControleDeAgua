@@ -34,7 +34,7 @@ function renderizarTabela(dados) {
   const tbody = document.getElementById('tabelaLogs');
   
   if (!dados || dados.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" style="padding: 10px; text-align: center;">Nenhum registro encontrado.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="padding: 10px; text-align: center;">Nenhum registro encontrado (Sensor desativado ou sem dados).</td></tr>`;
     return;
   }
 
@@ -64,11 +64,11 @@ function renderizarGrafico(dados) {
 
   let labels, valoresCaixa1, valoresCaixa2;
 
-  // Se o banco estiver vazio (sensor desligado), usa dados simulados para validação visual
+  // Se o banco estiver vazio (sensor desligado), os dados ficam rigorosamente ZERADOS no eixo 0
   if (!dados || dados.length === 0) {
     labels = ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00'];
-    valoresCaixa1 = [200, 450, 800, 600, 950, 400, 750];
-    valoresCaixa2 = [100, 250, 400, 300, 500, 200, 350];
+    valoresCaixa1 = [0, 0, 0, 0, 0, 0, 0];
+    valoresCaixa2 = [0, 0, 0, 0, 0, 0, 0];
   } else {
     const dadosOrdenados = [...dados].reverse();
     labels = dadosOrdenados.map(d => d.dia);
@@ -114,7 +114,7 @@ function renderizarGrafico(dados) {
       maintainAspectRatio: false,
       layout: {
         padding: {
-          left: 10,
+          left: 15, // Dá margem à esquerda para o "0" aparecer por completo sem cortes
           right: 20,
           top: 15,
           bottom: 10
