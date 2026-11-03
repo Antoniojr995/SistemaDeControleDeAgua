@@ -37,16 +37,25 @@
         </div>
       </header>
 
-      <!-- Gráfico em SVG Puro (Estacionário e Perfeito) -->
+      <!-- Gráfico em SVG Puro + Botão de Download -->
       <section style="margin-top: 20px;">
         <div class="card-grafico" style="width: 100%;">
-          <div class="grafico-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <div class="grafico-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
             <h3>📈 Gráfico de Variação do Nível (Reservatório 1 e 2)</h3>
-            <select id="filtroPeriodo" style="background: #0f172a; color: #fff; padding: 6px 12px; border-radius: 6px; border: 1px solid #0284c7;">
-              <option value="24h">Últimas 24 Horas</option>
-              <option value="7d">Últimos 7 Dias</option>
-              <option value="30d">Últimos 30 Dias</option>
-            </select>
+            
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <!-- Seletor de Período -->
+              <select id="filtroPeriodo" style="background: #0f172a; color: #fff; padding: 6px 12px; border-radius: 6px; border: 1px solid #0284c7;">
+                <option value="24h">Últimas 24 Horas</option>
+                <option value="7d">Últimos 7 Dias</option>
+                <option value="30d">Últimos 30 Dias</option>
+              </select>
+
+              <!-- Botão de Download do Relatório -->
+              <button id="btnBaixarRelatorio" style="background: #0284c7; color: #fff; padding: 6px 14px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 6px;">
+                📥 Baixar Relatório
+              </button>
+            </div>
           </div>
 
           <!-- Legenda Manual -->

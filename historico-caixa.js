@@ -2,14 +2,22 @@ const API_BASE = window.location.origin;
 const urlParams = new URLSearchParams(window.location.search);
 const idCaixa = urlParams.get('id') || sessionStorage.getItem("caixaSelecionada") || '1';
 
+let dadosAtuaisGlobais = []; // Guarda os dados para permitir o download filtrado
+
 document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('tituloHistorico').textContent = `Histórico - Caixa d'Água ${idCaixa}`;
   
   await carregarDadosHistorico();
 
+  // Ouve a alteração no select de período
   document.getElementById('filtroPeriodo')?.addEventListener('change', async (e) => {
     const periodoSelecionado = e.target.value;
     await carregarDadosHistorico(periodoSelecionado);
+  });
+
+  // Evento para descarregar o relatório do período atual
+  document.getElementById('btnBaixarRelatorio')?.addEventListener('click', () => {
+    baixarRelatorioCSV();
   });
 });
 
@@ -19,10 +27,10 @@ async function carregarDadosHistorico(periodo = '24h') {
     
     if (!res.ok) throw new Error("Erro ao carregar dados do histórico");
     
-    const dados = await res.json();
+    dadosAtuaisGlobais = await res.json();
     
-    renderizarTabela(dados);
-    renderizarGraficoSVG(dados, periodo);
+    renderizarTabela(dadosAtuaisGlobais);
+    renderizarGraficoSVG(dadosAtuaisGlobais, periodo);
   } catch (err) {
     console.error(err);
     document.getElementById('tabelaLogs').innerHTML = `
@@ -60,12 +68,40 @@ function renderizarTabela(dados) {
   }).join('');
 }
 
+function baixarRelatorioCSV() {
+  const periodoSelect = document.getElementById('filtroPeriodo').value;
+  
+  if (!dadosAtuaisGlobais || dadosAtuaisGlobais.length === 0) {
+    alert("Não existem dados disponíveis para exportar neste período.");
+    return;
+  }
+
+  // Cabeçalho do CSV
+  let csvContent = "data:text/csv;charset=utf-8,Data/Hora;Nivel_Reservatorio_1(L);Nivel_Reservatorio_2(L);Volume_Total(L)\r\n";
+
+  dadosAtuaisGlobais.forEach(item => {
+    const v1 = Number(item.media_caixa1 || 0);
+    const v2 = Number(item.media_caixa2 || 0);
+    const total = v1 + v2;
+    const linha = `${item.dia};${v1};${v2};${total}\r\n`;
+    csvContent += linha;
+  });
+
+  // Cria o link de download automático no navegador
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", `relatorio_caixa_${idCaixa}_periodo_${periodoSelect}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
 function renderizarGraficoSVG(dados, periodo) {
   const container = document.getElementById('svgContainer');
   
   let labels, valoresCaixa1, valoresCaixa2;
 
-  // Se o banco estiver vazio, usa dados de exemplo reais abrangendo o ciclo completo
   if (!dados || dados.length === 0) {
     if (periodo === '30d') {
       labels = ['Dia 05', 'Dia 10', 'Dia 15', 'Dia 20', 'Dia 25', 'Dia 30'];
@@ -76,7 +112,6 @@ function renderizarGraficoSVG(dados, periodo) {
       valoresCaixa1 = [300, 500, 700, 650, 800, 750, 900];
       valoresCaixa2 = [150, 250, 400, 350, 450, 400, 500];
     } else {
-      // 24 Horas completo (de 00:00 até 22:00)
       labels = ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '23:59'];
       valoresCaixa1 = [150, 100, 450, 800, 600, 950, 300];
       valoresCaixa2 = [80,  50,  250, 400, 300, 500, 180];
@@ -88,7 +123,6 @@ function renderizarGraficoSVG(dados, periodo) {
     valoresCaixa2 = dadosOrdenados.map(d => Number(d.media_caixa2 || 0));
   }
 
-  // Dimensões do desenho SVG (aumentamos um pouco o paddingTop para dar folga aos textos dos pontos)
   const width = container.clientWidth || 700;
   const height = 390;
   const paddingLeft = 60;
@@ -115,7 +149,6 @@ function renderizarGraficoSVG(dados, periodo) {
   const yTicks = [0, 200, 400, 600, 800, 1000];
   let svgHTML = `<svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}" style="overflow: visible;">`;
 
-  // Grelha horizontal e rótulos Y
   yTicks.forEach(tick => {
     const yPos = getY(tick);
     svgHTML += `
@@ -124,16 +157,12 @@ function renderizarGraficoSVG(dados, periodo) {
     `;
   });
 
-  // Título eixo Y
   svgHTML += `
     <text transform="translate(15, ${paddingTop + graficoHeight / 2}) rotate(-90)" fill="#38bdf8" font-size="13" font-weight="bold" text-anchor="middle">Volume (Litros)</text>
   `;
 
-  // Área e Linha Reservatório 2 (Verde)
   let ptsRes2 = [];
-  valoresCaixa2.forEach((val, i) => {
-    ptsRes2.push(`${getX(i)},${getY(val)}`);
-  });
+  valoresCaixa2.forEach((val, i) => { ptsRes2.push(`${getX(i)},${getY(val)}`); });
   const pathRes2 = `M ${ptsRes2.join(' L ')}`;
   const areaRes2 = `M ${paddingLeft},${getY(0)} L ${ptsRes2.join(' L ')} L ${width - paddingRight},${getY(0)} Z`;
 
@@ -142,11 +171,8 @@ function renderizarGraficoSVG(dados, periodo) {
     <path d="${pathRes2}" fill="none" stroke="#34d399" stroke-width="3" />
   `;
 
-  // Área e Linha Reservatório 1 (Azul)
   let ptsRes1 = [];
-  valoresCaixa1.forEach((val, i) => {
-    ptsRes1.push(`${getX(i)},${getY(val)}`);
-  });
+  valoresCaixa1.forEach((val, i) => { ptsRes1.push(`${getX(i)},${getY(val)}`); });
   const pathRes1 = `M ${ptsRes1.join(' L ')}`;
   const areaRes1 = `M ${paddingLeft},${getY(0)} L ${ptsRes1.join(' L ')} L ${width - paddingRight},${getY(0)} Z`;
 
@@ -155,7 +181,6 @@ function renderizarGraficoSVG(dados, periodo) {
     <path d="${pathRes1}" fill="none" stroke="#38bdf8" stroke-width="3" />
   `;
 
-  // Desenhar círculos e os VALORES exatos em cima de cada ponto
   valoresCaixa1.forEach((val, i) => {
     const x = getX(i);
     const y = getY(val);
@@ -174,7 +199,6 @@ function renderizarGraficoSVG(dados, periodo) {
     `;
   });
 
-  // Rótulos do Eixo X (Tempo / Data)
   labels.forEach((label, i) => {
     const xPos = getX(i);
     const yPos = paddingTop + graficoHeight + 20;
@@ -184,7 +208,6 @@ function renderizarGraficoSVG(dados, periodo) {
     `;
   });
 
-  // Título eixo X
   svgHTML += `
     <text x="${paddingLeft + graficoWidth / 2}" y="${height - 5}" fill="#38bdf8" font-size="13" font-weight="bold" text-anchor="middle">Tempo / Data</text>
   `;
