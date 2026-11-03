@@ -1,7 +1,6 @@
 const API_BASE = window.location.origin;
 const urlParams = new URLSearchParams(window.location.search);
 const idCaixa = urlParams.get('id') || sessionStorage.getItem("caixaSelecionada") || '1';
-let meuGrafico = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('tituloHistorico').textContent = `Histórico - Caixa d'Água ${idCaixa}`;
@@ -23,7 +22,7 @@ async function carregarDadosHistorico(periodo = '24h') {
     const dados = await res.json();
     
     renderizarTabela(dados);
-    renderizarGrafico(dados, periodo);
+    renderizarGraficoSVG(dados, periodo);
   } catch (err) {
     console.error(err);
     document.getElementById('tabelaLogs').innerHTML = `
@@ -61,12 +60,12 @@ function renderizarTabela(dados) {
   }).join('');
 }
 
-function renderizarGrafico(dados, periodo) {
-  const canvas = document.getElementById('graficoHistoricoCompleto');
-  const ctx = canvas.getContext('2d');
-
+function renderizarGraficoSVG(dados, periodo) {
+  const container = document.getElementById('svgContainer');
+  
   let labels, valoresCaixa1, valoresCaixa2;
 
+  // Se o banco estiver vazio (sensor desligado), usa dados padrão ajustados ao período
   if (!dados || dados.length === 0) {
     if (periodo === '30d') {
       labels = ['Dia 05', 'Dia 10', 'Dia 15', 'Dia 20', 'Dia 25', 'Dia 30'];
@@ -88,98 +87,98 @@ function renderizarGrafico(dados, periodo) {
     valoresCaixa2 = dadosOrdenados.map(d => Number(d.media_caixa2 || 0));
   }
 
-  if (meuGrafico) {
-    meuGrafico.destroy();
-  }
+  // Dimensões do desenho SVG
+  const width = container.clientWidth || 700;
+  const height = 370;
+  const paddingLeft = 60;
+  const paddingRight = 40;
+  const paddingTop = 20;
+  const paddingBottom = 50;
 
-  meuGrafico = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [
-        {
-          label: 'Reservatório 1 (L)',
-          data: valoresCaixa1,
-          borderColor: '#38bdf8',
-          backgroundColor: 'rgba(56, 189, 248, 0.15)',
-          borderWidth: 3,
-          fill: true,
-          tension: 0.2,
-          pointRadius: 4,
-          pointBackgroundColor: '#38bdf8'
-        },
-        {
-          label: 'Reservatório 2 (L)',
-          data: valoresCaixa2,
-          borderColor: '#34d399',
-          backgroundColor: 'rgba(52, 211, 153, 0.15)',
-          borderWidth: 3,
-          fill: true,
-          tension: 0.2,
-          pointRadius: 4,
-          pointBackgroundColor: '#34d399'
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      layout: {
-        padding: {
-          left: 30,   // Margem generosa à esquerda para o "0" nunca ser cortado
-          right: 40,  // Margem generosa à direita para o último dia/hora não colar na borda
-          top: 25,
-          bottom: 15
-        }
-      },
-      scales: {
-        y: {
-          min: 0,
-          max: 1000,
-          bounds: 'ticks',
-          grid: { 
-            color: 'rgba(51, 65, 85, 0.5)',
-            drawBorder: false
-          },
-          ticks: { 
-            color: '#94a3b8',
-            font: { size: 12 },
-            stepSize: 200,
-            padding: 8 // Afasta os números da linha do eixo para não encostarem
-          },
-          title: {
-            display: true,
-            text: 'Volume (Litros)',
-            color: '#38bdf8',
-            font: { size: 13, weight: 'bold' }
-          }
-        },
-        x: {
-          grid: { 
-            display: false
-          },
-          ticks: { 
-            color: '#94a3b8',
-            font: { size: 12 },
-            maxRotation: 0,
-            autoSkip: false
-          },
-          title: {
-            display: true,
-            text: 'Tempo / Data',
-            color: '#38bdf8',
-            font: { size: 13, weight: 'bold' }
-          }
-        }
-      },
-      plugins: {
-        legend: {
-          labels: { 
-            color: '#f8fafc',
-            font: { size: 13, weight: 'bold' }
-          }
-        }
-      }
-    }
+  const graficoWidth = width - paddingLeft - paddingRight;
+  const graficoHeight = height - paddingTop - paddingBottom;
+
+  const maxY = 1000; // Escala fixa de 0 a 1000 Litros
+  const minY = 0;
+
+  // Função para calcular coordenadas X e Y
+  const getX = (index) => {
+    if (labels.length === 1) return paddingLeft + graficoWidth / 2;
+    return paddingLeft + (index / (labels.length - 1)) * graficoWidth;
+  };
+
+  const getY = (val) => {
+    const clamped = Math.max(minY, Math.min(maxY, val));
+    return paddingTop + graficoHeight - ((clamped - minY) / (maxY - minY)) * graficoHeight;
+  };
+
+  // Gerar linhas da grelha Y e marcações (0, 200, 400, 600, 800, 1000)
+  const yTicks = [0, 200, 400, 600, 800, 1000];
+  let svgHTML = `<svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}" style="overflow: visible;">`;
+
+  // Grelha horizontal e rótulos Y
+  yTicks.forEach(tick => {
+    const yPos = getY(tick);
+    svgHTML += `
+      <line x1="${paddingLeft}" y1="${yPos}" x2="${width - paddingRight}" y2="${yPos}" stroke="rgba(51, 65, 85, 0.4)" stroke-dasharray="4" />
+      <text x="${paddingLeft - 12}" y="${yPos + 4}" fill="#94a3b8" font-size="12" text-anchor="end">${tick}</text>
+    `;
   });
+
+  // Título eixo Y
+  svgHTML += `
+    <text transform="translate(15, ${paddingTop + graficoHeight / 2}) rotate(-90)" fill="#38bdf8" font-size="13" font-weight="bold" text-anchor="middle">Volume (Litros)</text>
+  `;
+
+  // Linhas e pontos do Reservatório 2 (Verde)
+  let ptsRes2 = [];
+  valoresCaixa2.forEach((val, i) => {
+    ptsRes2.push(`${getX(i)},${getY(val)}`);
+  });
+  const pathRes2 = `M ${ptsRes2.join(' L ')}`;
+  const areaRes2 = `M ${paddingLeft},${getY(0)} L ${ptsRes2.join(' L ')} L ${width - paddingRight},${getY(0)} Z`;
+
+  svgHTML += `
+    <path d="${areaRes2}" fill="rgba(52, 211, 153, 0.12)" />
+    <path d="${pathRes2}" fill="none" stroke="#34d399" stroke-width="3" />
+  `;
+
+  // Linhas e pontos do Reservatório 1 (Azul)
+  let ptsRes1 = [];
+  valoresCaixa1.forEach((val, i) => {
+    ptsRes1.push(`${getX(i)},${getY(val)}`);
+  });
+  const pathRes1 = `M ${ptsRes1.join(' L ')}`;
+  const areaRes1 = `M ${paddingLeft},${getY(0)} L ${ptsRes1.join(' L ')} L ${width - paddingRight},${getY(0)} Z`;
+
+  svgHTML += `
+    <path d="${areaRes1}" fill="rgba(56, 189, 248, 0.12)" />
+    <path d="${pathRes1}" fill="none" stroke="#38bdf8" stroke-width="3" />
+  `;
+
+  // Desenhar círculos nos pontos de dados de ambos os reservatórios
+  valoresCaixa1.forEach((val, i) => {
+    svgHTML += `<circle cx="${getX(i)}" cy="${getY(val)}" r="5" fill="#38bdf8" stroke="#0f172a" stroke-width="2" />`;
+  });
+  valoresCaixa2.forEach((val, i) => {
+    svgHTML += `<circle cx="${getX(i)}" cy="${getY(val)}" r="5" fill="#34d399" stroke="#0f172a" stroke-width="2" />`;
+  });
+
+  // Rótulos do Eixo X (Tempo / Data)
+  labels.forEach((label, i) => {
+    const xPos = getX(i);
+    const yPos = paddingTop + graficoHeight + 20;
+    svgHTML += `
+      <line x1="${xPos}" y1="${paddingTop + graficoHeight}" x2="${xPos}" y2="${paddingTop + graficoHeight + 6}" stroke="#94a3b8" />
+      <text x="${xPos}" y="${yPos}" fill="#94a3b8" font-size="12" text-anchor="middle">${label}</text>
+    `;
+  });
+
+  // Título eixo X
+  svgHTML += `
+    <text x="${paddingLeft + graficoWidth / 2}" y="${height - 5}" fill="#38bdf8" font-size="13" font-weight="bold" text-anchor="middle">Tempo / Data</text>
+  `;
+
+  svgHTML += `</svg>`;
+  container.innerHTML = svgHTML;
 }
