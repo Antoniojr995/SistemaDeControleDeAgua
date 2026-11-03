@@ -1,8 +1,4 @@
-/* ============================================================
-   ESTILOS ESTACIONÁRIOS E FIXOS PARA O GRÁFICO (ControlÁgua)
-   ============================================================ */
-
-   .card-grafico {
+.card-grafico {
     position: relative !important;
     z-index: 5 !important;
     background: #0f172a !important;
@@ -20,6 +16,8 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
   }
   
   .grafico-header h3 {
@@ -28,11 +26,10 @@
     margin: 0;
   }
   
-  /* Container fixo e estanque para o Chart.js não sofrer interferência do CSS global */
   .chart-container {
     position: relative !important;
     z-index: 6 !important;
-    height: 400px !important; /* Altura estática segura */
+    height: 400px !important;
     width: 100% !important;
     display: block;
     margin-top: 10px;

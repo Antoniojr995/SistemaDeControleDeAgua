@@ -5,19 +5,28 @@ let meuGrafico = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('tituloHistorico').textContent = `Histórico - Caixa d'Água ${idCaixa}`;
+  
+  // Carrega o histórico inicial (padrão 24h ou o que estiver selecionado)
   await carregarDadosHistorico();
+
+  // Ouve a alteração no select de período para atualizar o gráfico na hora
+  document.getElementById('filtroPeriodo')?.addEventListener('change', async (e) => {
+    const periodoSelecionado = e.target.value;
+    await carregarDadosHistorico(periodoSelecionado);
+  });
 });
 
-async function carregarDadosHistorico() {
+async function carregarDadosHistorico(periodo = '24h') {
   try {
-    const res = await fetch(`${API_BASE}/api/historico/${idCaixa}`, { credentials: "same-origin" });
+    // Passa o período na query string para o backend (ex: /api/historico/1?periodo=7d)
+    const res = await fetch(`${API_BASE}/api/historico/${idCaixa}?periodo=${periodo}`, { credentials: "same-origin" });
     
     if (!res.ok) throw new Error("Erro ao carregar dados do histórico");
     
     const dados = await res.json();
     
     renderizarTabela(dados);
-    renderizarGrafico(dados);
+    renderizarGrafico(dados, periodo);
   } catch (err) {
     console.error(err);
     document.getElementById('tabelaLogs').innerHTML = `
@@ -55,17 +64,27 @@ function renderizarTabela(dados) {
   }).join('');
 }
 
-function renderizarGrafico(dados) {
+function renderizarGrafico(dados, periodo) {
   const canvas = document.getElementById('graficoHistoricoCompleto');
   const ctx = canvas.getContext('2d');
 
   let labels, valoresCaixa1, valoresCaixa2;
 
-  // Se o banco estiver vazio (sensor desligado), inicializa com os dados de teste
+  // Se o banco estiver vazio (sensor desligado), gera dados simulados adaptados ao período escolhido
   if (!dados || dados.length === 0) {
-    labels = ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00'];
-    valoresCaixa1 = [200, 450, 800, 600, 950, 400];
-    valoresCaixa2 = [100, 250, 400, 300, 500, 200];
+    if (periodo === '30d') {
+      labels = ['Dia 05', 'Dia 10', 'Dia 15', 'Dia 20', 'Dia 25', 'Dia 30'];
+      valoresCaixa1 = [400, 600, 750, 500, 850, 900];
+      valoresCaixa2 = [200, 300, 450, 350, 500, 450];
+    } else if (periodo === '7d') {
+      labels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+      valoresCaixa1 = [300, 500, 700, 650, 800, 750, 900];
+      valoresCaixa2 = [150, 250, 400, 350, 450, 400, 500];
+    } else {
+      labels = ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00'];
+      valoresCaixa1 = [200, 450, 800, 600, 950, 400];
+      valoresCaixa2 = [100, 250, 400, 300, 500, 200];
+    }
   } else {
     const dadosOrdenados = [...dados].reverse();
     labels = dadosOrdenados.map(d => d.dia);
@@ -111,10 +130,10 @@ function renderizarGrafico(dados) {
       maintainAspectRatio: false,
       layout: {
         padding: {
-          left: 20,   // Folga lateral esquerda reforçada para o "0" aparecer por completo
-          right: 30,  // Folga lateral direita alargada para o último horário (18:00) não cortar
-          top: 20,
-          bottom: 15  // Folga inferior para o eixo X e o título "Tempo / Data" respirarem
+          left: 25,   // Garante espaço seguro para o "0" aparecer inteiro
+          right: 35,  // Garante espaço seguro para a última etiqueta da direita não cortar
+          top: 25,
+          bottom: 15  // Dá respiro para o eixo X e o título "Tempo / Data"
         }
       },
       scales: {
@@ -128,7 +147,7 @@ function renderizarGrafico(dados) {
           ticks: { 
             color: '#94a3b8',
             font: { size: 12 },
-            stepSize: 200 // Garante os valores inteiros: 0, 200, 400, 600, 800, 1000
+            stepSize: 200 // Escala limpa: 0, 200, 400, 600, 800, 1000
           },
           title: {
             display: true,
@@ -145,7 +164,7 @@ function renderizarGrafico(dados) {
             color: '#94a3b8',
             font: { size: 12 },
             maxRotation: 0,
-            autoSkip: false // Garante que todos os horários (incluindo o 18:00) fiquem visíveis sem saltar
+            autoSkip: false // Mantém todas as etiquetas visíveis sem cortar as pontas
           },
           title: {
             display: true,
