@@ -6,10 +6,8 @@ let meuGrafico = null;
 document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('tituloHistorico').textContent = `Histórico - Caixa d'Água ${idCaixa}`;
   
-  // Carrega o histórico inicial (padrão 24h ou o que estiver selecionado)
   await carregarDadosHistorico();
 
-  // Ouve a alteração no select de período para atualizar o gráfico na hora
   document.getElementById('filtroPeriodo')?.addEventListener('change', async (e) => {
     const periodoSelecionado = e.target.value;
     await carregarDadosHistorico(periodoSelecionado);
@@ -18,7 +16,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function carregarDadosHistorico(periodo = '24h') {
   try {
-    // Passa o período na query string para o backend (ex: /api/historico/1?periodo=7d)
     const res = await fetch(`${API_BASE}/api/historico/${idCaixa}?periodo=${periodo}`, { credentials: "same-origin" });
     
     if (!res.ok) throw new Error("Erro ao carregar dados do histórico");
@@ -70,7 +67,6 @@ function renderizarGrafico(dados, periodo) {
 
   let labels, valoresCaixa1, valoresCaixa2;
 
-  // Se o banco estiver vazio (sensor desligado), gera dados simulados adaptados ao período escolhido
   if (!dados || dados.length === 0) {
     if (periodo === '30d') {
       labels = ['Dia 05', 'Dia 10', 'Dia 15', 'Dia 20', 'Dia 25', 'Dia 30'];
@@ -130,16 +126,17 @@ function renderizarGrafico(dados, periodo) {
       maintainAspectRatio: false,
       layout: {
         padding: {
-          left: 25,   // Garante espaço seguro para o "0" aparecer inteiro
-          right: 35,  // Garante espaço seguro para a última etiqueta da direita não cortar
+          left: 30,   // Margem generosa à esquerda para o "0" nunca ser cortado
+          right: 40,  // Margem generosa à direita para o último dia/hora não colar na borda
           top: 25,
-          bottom: 15  // Dá respiro para o eixo X e o título "Tempo / Data"
+          bottom: 15
         }
       },
       scales: {
         y: {
-          min: 0,    // Fixa o início rigidamente em 0 Litros
-          max: 1000, // Fixa o teto em 1000 Litros
+          min: 0,
+          max: 1000,
+          bounds: 'ticks',
           grid: { 
             color: 'rgba(51, 65, 85, 0.5)',
             drawBorder: false
@@ -147,7 +144,8 @@ function renderizarGrafico(dados, periodo) {
           ticks: { 
             color: '#94a3b8',
             font: { size: 12 },
-            stepSize: 200 // Escala limpa: 0, 200, 400, 600, 800, 1000
+            stepSize: 200,
+            padding: 8 // Afasta os números da linha do eixo para não encostarem
           },
           title: {
             display: true,
@@ -164,7 +162,7 @@ function renderizarGrafico(dados, periodo) {
             color: '#94a3b8',
             font: { size: 12 },
             maxRotation: 0,
-            autoSkip: false // Mantém todas as etiquetas visíveis sem cortar as pontas
+            autoSkip: false
           },
           title: {
             display: true,
