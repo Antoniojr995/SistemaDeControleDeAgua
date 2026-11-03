@@ -189,31 +189,64 @@
       </div>
 
       <!-- 👥 ABA 2: Clientes (Agora unificada: Adicionar + Listar) -->
-      <div id="abaClientes" class="camada-conteudo" style="display:none;">
-        <div class="grid-2-col" style="grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;">
+     <div id="abaClientes" class="camada-conteudo" style="display:none;">
+      <div class="grid-2-col" style="grid-template-columns: 1.2fr 1fr; gap: 20px; align-items: start;">
+        
+        <!-- Coluna Esquerda: Cadastrar Cliente Completo -->
+        <div class="card-form-dark">
+          <h3><i class="fa-solid fa-user-plus"></i> Adicionar Novo Cliente</h3>
+          <p class="subtitle-dark" style="margin-bottom: 15px;">Preencha os dados cadastrais completos do cliente.</p>
           
-          <!-- Coluna Esquerda: Cadastrar Cliente -->
-          <div class="card-form-dark">
-            <h3><i class="fa-solid fa-user-plus"></i> Adicionar Cliente</h3>
-            <form id="formNovoCliente" class="column-form" style="margin-top: 15px;">
-              <input type="email" id="novoClienteEmail" placeholder="E-mail de Acesso" required class="select-glow">
-              <input type="password" id="novoClienteSenha" placeholder="Senha Inicial" required class="select-glow">
-              <button type="button" id="btnCadastrarCliente" class="btn-cyan-glow" style="margin-top: 10px;">
-                <i class="fa-solid fa-plus"></i> Cadastrar Cliente
-              </button>
-            </form>
-          </div>
-
-          <!-- Coluna Direita: Listar Clientes -->
-          <div class="card-form-dark">
-            <h3><i class="fa-solid fa-users"></i> Clientes Cadastrados</h3>
-            <div id="listaClientes" style="margin-top: 15px; max-height: 450px; overflow-y: auto;">
-              <p>Carregando clientes...</p>
+          <form id="formNovoCliente" onsubmit="cadastrarClienteCompleto(event)" style="display: flex; flex-direction: column; gap: 12px;">
+            
+            <div class="field-box">
+              <label>Nome Completo:</label>
+              <input type="text" id="novoClienteNome" placeholder="Ex: João da Silva" required class="select-glow">
             </div>
-          </div>
 
+            <div class="grid-2-col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div class="field-box">
+                <label>CPF:</label>
+                <input type="text" id="novoClienteCpf" placeholder="000.000.000-00" required class="select-glow">
+              </div>
+              <div class="field-box">
+                <label>Telefone / WhatsApp:</label>
+                <input type="text" id="novoClienteTelefone" placeholder="(00) 90000-0000" required class="select-glow">
+              </div>
+            </div>
+
+            <div class="field-box">
+              <label>Endereço Completo:</label>
+              <input type="text" id="novoClienteEndereco" placeholder="Rua, Número, Bairro, Cidade" required class="select-glow">
+            </div>
+
+            <div class="grid-2-col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div class="field-box">
+                <label>E-mail de Acesso:</label>
+                <input type="email" id="novoClienteEmail" placeholder="cliente@email.com" required class="select-glow">
+              </div>
+              <div class="field-box">
+                <label>Senha Inicial:</label>
+                <input type="password" id="novoClienteSenha" placeholder="••••••••" required class="select-glow">
+              </div>
+            </div>
+
+            <button type="submit" class="btn-cyan-glow" style="margin-top: 10px;">
+              <i class="fa-solid fa-plus"></i> Cadastrar Cliente
+            </button>
+          </form>
         </div>
+
+        <!-- Coluna Direita: Listar Clientes -->
+        <div class="card-form-dark">
+          <h3><i class="fa-solid fa-users"></i> Clientes Cadastrados</h3>
+          <div id="listaClientes" style="margin-top: 15px; max-height: 480px; overflow-y: auto;">
+            <p>Carregando clientes...</p>
+          </div>
+        </div>
+
       </div>
+    </div>
 
       <!-- 📝 ABA 3: Registros (Apenas Caixas e Associações) -->
       <div id="abaRegistros" class="camada-conteudo" style="display:none;">

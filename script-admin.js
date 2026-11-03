@@ -524,35 +524,54 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
-  const btnCadastrarCliente = document.getElementById("btnCadastrarCliente");
-  if (btnCadastrarCliente) {
-    btnCadastrarCliente.onclick = async () => {
-      const email = document.getElementById("novoClienteEmail").value.trim();
-      const senha = document.getElementById("novoClienteSenha").value.trim();
+// CADASTRAR CLIENTE COMPLETO
+window.cadastrarClienteCompleto = async function(event) {
+  event.preventDefault();
 
-      if (!email || !senha) return alert("⚠️ Preencha o e-mail e a senha!");
+  const nome = document.getElementById("novoClienteNome").value.trim();
+  const cpf = document.getElementById("novoClienteCpf").value.trim();
+  const telefone = document.getElementById("novoClienteTelefone").value.trim();
+  const endereco = document.getElementById("novoClienteEndereco").value.trim();
+  const email = document.getElementById("novoClienteEmail").value.trim();
+  const senha = document.getElementById("novoClienteSenha").value.trim();
 
-      try {
-        const res = await fetch(API_BASE + "/api/usuarios", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ usuario: email, senha }),
-          credentials: "same-origin"
-        });
-
-        if (res.ok) {
-          alert("✅ Cliente cadastrado com sucesso!");
-          document.getElementById("formNovoCliente").reset();
-          carregarSelectsFormularios();
-          carregarClientesSelectAdmin();
-        } else {
-          alert("❌ Erro ao cadastrar cliente.");
-        }
-      } catch (err) {
-        alert("❌ Falha de conexão.");
-      }
-    };
+  if (!email || !senha || !nome) {
+    return alert("⚠️ Por favor, preencha os campos obrigatórios principais!");
   }
+
+  const payload = {
+    usuario: email, // Mantém o e-mail como chave de login principal do sistema
+    senha: senha,
+    nome: nome,
+    cpf: cpf,
+    telefone: telefone,
+    endereco: endereco
+  };
+
+  try {
+    const res = await fetch(API_BASE + "/api/usuarios", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      credentials: "same-origin"
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert("✅ Cliente cadastrado com sucesso!");
+      document.getElementById("formNovoCliente").reset();
+      carregarClientes();
+      carregarSelectsFormularios();
+      carregarClientesSelectAdmin();
+    } else {
+      alert("❌ " + (data.error || "Erro ao cadastrar cliente."));
+    }
+  } catch (err) {
+    console.error(err);
+    alert("❌ Falha de conexão com o servidor.");
+  }
+};
 
   const btnAdicionar = document.getElementById("btnAdicionar");
   if (btnAdicionar) {
