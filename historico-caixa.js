@@ -59,16 +59,13 @@ function renderizarGrafico(dados) {
   const canvas = document.getElementById('graficoHistoricoCompleto');
   const ctx = canvas.getContext('2d');
 
-  canvas.style.height = '380px';
-  canvas.style.width = '100%';
-
   let labels, valoresCaixa1, valoresCaixa2;
 
-  // Se o banco estiver vazio, usa dados simulados para preencher a escala fixa
+  // Se o banco estiver vazio (sensor desligado), inicializa com os dados de teste
   if (!dados || dados.length === 0) {
-    labels = ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00'];
-    valoresCaixa1 = [200, 450, 800, 600, 950, 400, 750];
-    valoresCaixa2 = [100, 250, 400, 300, 500, 200, 350];
+    labels = ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00'];
+    valoresCaixa1 = [200, 450, 800, 600, 950, 400];
+    valoresCaixa2 = [100, 250, 400, 300, 500, 200];
   } else {
     const dadosOrdenados = [...dados].reverse();
     labels = dadosOrdenados.map(d => d.dia);
@@ -114,24 +111,24 @@ function renderizarGrafico(dados) {
       maintainAspectRatio: false,
       layout: {
         padding: {
-          left: 30,  // Folga reforçada à esquerda para garantir que o "0" nunca seja cortado
-          right: 25,
-          top: 25,
-          bottom: 10
+          left: 20,   // Folga lateral esquerda reforçada para o "0" aparecer por completo
+          right: 30,  // Folga lateral direita alargada para o último horário (18:00) não cortar
+          top: 20,
+          bottom: 15  // Folga inferior para o eixo X e o título "Tempo / Data" respirarem
         }
       },
       scales: {
         y: {
-          min: 0,    // Fixa rigorosamente o início em 0 Litros
-          max: 1000, // Fixa rigorosamente o topo em 1000 Litros
+          min: 0,    // Fixa o início rigidamente em 0 Litros
+          max: 1000, // Fixa o teto em 1000 Litros
           grid: { 
-            color: 'rgba(51, 65, 85, 0.6)',
+            color: 'rgba(51, 65, 85, 0.5)',
             drawBorder: false
           },
           ticks: { 
             color: '#94a3b8',
             font: { size: 12 },
-            stepSize: 200 // Força a exibição limpa: 0, 200, 400, 600, 800, 1000
+            stepSize: 200 // Garante os valores inteiros: 0, 200, 400, 600, 800, 1000
           },
           title: {
             display: true,
@@ -146,7 +143,9 @@ function renderizarGrafico(dados) {
           },
           ticks: { 
             color: '#94a3b8',
-            font: { size: 12 }
+            font: { size: 12 },
+            maxRotation: 0,
+            autoSkip: false // Garante que todos os horários (incluindo o 18:00) fiquem visíveis sem saltar
           },
           title: {
             display: true,
