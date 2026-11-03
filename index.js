@@ -47,7 +47,9 @@ async function initDb() {
         tipo VARCHAR(20) DEFAULT 'usuario'
       )
     `);
-
+    await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS nome VARCHAR(255);`);
+    await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS cpf VARCHAR(20);`);
+    await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS endereco TEXT;`);  
     await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS email VARCHAR(100);`);
     await pool.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS telefone VARCHAR(20);`);
 
@@ -329,7 +331,7 @@ app.get('/api/clientes', requererAutenticacao, async (req, res) => {
 });
 
 const criarClienteHandler = async (req, res) => {
-  const { usuario, email, senha } = req.body;
+  const { usuario, email, senha, nome, cpf, telefone, endereco } = req.body;
   const nomeUsuario = usuario || email;
 
   if (!nomeUsuario || !senha) {
@@ -337,9 +339,14 @@ const criarClienteHandler = async (req, res) => {
   }
 
   try {
-    await pool.query("INSERT INTO usuarios (usuario, email, senha, tipo) VALUES ($1, $2, $3, 'usuario')", [nomeUsuario, email || nomeUsuario, senha]);
+    await pool.query(
+      `INSERT INTO usuarios (usuario, email, senha, tipo, nome, cpf, telefone, endereco) 
+       VALUES ($1, $2, $3, 'usuario', $4, $5, $6, $7)`,
+      [nomeUsuario, email || nomeUsuario, senha, nome || null, cpf || null, telefone || null, endereco || null]
+    );
     res.status(201).json({ success: true, message: 'Cliente cadastrado com sucesso!' });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'Erro ao cadastrar cliente no banco.' });
   }
 };
