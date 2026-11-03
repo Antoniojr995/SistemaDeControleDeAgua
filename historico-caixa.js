@@ -59,17 +59,16 @@ function renderizarGrafico(dados) {
   const canvas = document.getElementById('graficoHistoricoCompleto');
   const ctx = canvas.getContext('2d');
 
-  // Garante altura estática adequada para o container não esmagar o gráfico
-  canvas.style.height = '350px';
+  canvas.style.height = '380px';
   canvas.style.width = '100%';
 
   let labels, valoresCaixa1, valoresCaixa2;
 
-  // Se o banco estiver vazio (sensor desligado), os dados ficam zerados
+  // Se o banco estiver vazio, usamos dados de teste com valores maiores para testar a escala inteira
   if (!dados || dados.length === 0) {
     labels = ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00'];
-    valoresCaixa1 = [0, 0, 0, 0, 0, 0, 0];
-    valoresCaixa2 = [0, 0, 0, 0, 0, 0, 0];
+    valoresCaixa1 = [200, 450, 800, 600, 950, 400, 750];
+    valoresCaixa2 = [100, 250, 400, 300, 500, 200, 350];
   } else {
     const dadosOrdenados = [...dados].reverse();
     labels = dadosOrdenados.map(d => d.dia);
@@ -115,23 +114,24 @@ function renderizarGrafico(dados) {
       maintainAspectRatio: false,
       layout: {
         padding: {
-          left: 20,  // Folga generosa à esquerda para ver o 0 perfeitamente
+          left: 20,
           right: 25,
-          top: 25,   // Folga em cima para o pico da linha não cortar
+          top: 25,
           bottom: 10
         }
       },
       scales: {
         y: {
-          beginAtZero: true,
-          grace: '15%', // Cria um espaço extra automático acima e abaixo para evitar cortes nas pontas
+          min: 0, // Força o eixo Y a começar rigidamente em 0, banindo números decimais de 0 a 1
+          suggestedMax: 1000, // Garante teto adequado para caixas d'água de até 1000L
           grid: { 
             color: 'rgba(51, 65, 85, 0.6)',
             drawBorder: false
           },
           ticks: { 
             color: '#94a3b8',
-            font: { size: 12 }
+            font: { size: 12 },
+            stepSize: 200 // Faz os números subirem de 200 em 200 (0, 200, 400, 600, 800, 1000)
           },
           title: {
             display: true,
