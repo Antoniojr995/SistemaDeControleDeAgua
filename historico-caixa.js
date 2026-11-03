@@ -65,7 +65,7 @@ function renderizarGraficoSVG(dados, periodo) {
   
   let labels, valoresCaixa1, valoresCaixa2;
 
-  // Se o banco estiver vazio (sensor desligado), usa dados padrão ajustados ao período
+  // Se o banco estiver vazio, usa dados de exemplo reais abrangendo o ciclo completo
   if (!dados || dados.length === 0) {
     if (periodo === '30d') {
       labels = ['Dia 05', 'Dia 10', 'Dia 15', 'Dia 20', 'Dia 25', 'Dia 30'];
@@ -76,9 +76,10 @@ function renderizarGraficoSVG(dados, periodo) {
       valoresCaixa1 = [300, 500, 700, 650, 800, 750, 900];
       valoresCaixa2 = [150, 250, 400, 350, 450, 400, 500];
     } else {
-      labels = ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00'];
-      valoresCaixa1 = [200, 450, 800, 600, 950, 400];
-      valoresCaixa2 = [100, 250, 400, 300, 500, 200];
+      // 24 Horas completo (de 00:00 até 22:00)
+      labels = ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '23:59'];
+      valoresCaixa1 = [150, 100, 450, 800, 600, 950, 300];
+      valoresCaixa2 = [80,  50,  250, 400, 300, 500, 180];
     }
   } else {
     const dadosOrdenados = [...dados].reverse();
@@ -87,21 +88,20 @@ function renderizarGraficoSVG(dados, periodo) {
     valoresCaixa2 = dadosOrdenados.map(d => Number(d.media_caixa2 || 0));
   }
 
-  // Dimensões do desenho SVG
+  // Dimensões do desenho SVG (aumentamos um pouco o paddingTop para dar folga aos textos dos pontos)
   const width = container.clientWidth || 700;
-  const height = 370;
+  const height = 390;
   const paddingLeft = 60;
-  const paddingRight = 40;
-  const paddingTop = 20;
+  const paddingRight = 50;
+  const paddingTop = 35;
   const paddingBottom = 50;
 
   const graficoWidth = width - paddingLeft - paddingRight;
   const graficoHeight = height - paddingTop - paddingBottom;
 
-  const maxY = 1000; // Escala fixa de 0 a 1000 Litros
+  const maxY = 1000;
   const minY = 0;
 
-  // Função para calcular coordenadas X e Y
   const getX = (index) => {
     if (labels.length === 1) return paddingLeft + graficoWidth / 2;
     return paddingLeft + (index / (labels.length - 1)) * graficoWidth;
@@ -112,7 +112,6 @@ function renderizarGraficoSVG(dados, periodo) {
     return paddingTop + graficoHeight - ((clamped - minY) / (maxY - minY)) * graficoHeight;
   };
 
-  // Gerar linhas da grelha Y e marcações (0, 200, 400, 600, 800, 1000)
   const yTicks = [0, 200, 400, 600, 800, 1000];
   let svgHTML = `<svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}" style="overflow: visible;">`;
 
@@ -130,7 +129,7 @@ function renderizarGraficoSVG(dados, periodo) {
     <text transform="translate(15, ${paddingTop + graficoHeight / 2}) rotate(-90)" fill="#38bdf8" font-size="13" font-weight="bold" text-anchor="middle">Volume (Litros)</text>
   `;
 
-  // Linhas e pontos do Reservatório 2 (Verde)
+  // Área e Linha Reservatório 2 (Verde)
   let ptsRes2 = [];
   valoresCaixa2.forEach((val, i) => {
     ptsRes2.push(`${getX(i)},${getY(val)}`);
@@ -143,7 +142,7 @@ function renderizarGraficoSVG(dados, periodo) {
     <path d="${pathRes2}" fill="none" stroke="#34d399" stroke-width="3" />
   `;
 
-  // Linhas e pontos do Reservatório 1 (Azul)
+  // Área e Linha Reservatório 1 (Azul)
   let ptsRes1 = [];
   valoresCaixa1.forEach((val, i) => {
     ptsRes1.push(`${getX(i)},${getY(val)}`);
@@ -156,12 +155,23 @@ function renderizarGraficoSVG(dados, periodo) {
     <path d="${pathRes1}" fill="none" stroke="#38bdf8" stroke-width="3" />
   `;
 
-  // Desenhar círculos nos pontos de dados de ambos os reservatórios
+  // Desenhar círculos e os VALORES exatos em cima de cada ponto
   valoresCaixa1.forEach((val, i) => {
-    svgHTML += `<circle cx="${getX(i)}" cy="${getY(val)}" r="5" fill="#38bdf8" stroke="#0f172a" stroke-width="2" />`;
+    const x = getX(i);
+    const y = getY(val);
+    svgHTML += `
+      <circle cx="${x}" cy="${y}" r="5" fill="#38bdf8" stroke="#0f172a" stroke-width="2" />
+      <text x="${x}" y="${y - 10}" fill="#38bdf8" font-size="11" font-weight="bold" text-anchor="middle">${val}L</text>
+    `;
   });
+
   valoresCaixa2.forEach((val, i) => {
-    svgHTML += `<circle cx="${getX(i)}" cy="${getY(val)}" r="5" fill="#34d399" stroke="#0f172a" stroke-width="2" />`;
+    const x = getX(i);
+    const y = getY(val);
+    svgHTML += `
+      <circle cx="${x}" cy="${y}" r="5" fill="#34d399" stroke="#0f172a" stroke-width="2" />
+      <text x="${x}" y="${y - 10}" fill="#34d399" font-size="11" font-weight="bold" text-anchor="middle">${val}L</text>
+    `;
   });
 
   // Rótulos do Eixo X (Tempo / Data)
