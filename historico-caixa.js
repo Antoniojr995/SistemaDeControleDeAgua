@@ -64,7 +64,7 @@ function renderizarGrafico(dados) {
 
   let labels, valoresCaixa1, valoresCaixa2;
 
-  // Se o banco estiver vazio, usamos dados de teste com valores maiores para testar a escala inteira
+  // Se o banco estiver vazio, usa dados simulados para preencher a escala fixa
   if (!dados || dados.length === 0) {
     labels = ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00'];
     valoresCaixa1 = [200, 450, 800, 600, 950, 400, 750];
@@ -114,7 +114,7 @@ function renderizarGrafico(dados) {
       maintainAspectRatio: false,
       layout: {
         padding: {
-          left: 20,
+          left: 30,  // Folga reforçada à esquerda para garantir que o "0" nunca seja cortado
           right: 25,
           top: 25,
           bottom: 10
@@ -122,8 +122,8 @@ function renderizarGrafico(dados) {
       },
       scales: {
         y: {
-          min: 0, // Força o eixo Y a começar rigidamente em 0, banindo números decimais de 0 a 1
-          suggestedMax: 1000, // Garante teto adequado para caixas d'água de até 1000L
+          min: 0,    // Fixa rigorosamente o início em 0 Litros
+          max: 1000, // Fixa rigorosamente o topo em 1000 Litros
           grid: { 
             color: 'rgba(51, 65, 85, 0.6)',
             drawBorder: false
@@ -131,7 +131,7 @@ function renderizarGrafico(dados) {
           ticks: { 
             color: '#94a3b8',
             font: { size: 12 },
-            stepSize: 200 // Faz os números subirem de 200 em 200 (0, 200, 400, 600, 800, 1000)
+            stepSize: 200 // Força a exibição limpa: 0, 200, 400, 600, 800, 1000
           },
           title: {
             display: true,
