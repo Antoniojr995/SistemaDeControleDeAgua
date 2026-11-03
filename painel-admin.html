@@ -29,30 +29,11 @@
       </div>
 
       <nav class="sidebar-menu">
-        <!-- Início -->
-        <a href="painel-admin.html" class="nav-item">
-          <i class="fas fa-home"></i> Início / Caixas
-        </a>
-      
-        <!-- Caixas d'Água -->
-        <a href="caixas.html" class="nav-item">
-          <i class="fas fa-database"></i> Caixas d'Água
-        </a>
-      
-        <!-- Clientes -->
-        <a href="clientes.html" class="nav-item">
-          <i class="fas fa-users"></i> Clientes
-        </a>
-      
-        <!-- Cadastros -->
-        <a href="cadastros.html" class="nav-item">
-          <i class="fas fa-clipboard-list"></i> Cadastros
-        </a>
-      
-        <!-- Chamados -->
-        <a href="chamados.html" class="nav-item">
-          <i class="fas fa-bell"></i> Chamados
-        </a>
+        <a href="painel-admin.html" class="nav-item"><i class="fas fa-home"></i> Início / Caixas</a>
+        <a href="caixas.html" class="nav-item"><i class="fas fa-database"></i> Caixas d'Água</a>
+        <a href="clientes.html" class="nav-item"><i class="fas fa-users"></i> Clientes</a>
+        <a href="cadastros.html" class="nav-item"><i class="fas fa-clipboard-list"></i> Cadastros</a>
+        <a href="chamados.html" class="nav-item"><i class="fas fa-bell"></i> Chamados</a>
       </nav>
 
       <div class="sidebar-bottom">
@@ -110,7 +91,6 @@
       </div>
 
       <!-- 📦 ABA 1: Caixas d'Água -->
-      <!-- 📦 ABA 1: Caixas d'Água -->
       <div id="abaCaixas" class="camada-conteudo">
         <div class="card-form-dark">
           <div class="form-header-title">
@@ -131,12 +111,10 @@
             <h4 style="color: #00d2ff; margin-top: 15px; border-bottom: 1px solid #333; padding-bottom: 5px;">
               <i class="fa-solid fa-box"></i> Configuração da Caixa 1
             </h4>
-
             <div class="field-box">
               <label>Nome da Caixa 1:</label>
               <input type="text" id="nomeCaixa1" value="Caixa Principal (Bloco A)" class="select-glow" required>
             </div>
-
             <div class="grid-2-col">
               <div class="field-box">
                 <label><i class="fa-solid fa-droplet"></i> Capacidade (L):</label>
@@ -145,7 +123,6 @@
                   <span>L</span>
                 </div>
               </div>
-
               <div class="field-box">
                 <label><i class="fa-solid fa-ruler-vertical"></i> Altura do Sensor (cm):</label>
                 <div class="input-with-suffix">
@@ -159,12 +136,10 @@
             <h4 style="color: #00d2ff; margin-top: 15px; border-bottom: 1px solid #333; padding-bottom: 5px;">
               <i class="fa-solid fa-box"></i> Configuração da Caixa 2
             </h4>
-
             <div class="field-box">
               <label>Nome da Caixa 2:</label>
               <input type="text" id="nomeCaixa2" value="Caixa Secundária (Bloco B)" class="select-glow" required>
             </div>
-
             <div class="grid-2-col">
               <div class="field-box">
                 <label><i class="fa-solid fa-droplet"></i> Capacidade (L):</label>
@@ -173,7 +148,6 @@
                   <span>L</span>
                 </div>
               </div>
-
               <div class="field-box">
                 <label><i class="fa-solid fa-ruler-vertical"></i> Altura do Sensor (cm):</label>
                 <div class="input-with-suffix">
@@ -195,8 +169,6 @@
             <i class="fa-solid fa-list"></i>
             <h3>Caixas Cadastradas no Sistema</h3>
           </div>
-          
-          <h4 class="table-head-title">Tabela Resumo</h4>
           <div class="table-container-dark">
             <table class="table-dark-custom">
               <thead>
@@ -216,53 +188,56 @@
         </div>
       </div>
 
-      <!-- 👥 ABA 2: Clientes -->
+      <!-- 👥 ABA 2: Clientes (Agora unificada: Adicionar + Listar) -->
       <div id="abaClientes" class="camada-conteudo" style="display:none;">
-        <div class="card-form-dark">
-          <h3>👥 Gerenciamento de Clientes</h3>
-          <div id="listaClientes">
-            <p>Carregando clientes...</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- 📝 ABA 3: Registros -->
-      <div id="abaRegistros" class="camada-conteudo" style="display:none;">
-        <div class="grid-3-cards">
+        <div class="grid-2-col" style="grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;">
+          
+          <!-- Coluna Esquerda: Cadastrar Cliente -->
           <div class="card-form-dark">
-            <h3>👤 Cadastrar Cliente</h3>
-            <form id="formNovoCliente" class="column-form">
-              <input type="text" id="novoClienteNome" placeholder="Nome do Cliente" class="select-glow">
-              <input type="email" id="novoClienteEmail" placeholder="E-mail" required class="select-glow">
-              <input type="password" id="novoClienteSenha" placeholder="Senha" required class="select-glow">
-              <button type="button" id="btnCadastrarCliente" class="btn-cyan-glow">Cadastrar Cliente</button>
+            <h3><i class="fa-solid fa-user-plus"></i> Adicionar Cliente</h3>
+            <form id="formNovoCliente" class="column-form" style="margin-top: 15px;">
+              <input type="email" id="novoClienteEmail" placeholder="E-mail de Acesso" required class="select-glow">
+              <input type="password" id="novoClienteSenha" placeholder="Senha Inicial" required class="select-glow">
+              <button type="button" id="btnCadastrarCliente" class="btn-cyan-glow" style="margin-top: 10px;">
+                <i class="fa-solid fa-plus"></i> Cadastrar Cliente
+              </button>
             </form>
           </div>
 
+          <!-- Coluna Direita: Listar Clientes -->
+          <div class="card-form-dark">
+            <h3><i class="fa-solid fa-users"></i> Clientes Cadastrados</h3>
+            <div id="listaClientes" style="margin-top: 15px; max-height: 450px; overflow-y: auto;">
+              <p>Carregando clientes...</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 📝 ABA 3: Registros (Apenas Caixas e Associações) -->
+      <div id="abaRegistros" class="camada-conteudo" style="display:none;">
+        <div class="grid-3-cards" style="grid-template-columns: 1fr 1fr;">
+          
           <div class="card-form-dark">
             <h3>📦 Criar Nova Caixa</h3>
             <div class="column-form">
-              
-              <!-- Seleção de Cliente -->
               <select id="selectClienteCriar" class="select-glow">
                 <option value="">Vincular a um cliente (Opcional)...</option>
               </select>
-          
               <hr style="border-color: rgba(255, 255, 255, 0.1); margin: 10px 0;">
-          
-              <!-- CAIXA 1 -->
+              
               <h4 style="color: #00f2fe; margin-bottom: 5px;">Caixa 1</h4>
-              <input id="nomeCaixa1" placeholder="Ex: Caixa Superior" class="select-glow" required>
-              <input type="number" id="capCaixa1" placeholder="Capacidade (L) ex: 1000" class="select-glow" required>
-              <input type="number" id="altCaixa1" placeholder="Altura Sensor (cm) ex: 100" class="select-glow" required>
+              <input id="nomeCaixaRegistros1" placeholder="Ex: Caixa Superior" class="select-glow" required>
+              <input type="number" id="capCaixaRegistros1" placeholder="Capacidade (L) ex: 1000" class="select-glow" required>
+              <input type="number" id="altCaixaRegistros1" placeholder="Altura Sensor (cm) ex: 100" class="select-glow" required>
           
               <hr style="border-color: rgba(255, 255, 255, 0.1); margin: 10px 0;">
           
-              <!-- CAIXA 2 -->
               <h4 style="color: #00f2fe; margin-bottom: 5px;">Caixa 2</h4>
-              <input id="nomeCaixa2" placeholder="Ex: Caixa Inferior" class="select-glow">
-              <input type="number" id="capCaixa2" placeholder="Capacidade (L) ex: 500" class="select-glow">
-              <input type="number" id="altCaixa2" placeholder="Altura Sensor (cm) ex: 100" class="select-glow">
+              <input id="nomeCaixaRegistros2" placeholder="Ex: Caixa Inferior" class="select-glow">
+              <input type="number" id="capCaixaRegistros2" placeholder="Capacidade (L) ex: 500" class="select-glow">
+              <input type="number" id="altCaixaRegistros2" placeholder="Altura Sensor (cm) ex: 100" class="select-glow">
           
               <button id="btnAdicionar" class="btn-cyan-glow" style="margin-top: 15px;">Adicionar Caixas</button>
             </div>
@@ -277,9 +252,10 @@
               <select id="selectClienteAssociar" class="select-glow">
                 <option value="">Selecione o Cliente...</option>
               </select>
-              <button id="btnAssociar" class="btn-cyan-glow">Associar Caixa</button>
+              <button id="btnAssociar" class="btn-cyan-glow" style="margin-top: 15px;">Associar Caixa</button>
             </div>
           </div>
+
         </div>
       </div>
 

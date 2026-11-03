@@ -30,9 +30,11 @@ function mudarAba(idAba) {
 
   if (idAba === "abaCaixas") {
     carregarCaixas();
-    carregarClientesSelectAdmin(); // Carrega clientes no select de cadastro/configuração
+    carregarClientesSelectAdmin();
   }
-  if (idAba === "abaClientes") carregarClientes();
+  if (idAba === "abaClientes") {
+    carregarClientes(); // Carrega a lista atualizada de clientes
+  }
   if (idAba === "abaRegistros") carregarSelectsFormularios();
   if (idAba === "abaChamados") carregarChamados();
 }
