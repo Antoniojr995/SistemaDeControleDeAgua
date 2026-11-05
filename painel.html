@@ -49,7 +49,7 @@
         </div>
         <div class="header-actions">
           <select id="selectIdReservatorio" class="select-id">
-            <option value="01">ID: 01</option>
+            <option value="">A carregar...</option>
           </select>
           <button id="btnAbrirChamado" class="btn-chamado" onclick="abrirModal('modalChamado')">⚠️ Abrir Chamado / Suporte</button>
           <button id="btnPerfil" class="btn-perfil" onclick="abrirModalPerfil()">👤 Meu Perfil</button>
@@ -176,23 +176,18 @@
             <span class="switch-label">Ligar Bomba</span>
           </div>
 
-          <button id="btnAtualizarAgora" class="btn-atualizar" onclick="carregarDadosPainel()">🔄 Atualizar Agora</button>
+          <button id="btnAtualizarAgora" class="btn-atualizar">🔄 Atualizar Agora</button>
         </div>
 
       </section>
 
       <!-- HISTÓRICO E GRÁFICO -->
       <section class="grid-historico">
-        
         <div class="card-grafico">
           <div class="grafico-header">
             <div style="display:flex; align-items:center; gap:8px;">
               <span>📈</span>
               <h3>Histórico e Gráfico (Níveis em %)</h3>
-            </div>
-            <div class="legendas">
-              <span class="leg-c1">● Caixa 1</span>
-              <span class="leg-c2">● Caixa 2</span>
             </div>
           </div>
           <div class="chart-container">
@@ -220,49 +215,15 @@
               </tr>
             </tbody>
           </table>
-          <a href="historico.html" class="ver-todas">Ver histórico completo →</a>
         </div>
-
       </section>
 
     </main>
-
-  </div>
-
-  <!-- MODAL CHAMADO -->
-  <div id="modalChamado" class="modal" style="display: none;">
-    <div class="modal-content">
-      <h3>⚠️ Abrir Chamado / Suporte</h3>
-      <p>Descreva seu problema com o sistema de água</p>
-      
-      <form onsubmit="enviarAlertaTecnico(event)">
-        <div class="form-group" style="margin-bottom: 12px; text-align: left;">
-          <label for="alertaTipo" style="display:block; margin-bottom: 4px; font-size: 0.85rem; color: #94a3b8;">Tipo de Problema:</label>
-          <select id="alertaTipo" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid #1e293b;">
-            <option value="Vazamento">Vazamento</option>
-            <option value="Bomba não liga">Bomba não liga</option>
-            <option value="Erro na leitura do nível">Erro na leitura do nível</option>
-            <option value="Outro problema">Outro problema</option>
-          </select>
-        </div>
-
-        <div class="form-group" style="margin-bottom: 15px; text-align: left;">
-          <label for="alertaMensagem" style="display:block; margin-bottom: 4px; font-size: 0.85rem; color: #94a3b8;">Descrição:</label>
-          <textarea id="alertaMensagem" rows="4" style="width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid #1e293b;" placeholder="Explique detalhadamente..." required></textarea>
-        </div>
-
-        <div style="display: flex; gap: 10px; justify-content: flex-end;">
-          <button type="button" onclick="fecharModal('modalChamado')" style="padding: 8px 16px; border-radius: 6px; background: #334155; color: #fff; border: none; cursor: pointer;">Fechar</button>
-          <button type="submit" style="padding: 8px 16px; border-radius: 6px; background: #0284c7; color: #fff; border: none; cursor: pointer;">Enviar Chamado</button>
-        </div>
-      </form>
-    </div>
   </div>
 
   <!-- MODAL PERFIL -->
   <div id="modalPerfil" class="modal" style="display: none;">
     <div class="modal-content perfil-modal-box">
-      
       <div class="modal-header-custom">
         <div class="avatar-icon">👤</div>
         <div>
@@ -270,29 +231,43 @@
           <p>Informações da conta vinculada</p>
         </div>
       </div>
-      
-      <div class="modal-body-custom">
-        <div class="info-card-item">
-          <span class="info-label">👤 Nome / Usuário</span>
-          <strong class="info-value" id="perfilNome">Carregando...</strong>
+      <div class="modal-body-custom" style="padding: 15px 0;">
+        <div class="info-card-item" style="margin-bottom: 10px;">
+          <span>👤 Nome / Usuário: </span><strong id="perfilNome">Carregando...</strong>
         </div>
-
         <div class="info-card-item">
-          <span class="info-label">✉️ E-mail</span>
-          <strong class="info-value" id="perfilEmail">Carregando...</strong>
-        </div>
-
-        <div class="info-card-item">
-          <span class="info-label">🛢️ Reservatórios Vinculados</span>
-          <strong class="info-value highlight" id="perfilCaixaId">2 Caixas Ativas</strong>
+          <span>✉️ E-mail: </span><strong id="perfilEmail">Carregando...</strong>
         </div>
       </div>
-
       <div class="modal-footer-custom">
-        <a href="configuracoes.html" class="btn-config-link">⚙️ Ir para Configurações</a>
         <button type="button" class="btn-fechar-modal" onclick="fecharModal('modalPerfil')">Fechar</button>
       </div>
+    </div>
+  </div>
 
+  <!-- MODAL CHAMADO -->
+  <div id="modalChamado" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h3>⚠️ Abrir Chamado / Suporte</h3>
+      <form onsubmit="enviarAlertaTecnico(event)">
+        <div style="margin-bottom: 12px; text-align: left;">
+          <label>Tipo de Problema:</label>
+          <select id="alertaTipo" style="width: 100%; padding: 8px; background: #0f172a; color: #fff; border-radius: 6px;">
+            <option value="Vazamento">Vazamento</option>
+            <option value="Bomba não liga">Bomba não liga</option>
+            <option value="Erro na leitura">Erro na leitura do nível</option>
+            <option value="Outro">Outro problema</option>
+          </select>
+        </div>
+        <div style="margin-bottom: 15px; text-align: left;">
+          <label>Descrição:</label>
+          <textarea id="alertaMensagem" rows="4" style="width: 100%; padding: 8px; background: #0f172a; color: #fff; border-radius: 6px;" required></textarea>
+        </div>
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          <button type="button" onclick="fecharModal('modalChamado')" style="padding: 8px 16px; background: #334155; color: #fff; border: none; border-radius: 6px; cursor: pointer;">Fechar</button>
+          <button type="submit" style="padding: 8px 16px; background: #0284c7; color: #fff; border: none; border-radius: 6px; cursor: pointer;">Enviar</button>
+        </div>
+      </form>
     </div>
   </div>
 
