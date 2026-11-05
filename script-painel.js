@@ -8,11 +8,12 @@ async function verificarSessao() {
     const res = await fetch(API_BASE + "/api/usuario-atual", { credentials: "same-origin" });
     const data = await res.json();
 
-    if (!data.logado || data.tipo !== "admin") {
+    if (!data.logado) {
       window.location.href = "index.html";
       return;
     }
 
+    // Se for admin, exibe o nome na topbar se houver o elemento
     const adminNomeEl = document.getElementById("adminNome");
     if (adminNomeEl) adminNomeEl.textContent = data.usuario || "Admin";
   } catch (err) {
@@ -20,7 +21,6 @@ async function verificarSessao() {
     window.location.href = "index.html";
   }
 }
-
 // =======================
 // 🧭 NAVEGAÇÃO POR ABAS
 // =======================
